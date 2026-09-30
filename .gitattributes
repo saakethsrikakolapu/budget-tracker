@@ -1,0 +1,7 @@
+# Normalize line endings so Windows and Linux (CI) see identical files
+* text=auto
+
+# Shell scripts (e.g. Maven's mvnw) must keep LF or they fail on Linux
+*.sh   text eol=lf
+mvnw   text eol=lf
+*.cmd  text eol=crlf
