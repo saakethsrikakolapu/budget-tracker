@@ -6,7 +6,7 @@ Upload bank or credit card CSV files; the app categorizes transactions, tracks m
 
 ## Tech stack
 
-- **Backend:** Java 21, Spring Boot, Spring Data JPA, PostgreSQL, Flyway
+- **Backend:** Java 25, Spring Boot 4, Spring Data JPA, PostgreSQL, Flyway
 - **Frontend:** React, TypeScript, Vite, Tailwind CSS, Recharts
 - **Dev and CI:** Docker Compose, GitHub Actions
 
