@@ -1,0 +1,21 @@
+# Local development database. Start: docker compose up -d   Stop: docker compose down
+# Values come from .env (copy .env.example to .env first).
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432" # only reachable from this computer, not the network
+    volumes:
+      - pgdata:/var/lib/postgresql # keeps data when the container is recreated
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
