@@ -1,5 +1,7 @@
 # Budget Tracker
 
+[![CI](https://github.com/saakethsrikakolapu/budget-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/saakethsrikakolapu/budget-tracker/actions/workflows/ci.yml)
+
 A privacy-first budget tracker for students. No bank login, just upload your statements.
 
 Upload bank or credit card CSV files; the app categorizes transactions, tracks monthly budgets, and detects recurring charges. It never connects to your bank account.
