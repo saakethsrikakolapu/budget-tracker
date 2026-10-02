@@ -12,15 +12,16 @@ Upload bank or credit card CSV files; the app categorizes transactions, tracks m
 
 ## Run locally
 
-Requires Java 25 and Docker.
+Requires Java 25, Node 22+, and Docker.
 
 ```bash
 cp .env.example .env            # then set DB_PASSWORD in .env
 docker compose up -d            # start Postgres
-cd backend && ./mvnw spring-boot:run
+cd backend && ./mvnw spring-boot:run          # terminal 1: API on :8080
+cd frontend && npm install && npm run dev     # terminal 2: app on :5173
 ```
 
-Check it: http://localhost:8080/api/health returns `{"status":"UP","database":"UP"}`.
+Open http://localhost:5173. The API alone: http://localhost:8080/api/health returns `{"status":"UP","database":"UP"}`.
 
 Tests (`./mvnw test`) start their own throwaway Postgres with Testcontainers, so they only need Docker running.
 
