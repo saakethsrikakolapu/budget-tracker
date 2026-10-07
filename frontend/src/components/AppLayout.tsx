@@ -24,6 +24,9 @@ export function AppLayout() {
             <NavLink to="/" end className={linkClass}>
               Transactions
             </NavLink>
+            <NavLink to="/categories" className={linkClass}>
+              Categories
+            </NavLink>
             <NavLink to="/import" className={linkClass}>
               Upload statement
             </NavLink>

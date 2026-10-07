@@ -1,6 +1,7 @@
 package com.saaketh.budget.auth;
 
 import com.saaketh.budget.auth.AuthDtos.RegisterRequest;
+import com.saaketh.budget.category.CategoryService;
 import com.saaketh.budget.user.User;
 import com.saaketh.budget.user.UserRepository;
 import java.nio.charset.StandardCharsets;
@@ -19,10 +20,13 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CategoryService categoryService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+            CategoryService categoryService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.categoryService = categoryService;
     }
 
     @Transactional
@@ -35,14 +39,18 @@ public class AuthService {
         if (userRepository.existsByEmail(email)) {
             throw new EmailAlreadyRegisteredException();
         }
+        User user;
         try {
             // saveAndFlush sends the INSERT now, so a unique-constraint violation surfaces here.
-            return userRepository.saveAndFlush(new User(email, passwordEncoder.encode(request.password())));
+            user = userRepository.saveAndFlush(new User(email, passwordEncoder.encode(request.password())));
         } catch (DataIntegrityViolationException e) {
             // Two sign-ups with the same email at the same moment: the database's unique
             // constraint lets only one through.
             throw new EmailAlreadyRegisteredException();
         }
+        // Same transaction: if this fails, the new user isn't saved either.
+        categoryService.createDefaults(user.getId());
+        return user;
     }
 
     /** "  Saaketh@Gmail.com " and "saaketh@gmail.com" are the same account. */

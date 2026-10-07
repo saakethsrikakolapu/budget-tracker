@@ -46,6 +46,10 @@ public class Transaction {
     @Column(name = "bank_category")
     private String bankCategory;
 
+    /** The user's category; null means Uncategorized. */
+    @Column(name = "category_id")
+    private Long categoryId;
+
     /** See TransactionFingerprint: identifies "the same purchase" for duplicate detection. */
     @Column(nullable = false, updatable = false)
     private String fingerprint;
@@ -109,6 +113,10 @@ public class Transaction {
 
     public String getBankCategory() {
         return bankCategory;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
     }
 
     public String getFingerprint() {

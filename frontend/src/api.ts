@@ -18,6 +18,15 @@ export type Account = {
   name: string
 }
 
+/** Mirrors CategoryController.CategoryResponse. */
+export type Category = {
+  id: number
+  name: string
+  /** False for e.g. "Payments & Transfers", which budgets and spending totals leave out. */
+  countsAsSpending: boolean
+  transactionCount: number
+}
+
 /** Mirrors ImportService.ImportResult. importBatchId is null when every row was already imported. */
 export type ImportResult = {
   importBatchId: number | null
@@ -206,6 +215,23 @@ export function uploadStatement(accountId: number, file: File): Promise<ImportRe
 
 export function fetchImports(): Promise<ImportSummary[]> {
   return apiFetch<ImportSummary[]>('/api/imports')
+}
+
+export function fetchCategories(): Promise<Category[]> {
+  return apiFetch<Category[]>('/api/categories')
+}
+
+export function createCategory(name: string, countsAsSpending: boolean): Promise<Category> {
+  return apiFetch<Category>('/api/categories', { method: 'POST', body: { name, countsAsSpending } })
+}
+
+export function updateCategory(id: number, name: string, countsAsSpending: boolean): Promise<Category> {
+  return apiFetch<Category>(`/api/categories/${id}`, { method: 'PUT', body: { name, countsAsSpending } })
+}
+
+/** Its transactions become Uncategorized; they are not deleted. */
+export function deleteCategory(id: number): Promise<void> {
+  return apiFetch<void>(`/api/categories/${id}`, { method: 'DELETE' })
 }
 
 export function fetchTransactions(filter: TransactionFilter): Promise<TransactionPage> {

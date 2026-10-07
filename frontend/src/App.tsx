@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router'
 import { RequireAuth } from './auth/RequireAuth'
 import { AppLayout } from './components/AppLayout'
+import { CategoriesPage } from './pages/CategoriesPage'
 import { ImportPage } from './pages/ImportPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -23,6 +24,7 @@ function App() {
       >
         <Route path="/" element={<TransactionsPage />} />
         <Route path="/import" element={<ImportPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
       </Route>
 
       {/* Unknown URL: go home (which redirects to /login if logged out). */}
