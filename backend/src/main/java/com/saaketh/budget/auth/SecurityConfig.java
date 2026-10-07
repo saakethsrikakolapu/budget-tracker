@@ -42,6 +42,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.spa())
                 // Not logged in -> plain 401 (instead of redirecting to an HTML login page).
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                // By default a denied request is saved in a new session so a login page can redirect
+                // back to it. React handles navigation, so that only creates a useless session row
+                // for every anonymous visit (including bots).
+                .requestCache(cache -> cache.disable())
                 // We have our own JSON login endpoint (AuthController), so turn off Spring's built-in forms.
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

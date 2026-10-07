@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://budget-tracker-api.onrender.com/api/:path*"
+      "destination": "https://budget-tracker-api-rj16.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",

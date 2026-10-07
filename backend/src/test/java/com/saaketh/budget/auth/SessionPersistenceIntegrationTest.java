@@ -67,6 +67,16 @@ class SessionPersistenceIntegrationTest {
         assertThat(sessionsFor(email)).as("session row deleted on logout").isZero();
     }
 
+    @Test
+    void anonymousRequestsDoNotCreateSessions() throws Exception {
+        Integer before = jdbcTemplate.queryForObject("SELECT count(*) FROM spring_session", Integer.class);
+
+        var response = mockMvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized()).andReturn().getResponse();
+
+        assertThat(response.getCookie("SESSION")).as("no session cookie for a denied anonymous request").isNull();
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM spring_session", Integer.class)).isEqualTo(before);
+    }
+
     private int sessionsFor(String email) {
         return jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM spring_session WHERE principal_name = ?", Integer.class, email);
