@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router'
 import { RequireAuth } from './auth/RequireAuth'
+import { AppLayout } from './components/AppLayout'
 import { HomePage } from './pages/HomePage'
+import { ImportPage } from './pages/ImportPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 
@@ -10,14 +12,19 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+
+      {/* Logged-in pages: checked once by RequireAuth, wrapped in the shared header/footer. */}
       <Route
-        path="/"
         element={
           <RequireAuth>
-            <HomePage />
+            <AppLayout />
           </RequireAuth>
         }
-      />
+      >
+        <Route path="/" element={<HomePage />} />
+        <Route path="/import" element={<ImportPage />} />
+      </Route>
+
       {/* Unknown URL: go home (which redirects to /login if logged out). */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

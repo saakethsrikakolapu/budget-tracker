@@ -12,18 +12,36 @@ export type User = {
   email: string
 }
 
+/** Mirrors AccountController.AccountResponse. */
+export type Account = {
+  id: number
+  name: string
+}
+
+/** Mirrors ImportService.ImportResult. */
+export type ImportResult = {
+  importBatchId: number
+  accountId: number
+  fileName: string
+  importedCount: number
+}
+
 /**
  * An error response from the backend, parsed from its ProblemDetail JSON, e.g.
  * {"status":400,"detail":"Invalid request","errors":{"password":"Password must be 8 to 72 characters"}}
  */
 export class ApiError extends Error {
   readonly status: number
+  /** Per-field messages for forms, e.g. { password: "..." }. */
   readonly fieldErrors: Record<string, string>
+  /** Per-row messages for statement imports, e.g. ["Line 7: ..."]. */
+  readonly rowErrors: string[]
 
-  constructor(status: number, message: string, fieldErrors: Record<string, string> = {}) {
+  constructor(status: number, message: string, fieldErrors: Record<string, string> = {}, rowErrors: string[] = []) {
     super(message)
     this.status = status
     this.fieldErrors = fieldErrors
+    this.rowErrors = rowErrors
   }
 }
 
@@ -49,12 +67,15 @@ async function ensureCsrfToken(): Promise<string | undefined> {
 
 /**
  * fetch() plus: JSON request bodies, the CSRF header on unsafe methods, and errors thrown as ApiError.
+ * A FormData body (file upload) is sent as multipart/form-data instead of JSON.
  */
 export async function apiFetch<T>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
   const method = options.method ?? 'GET'
   const headers: Record<string, string> = {}
+  const isFormData = options.body instanceof FormData
 
-  if (options.body !== undefined) {
+  // For FormData, the browser sets Content-Type itself (including the multipart boundary).
+  if (options.body !== undefined && !isFormData) {
     headers['Content-Type'] = 'application/json'
   }
   if (UNSAFE_METHODS.includes(method)) {
@@ -67,12 +88,17 @@ export async function apiFetch<T>(path: string, options: { method?: string; body
   const response = await fetch(path, {
     method,
     headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body: isFormData ? (options.body as FormData) : options.body === undefined ? undefined : JSON.stringify(options.body),
   })
 
   if (!response.ok) {
     const problem = await response.json().catch(() => ({}))
-    throw new ApiError(response.status, problem.detail ?? `Request failed (HTTP ${response.status})`, problem.errors)
+    throw new ApiError(
+      response.status,
+      problem.detail ?? `Request failed (HTTP ${response.status})`,
+      problem.errors,
+      problem.rowErrors,
+    )
   }
   // Some endpoints (like logout) return no body.
   const text = await response.text()
@@ -111,4 +137,19 @@ export function register(email: string, password: string): Promise<User> {
 
 export function logout(): Promise<void> {
   return apiFetch<void>('/api/auth/logout', { method: 'POST' })
+}
+
+export function fetchAccounts(): Promise<Account[]> {
+  return apiFetch<Account[]>('/api/accounts')
+}
+
+export function createAccount(name: string): Promise<Account> {
+  return apiFetch<Account>('/api/accounts', { method: 'POST', body: { name } })
+}
+
+export function uploadStatement(accountId: number, file: File): Promise<ImportResult> {
+  const form = new FormData()
+  form.append('accountId', String(accountId))
+  form.append('file', file)
+  return apiFetch<ImportResult>('/api/imports', { method: 'POST', body: form })
 }

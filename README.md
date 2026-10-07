@@ -25,6 +25,8 @@ cd frontend && npm install && npm run dev     # terminal 2: app on :5173
 
 Open http://localhost:5173. The API alone: http://localhost:8080/api/health returns `{"status":"UP","database":"UP"}`.
 
+To try an import, create an account and upload [`samples/capital-one-credit-card.csv`](samples/capital-one-credit-card.csv) (fake data).
+
 Tests (`./mvnw test`) start their own throwaway Postgres with Testcontainers, so they only need Docker running.
 
 ## Status
