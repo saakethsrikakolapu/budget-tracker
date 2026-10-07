@@ -6,6 +6,8 @@ A privacy-first budget tracker for students. No bank login, just upload your sta
 
 Upload bank or credit card CSV files; the app categorizes transactions, tracks monthly budgets, and detects recurring charges. It never connects to your bank account.
 
+**Live demo:** https://budget-tracker-saaketh1.vercel.app (free hosting; the first visit may take about a minute while the server wakes up). Try it with the [sample statement](samples/capital-one-credit-card.csv).
+
 ## Tech stack
 
 - **Backend:** Java 25, Spring Boot 4, Spring Data JPA, PostgreSQL, Flyway
@@ -41,4 +43,6 @@ Backend environment variables: `DATABASE_URL` (JDBC URL with `sslmode=require`),
 
 ## Status
 
-Early development. Stage 0: connecting frontend, backend, and database.
+Working today: accounts with secure login, Capital One credit card CSV import with duplicate detection and undo, and a searchable transaction list with monthly totals.
+
+Next: custom categories with auto-categorization rules, monthly budgets, and dashboard charts.
