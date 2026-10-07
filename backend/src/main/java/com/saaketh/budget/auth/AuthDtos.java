@@ -15,8 +15,11 @@ public final class AuthDtos {
      * everything past 72 bytes. AuthService also checks the byte length for non-ASCII input.
      */
     public record RegisterRequest(
-            @NotBlank @Email @Size(max = 254) String email,
-            @NotBlank @Size(min = 8, max = 72) String password) {
+            @NotBlank(message = "Email is required")
+            @Email(message = "Enter a valid email address")
+            @Size(max = 254, message = "Email is too long") String email,
+            @NotBlank(message = "Password is required")
+            @Size(min = 8, max = 72, message = "Password must be 8 to 72 characters") String password) {
 
         /** Compact constructor: runs on creation, before validation. Strips copy-paste spaces. */
         public RegisterRequest {
@@ -25,8 +28,8 @@ public final class AuthDtos {
     }
 
     public record LoginRequest(
-            @NotBlank @Size(max = 254) String email,
-            @NotBlank @Size(max = 72) String password) {
+            @NotBlank(message = "Email is required") @Size(max = 254) String email,
+            @NotBlank(message = "Password is required") @Size(max = 72) String password) {
 
         public LoginRequest {
             email = email == null ? null : email.trim();
