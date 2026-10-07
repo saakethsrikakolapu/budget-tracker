@@ -137,14 +137,15 @@ export function TransactionsPage() {
 
         <form onSubmit={handleSearch} className="flex items-end gap-2">
           <label className="block">
-            <span className="text-xs font-medium text-slate-600">Search</span>
+            <span className="text-xs font-medium text-slate-600">Merchant</span>
+            {/* Searches the Description column only; category filtering comes in Stage 2. */}
             <input
               type="search"
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
-              placeholder="e.g. coffee"
+              placeholder="Search by merchant name"
               maxLength={100}
-              className="mt-1 block w-48 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 block w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm"
             />
           </label>
           <button type="submit" className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">
