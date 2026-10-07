@@ -8,16 +8,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.saaketh.budget.auth.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(HealthController.class)
+@Import(SecurityConfig.class) // use our real security rules (health is public), not Boot's defaults
 class HealthControllerTest {
 
     @Autowired
@@ -25,6 +29,10 @@ class HealthControllerTest {
 
     @MockitoBean
     private JdbcTemplate jdbcTemplate;
+
+    /** SecurityConfig needs one; this test never logs in, so a mock is enough. */
+    @MockitoBean
+    private UserDetailsService userDetailsService;
 
     @Test
     void healthReturnsUpWhenDatabaseResponds() throws Exception {
