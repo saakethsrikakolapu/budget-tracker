@@ -18,12 +18,25 @@ export type Account = {
   name: string
 }
 
-/** Mirrors ImportService.ImportResult. */
+/** Mirrors ImportService.ImportResult. importBatchId is null when every row was already imported. */
 export type ImportResult = {
-  importBatchId: number
+  importBatchId: number | null
   accountId: number
   fileName: string
   importedCount: number
+  skippedCount: number
+}
+
+/** Mirrors ImportService.ImportSummary: one row of import history. */
+export type ImportSummary = {
+  id: number
+  accountId: number
+  accountName: string
+  fileName: string
+  importedCount: number
+  skippedCount: number
+  /** ISO timestamp, e.g. "2026-10-07T15:09:52.123Z" */
+  createdAt: string
 }
 
 /**
@@ -152,4 +165,13 @@ export function uploadStatement(accountId: number, file: File): Promise<ImportRe
   form.append('accountId', String(accountId))
   form.append('file', file)
   return apiFetch<ImportResult>('/api/imports', { method: 'POST', body: form })
+}
+
+export function fetchImports(): Promise<ImportSummary[]> {
+  return apiFetch<ImportSummary[]>('/api/imports')
+}
+
+/** Undo an import: deletes it and the transactions it added. */
+export function deleteImport(id: number): Promise<void> {
+  return apiFetch<void>(`/api/imports/${id}`, { method: 'DELETE' })
 }

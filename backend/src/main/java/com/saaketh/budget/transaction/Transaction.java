@@ -46,6 +46,14 @@ public class Transaction {
     @Column(name = "bank_category")
     private String bankCategory;
 
+    /** See TransactionFingerprint: identifies "the same purchase" for duplicate detection. */
+    @Column(nullable = false, updatable = false)
+    private String fingerprint;
+
+    /** 1 for the first copy of a purchase in this account, 2 for an identical second purchase, ... */
+    @Column(nullable = false, updatable = false)
+    private int occurrence;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -53,7 +61,7 @@ public class Transaction {
     }
 
     public Transaction(Long userId, Long accountId, Long importBatchId, LocalDate transactionDate,
-            LocalDate postedDate, String description, BigDecimal amount, String bankCategory) {
+            LocalDate postedDate, String description, BigDecimal amount, String bankCategory, int occurrence) {
         this.userId = userId;
         this.accountId = accountId;
         this.importBatchId = importBatchId;
@@ -62,6 +70,8 @@ public class Transaction {
         this.description = description;
         this.amount = amount;
         this.bankCategory = bankCategory;
+        this.fingerprint = TransactionFingerprint.of(transactionDate, amount, description);
+        this.occurrence = occurrence;
         this.createdAt = Instant.now();
     }
 
@@ -99,5 +109,13 @@ public class Transaction {
 
     public String getBankCategory() {
         return bankCategory;
+    }
+
+    public String getFingerprint() {
+        return fingerprint;
+    }
+
+    public int getOccurrence() {
+        return occurrence;
     }
 }

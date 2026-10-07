@@ -26,8 +26,13 @@ public class ImportBatch {
     @Column(name = "file_name", nullable = false)
     private String fileName;
 
+    /** Transactions this import added. */
     @Column(name = "row_count", nullable = false)
     private int rowCount;
+
+    /** Rows skipped because they were already imported. */
+    @Column(name = "skipped_count", nullable = false)
+    private int skippedCount;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -35,11 +40,12 @@ public class ImportBatch {
     protected ImportBatch() {
     }
 
-    public ImportBatch(Long userId, Long accountId, String fileName, int rowCount) {
+    public ImportBatch(Long userId, Long accountId, String fileName, int rowCount, int skippedCount) {
         this.userId = userId;
         this.accountId = accountId;
         this.fileName = fileName;
         this.rowCount = rowCount;
+        this.skippedCount = skippedCount;
         this.createdAt = Instant.now();
     }
 
@@ -61,6 +67,10 @@ public class ImportBatch {
 
     public int getRowCount() {
         return rowCount;
+    }
+
+    public int getSkippedCount() {
+        return skippedCount;
     }
 
     public Instant getCreatedAt() {

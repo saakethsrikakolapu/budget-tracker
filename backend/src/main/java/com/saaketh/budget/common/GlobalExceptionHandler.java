@@ -3,6 +3,7 @@ package com.saaketh.budget.common;
 import com.saaketh.budget.account.AccountNameTakenException;
 import com.saaketh.budget.auth.EmailAlreadyRegisteredException;
 import com.saaketh.budget.auth.InvalidPasswordException;
+import com.saaketh.budget.imports.ImportConflictException;
 import com.saaketh.budget.imports.InvalidUploadException;
 import com.saaketh.budget.imports.parser.StatementParseException;
 import java.util.LinkedHashMap;
@@ -71,6 +72,11 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
         problem.setProperty("errors", Map.of("name", e.getMessage()));
         return problem;
+    }
+
+    @ExceptionHandler(ImportConflictException.class)
+    ProblemDetail handleImportConflict(ImportConflictException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
     }
 
     @ExceptionHandler(InvalidUploadException.class)

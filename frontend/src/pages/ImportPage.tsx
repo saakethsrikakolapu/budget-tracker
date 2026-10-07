@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import * as api from '../api'
+import { ImportHistory } from '../components/ImportHistory'
 
 const MAX_FILE_BYTES = 2 * 1024 * 1024
 const NEW_ACCOUNT = 'new'
@@ -15,7 +16,8 @@ export function ImportPage() {
   const [fileInputKey, setFileInputKey] = useState(0)
 
   const [submitting, setSubmitting] = useState(false)
-  const [result, setResult] = useState<{ count: number; fileName: string; accountName: string } | null>(null)
+  const [result, setResult] = useState<{ imported: api.ImportResult; accountName: string } | null>(null)
+  const [imports, setImports] = useState<api.ImportSummary[]>([])
   const [error, setError] = useState<string | null>(null)
   const [rowErrors, setRowErrors] = useState<string[]>([])
 
@@ -29,7 +31,26 @@ export function ImportPage() {
         }
       })
       .catch(() => setError('Could not load your accounts.'))
+    refreshImports()
   }, [])
+
+  function refreshImports() {
+    api.fetchImports()
+      .then(setImports)
+      .catch(() => setError('Could not load your import history.'))
+  }
+
+  async function handleDeleteImport(id: number) {
+    setResult(null)
+    setError(null)
+    setRowErrors([])
+    try {
+      await api.deleteImport(id)
+      setImports((previous) => previous.filter((item) => item.id !== id))
+    } catch {
+      setError('Could not delete that import. Please try again.')
+    }
+  }
 
   // Quick checks for instant feedback. The backend checks all of these again: never trust the browser.
   function checkFile(): string | null {
@@ -65,9 +86,10 @@ export function ImportPage() {
       }
 
       const imported = await api.uploadStatement(account.id, file!)
-      setResult({ count: imported.importedCount, fileName: imported.fileName, accountName: account.name })
+      setResult({ imported, accountName: account.name })
       setFile(null)
       setFileInputKey((key) => key + 1)
+      refreshImports()
     } catch (err) {
       if (err instanceof api.ApiError) {
         setError(err.fieldErrors.name ?? err.message)
@@ -143,12 +165,7 @@ export function ImportPage() {
         </button>
       </form>
 
-      {result && (
-        <p role="status" className="mt-4 rounded-lg bg-green-50 px-4 py-3 text-green-800">
-          Imported {result.count} transaction{result.count === 1 ? '' : 's'} from {result.fileName} into{' '}
-          {result.accountName}.
-        </p>
-      )}
+      {result && <ImportResultMessage imported={result.imported} accountName={result.accountName} />}
 
       {error && (
         <div role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-red-800">
@@ -162,6 +179,28 @@ export function ImportPage() {
           )}
         </div>
       )}
+
+      <h2 className="mt-10 mb-3 text-lg font-semibold text-slate-900">Import history</h2>
+      <ImportHistory imports={imports} onDelete={handleDeleteImport} />
     </div>
+  )
+}
+
+function plural(count: number, word: string) {
+  return `${count} ${word}${count === 1 ? '' : 's'}`
+}
+
+function ImportResultMessage({ imported, accountName }: { imported: api.ImportResult; accountName: string }) {
+  const nothingNew = imported.importedCount === 0
+  return (
+    <p
+      role="status"
+      className={`mt-4 rounded-lg px-4 py-3 ${nothingNew ? 'bg-amber-50 text-amber-900' : 'bg-green-50 text-green-800'}`}
+    >
+      {nothingNew
+        ? `Nothing new: all ${plural(imported.skippedCount, 'transaction')} in ${imported.fileName} were already imported into ${accountName}.`
+        : `Imported ${plural(imported.importedCount, 'new transaction')} from ${imported.fileName} into ${accountName}.`}
+      {!nothingNew && imported.skippedCount > 0 && ` Skipped ${imported.skippedCount} already imported.`}
+    </p>
   )
 }
