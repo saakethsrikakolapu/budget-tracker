@@ -1,10 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router'
 import { RequireAuth } from './auth/RequireAuth'
 import { AppLayout } from './components/AppLayout'
-import { HomePage } from './pages/HomePage'
 import { ImportPage } from './pages/ImportPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { TransactionsPage } from './pages/TransactionsPage'
 
 /** Which page shows for which URL. */
 function App() {
@@ -21,7 +21,7 @@ function App() {
           </RequireAuth>
         }
       >
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<TransactionsPage />} />
         <Route path="/import" element={<ImportPage />} />
       </Route>
 

@@ -39,6 +39,43 @@ export type ImportSummary = {
   createdAt: string
 }
 
+/** Mirrors TransactionQueryService.TransactionItem. amount: negative = spent, positive = money in. */
+export type Transaction = {
+  id: number
+  accountId: number
+  accountName: string
+  transactionDate: string // "2026-09-28"
+  postedDate: string | null
+  description: string
+  amount: number
+  bankCategory: string | null
+}
+
+/** Totals over every matching transaction (not just one page), computed by the backend. */
+export type Totals = {
+  spent: number
+  received: number
+  net: number
+  count: number
+}
+
+export type TransactionPage = {
+  items: Transaction[]
+  page: number // 0-based
+  size: number
+  totalItems: number
+  totalPages: number
+  totals: Totals
+}
+
+export type TransactionFilter = {
+  accountId?: number
+  from?: string
+  to?: string
+  q?: string
+  page?: number
+}
+
 /**
  * An error response from the backend, parsed from its ProblemDetail JSON, e.g.
  * {"status":400,"detail":"Invalid request","errors":{"password":"Password must be 8 to 72 characters"}}
@@ -169,6 +206,20 @@ export function uploadStatement(accountId: number, file: File): Promise<ImportRe
 
 export function fetchImports(): Promise<ImportSummary[]> {
   return apiFetch<ImportSummary[]>('/api/imports')
+}
+
+export function fetchTransactions(filter: TransactionFilter): Promise<TransactionPage> {
+  // URLSearchParams encodes values safely (spaces, &, %, ...), so search text can't break the URL.
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(filter)) {
+    if (value !== undefined && value !== '') params.set(key, String(value))
+  }
+  return apiFetch<TransactionPage>(`/api/transactions?${params}`)
+}
+
+/** Months that have transactions, newest first, e.g. ["2026-10", "2026-09"]. */
+export function fetchTransactionMonths(): Promise<string[]> {
+  return apiFetch<string[]>('/api/transactions/months')
 }
 
 /** Undo an import: deletes it and the transactions it added. */
