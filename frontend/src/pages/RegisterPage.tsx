@@ -15,6 +15,12 @@ export function RegisterPage() {
       title="Create account"
       submitLabel="Create account"
       passwordAutoComplete="new-password"
+      notice={
+        <>
+          <strong>Early preview.</strong> Uploaded statements are stored on hosted servers. Try it with the
+          sample file, or upload your own data at your own risk.
+        </>
+      }
       onSubmit={async (email, password) => {
         await register(email, password)
         navigate('/', { replace: true })

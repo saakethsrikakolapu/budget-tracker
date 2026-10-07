@@ -7,10 +7,12 @@ type Props = {
   passwordAutoComplete: 'current-password' | 'new-password'
   onSubmit: (email: string, password: string) => Promise<void>
   footer: ReactNode
+  /** Optional note shown above the submit button. */
+  notice?: ReactNode
 }
 
 /** Email + password form shared by the login and register pages. */
-export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, footer }: Props) {
+export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, footer, notice }: Props) {
   // "Controlled inputs": React state is the single source of truth for what's typed.
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -67,6 +69,8 @@ export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, f
           onChange={setPassword}
           error={fieldErrors.password}
         />
+
+        {notice && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{notice}</p>}
 
         <button
           type="submit"

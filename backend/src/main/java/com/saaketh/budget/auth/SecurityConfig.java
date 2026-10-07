@@ -1,5 +1,6 @@
 package com.saaketh.budget.auth;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,8 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.session.web.http.DefaultCookieSerializer;
 
 /**
  * Who can access what, how passwords are checked, and how login state is kept.
@@ -44,9 +47,27 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
-                        .deleteCookies("JSESSIONID")
+                        // SESSION is Spring Session's cookie; JSESSIONID is the servlet container's.
+                        .deleteCookies("SESSION", "JSESSIONID")
                         .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler()));
         return http.build();
+    }
+
+    /**
+     * The login cookie written by Spring Session ("SESSION"). Configured explicitly so its security
+     * flags never depend on defaults:
+     * HttpOnly (JavaScript can't read it), SameSite=Lax (not sent on cross-site POSTs, a second line
+     * of CSRF defense), and Secure (HTTPS only) in production.
+     */
+    @Bean
+    CookieSerializer cookieSerializer(@Value("${server.servlet.session.cookie.secure:false}") boolean secure) {
+        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
+        serializer.setCookieName("SESSION");
+        serializer.setCookiePath("/");
+        serializer.setUseHttpOnlyCookie(true);
+        serializer.setSameSite("Lax");
+        serializer.setUseSecureCookie(secure);
+        return serializer;
     }
 
     /** BCrypt by default; the stored hash is prefixed with {bcrypt} so the algorithm can change later. */

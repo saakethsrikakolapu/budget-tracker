@@ -29,6 +29,16 @@ To try an import, create an account and upload [`samples/capital-one-credit-card
 
 Tests (`./mvnw test`) start their own throwaway Postgres with Testcontainers, so they only need Docker running.
 
+## Deployment
+
+| Part | Host | Config |
+|---|---|---|
+| Frontend | Vercel (root directory `frontend`) | [`frontend/vercel.json`](frontend/vercel.json) forwards `/api/*` to the backend and serves `index.html` for app routes |
+| Backend | Render web service (Docker, root directory `backend`) | [`backend/Dockerfile`](backend/Dockerfile), `prod` profile in [`application-prod.properties`](backend/src/main/resources/application-prod.properties) |
+| Database | Neon Postgres | Schema created by Flyway on startup |
+
+Backend environment variables: `DATABASE_URL` (JDBC URL with `sslmode=require`), `DATABASE_USERNAME`, `DATABASE_PASSWORD`. The free backend sleeps when idle, so the first visit can take about a minute while it wakes.
+
 ## Status
 
 Early development. Stage 0: connecting frontend, backend, and database.
