@@ -58,14 +58,24 @@ export type Transaction = {
   description: string
   amount: number
   bankCategory: string | null
+  /** null = Uncategorized */
+  categoryId: number | null
+  categoryName: string | null
+  /** How the category was set: from the bank's label, one of your rules, or by you. */
+  categorySource: 'BANK' | 'RULE' | 'MANUAL' | null
 }
 
-/** Totals over every matching transaction (not just one page), computed by the backend. */
+/**
+ * Totals over every matching transaction (not just one page), computed by the backend.
+ * Spending figures leave out categories that don't count as spending (e.g. card payments).
+ */
 export type Totals = {
   spent: number
-  received: number
-  net: number
+  refunds: number
+  netSpending: number
   count: number
+  /** Matching transactions left out of the spending figures. */
+  excludedCount: number
 }
 
 export type TransactionPage = {
@@ -82,6 +92,8 @@ export type TransactionFilter = {
   from?: string
   to?: string
   q?: string
+  /** a category id, or "uncategorized" */
+  category?: string
   page?: number
 }
 
@@ -241,6 +253,11 @@ export function fetchTransactions(filter: TransactionFilter): Promise<Transactio
     if (value !== undefined && value !== '') params.set(key, String(value))
   }
   return apiFetch<TransactionPage>(`/api/transactions?${params}`)
+}
+
+/** Change a transaction's category by hand (null = Uncategorized). */
+export function setTransactionCategory(id: number, categoryId: number | null): Promise<Transaction> {
+  return apiFetch<Transaction>(`/api/transactions/${id}/category`, { method: 'PUT', body: { categoryId } })
 }
 
 /** Months that have transactions, newest first, e.g. ["2026-10", "2026-09"]. */

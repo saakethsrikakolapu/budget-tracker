@@ -6,19 +6,24 @@ import { formatDate, formatMoney, formatMonth, monthRange } from '../format'
 const ALL_TIME = 'all'
 
 /**
- * Your transactions, filterable by account, month, and search text.
- * Filters live in the URL (e.g. /?account=3&month=2026-09&q=coffee&page=2), so refresh, the back
+ * Your transactions, filterable by account, month, category, and merchant, with a category
+ * dropdown on each row. Filters live in the URL (e.g. /?account=3&month=2026-09&category=7&q=coffee&page=2),
+ * so refresh, the back
  * button, and bookmarks all keep them.
  */
 export function TransactionsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [accounts, setAccounts] = useState<api.Account[]>([])
+  const [categories, setCategories] = useState<api.Category[]>([])
+  // Bumped after a category change so the totals are re-fetched.
+  const [reloadKey, setReloadKey] = useState(0)
   const [months, setMonths] = useState<string[] | null>(null)
   const [data, setData] = useState<api.TransactionPage | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const accountParam = searchParams.get('account') ?? ''
   const qParam = searchParams.get('q') ?? ''
+  const categoryParam = searchParams.get('category') ?? ''
   const pageParam = Math.max(1, Number(searchParams.get('page')) || 1) // 1-based in the URL, for humans
   // No month in the URL means "the most recent month you have data for".
   const monthParam = searchParams.get('month') ?? months?.[0] ?? ALL_TIME
@@ -33,10 +38,11 @@ export function TransactionsPage() {
 
   // Load the dropdown options once.
   useEffect(() => {
-    Promise.all([api.fetchAccounts(), api.fetchTransactionMonths()])
-      .then(([accountList, monthList]) => {
+    Promise.all([api.fetchAccounts(), api.fetchTransactionMonths(), api.fetchCategories()])
+      .then(([accountList, monthList, categoryList]) => {
         setAccounts(accountList)
         setMonths(monthList)
+        setCategories(categoryList)
       })
       .catch(() => setError('Could not load your accounts.'))
   }, [])
@@ -52,6 +58,7 @@ export function TransactionsPage() {
       accountId: accountParam ? Number(accountParam) : undefined,
       ...range,
       q: qParam || undefined,
+      category: categoryParam || undefined,
       page: pageParam - 1,
     })
       .then((result) => {
@@ -66,7 +73,19 @@ export function TransactionsPage() {
     return () => {
       ignore = true
     }
-  }, [months, accountParam, monthParam, qParam, pageParam])
+  }, [months, accountParam, monthParam, qParam, categoryParam, pageParam, reloadKey])
+
+  async function handleCategoryChange(transaction: api.Transaction, value: string) {
+    try {
+      const updated = await api.setTransactionCategory(transaction.id, value === '' ? null : Number(value))
+      setData((previous) =>
+        previous && { ...previous, items: previous.items.map((t) => (t.id === updated.id ? updated : t)) },
+      )
+      setReloadKey((key) => key + 1) // totals may change (e.g. moved into "Payments & Transfers")
+    } catch {
+      setError('Could not change the category. Please try again.')
+    }
+  }
 
   /** Change one filter; any filter change goes back to page 1. */
   function updateParam(key: string, value: string) {
@@ -114,6 +133,23 @@ export function TransactionsPage() {
             {accounts.map((account) => (
               <option key={account.id} value={String(account.id)}>
                 {account.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="text-xs font-medium text-slate-600">Category</span>
+          <select
+            value={categoryParam}
+            onChange={(event) => updateParam('category', event.target.value)}
+            className="mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+          >
+            <option value="">All categories</option>
+            <option value="uncategorized">Uncategorized</option>
+            {categories.map((category) => (
+              <option key={category.id} value={String(category.id)}>
+                {category.name}
               </option>
             ))}
           </select>
@@ -177,10 +213,17 @@ export function TransactionsPage() {
           {/* Totals over all matching transactions, from the backend */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label="Spent" value={formatMoney(data.totals.spent)} />
-            <Stat label="Money in" value={formatMoney(data.totals.received)} />
-            <Stat label="Net" value={formatMoney(data.totals.net, { signed: true })} />
+            <Stat label="Refunds" value={formatMoney(data.totals.refunds)} />
+            <Stat label="Net spending" value={formatMoney(data.totals.netSpending)} />
             <Stat label="Transactions" value={String(data.totals.count)} />
           </div>
+          {data.totals.excludedCount > 0 && (
+            <p className="text-xs text-slate-500">
+              {data.totals.excludedCount} transaction{data.totals.excludedCount === 1 ? '' : 's'} (like card payments)
+              {data.totals.excludedCount === 1 ? ' is' : ' are'} in categories that don&apos;t count as spending, so{' '}
+              {data.totals.excludedCount === 1 ? "it's" : "they're"} left out of these totals.
+            </p>
+          )}
 
           {data.items.length === 0 ? (
             <p className="rounded-xl bg-white px-4 py-8 text-center text-slate-500 shadow">
@@ -203,7 +246,24 @@ export function TransactionsPage() {
                     <tr key={t.id}>
                       <td className="whitespace-nowrap px-4 py-3 text-slate-600">{formatDate(t.transactionDate)}</td>
                       <td className="px-4 py-3 font-medium text-slate-900">{t.description}</td>
-                      <td className="px-4 py-3 text-slate-600">{t.bankCategory ?? '—'}</td>
+                      <td className="px-4 py-2">
+                        <select
+                          value={t.categoryId === null ? '' : String(t.categoryId)}
+                          onChange={(event) => handleCategoryChange(t, event.target.value)}
+                          title={t.bankCategory ? `Bank's label: ${t.bankCategory}` : undefined}
+                          aria-label={`Category for ${t.description}`}
+                          className={`rounded-md border border-transparent bg-transparent py-1 text-sm hover:border-slate-300 ${
+                            t.categoryId === null ? 'italic text-slate-400' : 'text-slate-700'
+                          }`}
+                        >
+                          <option value="">Uncategorized</option>
+                          {categories.map((category) => (
+                            <option key={category.id} value={String(category.id)}>
+                              {category.name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
                       <td className="whitespace-nowrap px-4 py-3 text-slate-600">{t.accountName}</td>
                       <td
                         className={`whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums ${

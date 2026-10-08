@@ -2,6 +2,8 @@ package com.saaketh.budget.transaction;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -49,6 +51,11 @@ public class Transaction {
     /** The user's category; null means Uncategorized. */
     @Column(name = "category_id")
     private Long categoryId;
+
+    /** How categoryId was decided; MANUAL ones are never overwritten by automation. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category_source")
+    private CategorySource categorySource;
 
     /** See TransactionFingerprint: identifies "the same purchase" for duplicate detection. */
     @Column(nullable = false, updatable = false)
@@ -117,6 +124,16 @@ public class Transaction {
 
     public Long getCategoryId() {
         return categoryId;
+    }
+
+    public CategorySource getCategorySource() {
+        return categorySource;
+    }
+
+    /** @param categoryId null for Uncategorized */
+    public void setCategory(Long categoryId, CategorySource source) {
+        this.categoryId = categoryId;
+        this.categorySource = source;
     }
 
     public String getFingerprint() {

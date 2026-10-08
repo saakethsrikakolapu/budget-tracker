@@ -66,6 +66,13 @@ public class CategoryService {
         categoryRepository.delete(getOwned(userId, categoryId));
     }
 
+    /** id -> name for all of this user's categories. */
+    @Transactional(readOnly = true)
+    public Map<Long, Category> byId(Long userId) {
+        return categoryRepository.findByUserIdOrderByNameAsc(userId).stream()
+                .collect(Collectors.toMap(Category::getId, c -> c));
+    }
+
     /** Someone else's category looks exactly like a missing one (404). */
     @Transactional(readOnly = true)
     public Category getOwned(Long userId, Long categoryId) {

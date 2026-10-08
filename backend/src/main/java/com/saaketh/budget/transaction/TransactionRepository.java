@@ -2,6 +2,7 @@ package com.saaketh.budget.transaction;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -34,6 +35,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
             WHERE t.userId = :userId
             ORDER BY year(t.transactionDate) DESC, month(t.transactionDate) DESC""")
     List<YearMonthRow> findMonthsWithTransactions(@Param("userId") Long userId);
+
+    Optional<Transaction> findByIdAndUserId(Long id, Long userId);
 
     List<Transaction> findByImportBatchIdOrderByIdAsc(Long importBatchId);
 

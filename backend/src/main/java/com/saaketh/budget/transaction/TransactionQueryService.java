@@ -2,6 +2,8 @@ package com.saaketh.budget.transaction;
 
 import com.saaketh.budget.account.Account;
 import com.saaketh.budget.account.AccountService;
+import com.saaketh.budget.category.Category;
+import com.saaketh.budget.category.CategoryService;
 import com.saaketh.budget.common.BadRequestException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
@@ -30,22 +32,36 @@ public class TransactionQueryService {
     static final int MAX_PAGE_SIZE = 100;
     static final int MAX_SEARCH_LENGTH = 100;
 
-    /** All filters are optional; null means "don't filter on this". */
-    public record Filter(Long accountId, LocalDate from, LocalDate to, String search) {
+    /** Value of the category filter that means "transactions with no category". */
+    public static final String UNCATEGORIZED = "uncategorized";
+
+    /**
+     * All filters are optional; null means "don't filter on this".
+     *
+     * @param category a category id, or "uncategorized"
+     */
+    public record Filter(Long accountId, LocalDate from, LocalDate to, String search, String category) {
     }
 
+    /** categoryId/categoryName/categorySource are null for Uncategorized. */
     public record TransactionItem(Long id, Long accountId, String accountName, LocalDate transactionDate,
-            LocalDate postedDate, String description, BigDecimal amount, String bankCategory) {
+            LocalDate postedDate, String description, BigDecimal amount, String bankCategory,
+            Long categoryId, String categoryName, CategorySource categorySource) {
     }
 
     /**
-     * Totals over every matching transaction, not just the current page.
+     * Totals over every matching transaction, not just the current page. Spending figures only
+     * include categories that count as spending (and Uncategorized), so paying the card bill or
+     * moving money between accounts doesn't look like spending.
      *
-     * @param spent money out, as a positive number
-     * @param received money in (refunds, payments), as a positive number
-     * @param net received - spent
+     * @param spent purchases, as a positive number
+     * @param refunds money back on purchases (returns), as a positive number
+     * @param netSpending spent - refunds
+     * @param count all matching transactions
+     * @param excludedCount matching transactions in categories that don't count as spending
      */
-    public record Totals(BigDecimal spent, BigDecimal received, BigDecimal net, long count) {
+    public record Totals(BigDecimal spent, BigDecimal refunds, BigDecimal netSpending, long count,
+            long excludedCount) {
     }
 
     public record TransactionPage(List<TransactionItem> items, int page, int size, long totalItems, int totalPages,
@@ -54,12 +70,14 @@ public class TransactionQueryService {
 
     private final TransactionRepository transactionRepository;
     private final AccountService accountService;
+    private final CategoryService categoryService;
     private final EntityManager entityManager;
 
     public TransactionQueryService(TransactionRepository transactionRepository, AccountService accountService,
-            EntityManager entityManager) {
+            CategoryService categoryService, EntityManager entityManager) {
         this.transactionRepository = transactionRepository;
         this.accountService = accountService;
+        this.categoryService = categoryService;
         this.entityManager = entityManager;
     }
 
@@ -75,14 +93,21 @@ public class TransactionQueryService {
 
         Map<Long, String> accountNames = accountService.list(userId).stream()
                 .collect(Collectors.toMap(Account::getId, Account::getName));
+        Map<Long, Category> categories = categoryService.byId(userId);
         List<TransactionItem> items = result.getContent().stream()
-                .map(t -> new TransactionItem(t.getId(), t.getAccountId(), accountNames.get(t.getAccountId()),
-                        t.getTransactionDate(), t.getPostedDate(), t.getDescription(), t.getAmount(),
-                        t.getBankCategory()))
+                .map(t -> toItem(t, accountNames, categories))
                 .toList();
 
         return new TransactionPage(items, safePage, safeSize, result.getTotalElements(), result.getTotalPages(),
                 totals(spec));
+    }
+
+    static TransactionItem toItem(Transaction t, Map<Long, String> accountNames, Map<Long, Category> categories) {
+        Category category = t.getCategoryId() == null ? null : categories.get(t.getCategoryId());
+        return new TransactionItem(t.getId(), t.getAccountId(), accountNames.get(t.getAccountId()),
+                t.getTransactionDate(), t.getPostedDate(), t.getDescription(), t.getAmount(), t.getBankCategory(),
+                category == null ? null : category.getId(), category == null ? null : category.getName(),
+                category == null ? null : t.getCategorySource());
     }
 
     /** Months that have transactions, newest first, e.g. ["2026-10", "2026-09"]. */
@@ -115,14 +140,40 @@ public class TransactionQueryService {
             }
             parts.add(TransactionSpecifications.descriptionContains(search));
         }
+        if (filter.category() != null && !filter.category().isBlank()) {
+            parts.add(categorySpecification(filter.category().trim()));
+        }
         return Specification.allOf(parts);
     }
 
+    private static Specification<Transaction> categorySpecification(String category) {
+        if (category.equalsIgnoreCase(UNCATEGORIZED)) {
+            return TransactionSpecifications.uncategorized();
+        }
+        try {
+            return TransactionSpecifications.inCategory(Long.parseLong(category));
+        } catch (NumberFormatException e) {
+            throw new BadRequestException("category must be a category id or \"uncategorized\"");
+        }
+    }
+
     /**
-     * One SQL query: SUM of negative amounts, SUM of positive amounts, and COUNT, over the same
-     * filters as the list. Summed by Postgres on exact NUMERIC values, never in floating point.
+     * Spending totals use only categories that count as spending; the count covers everything.
+     * Sums are computed by Postgres on exact NUMERIC values, never in floating point.
      */
     private Totals totals(Specification<Transaction> spec) {
+        Sums spending = sums(spec.and(TransactionSpecifications.countsAsSpending()));
+        long all = transactionRepository.count(spec);
+        BigDecimal spent = spending.negatives().negate();
+        BigDecimal refunds = spending.positives();
+        return new Totals(spent, refunds, spent.subtract(refunds), all, all - spending.count());
+    }
+
+    private record Sums(BigDecimal negatives, BigDecimal positives, long count) {
+    }
+
+    /** One query: SUM of negative amounts, SUM of positive amounts, and COUNT. */
+    private Sums sums(Specification<Transaction> spec) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Tuple> query = cb.createTupleQuery();
         Root<Transaction> root = query.from(Transaction.class);
@@ -140,9 +191,8 @@ public class TransactionQueryService {
                 .where(spec.toPredicate(root, query, cb));
 
         Tuple row = entityManager.createQuery(query).getSingleResult();
-        BigDecimal spent = money(row.get("negatives", BigDecimal.class)).negate();
-        BigDecimal received = money(row.get("positives", BigDecimal.class));
-        return new Totals(spent, received, received.subtract(spent), row.get("count", Long.class));
+        return new Sums(money(row.get("negatives", BigDecimal.class)), money(row.get("positives", BigDecimal.class)),
+                row.get("count", Long.class));
     }
 
     private static BigDecimal money(BigDecimal value) {

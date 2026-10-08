@@ -8,8 +8,9 @@ export default defineConfig({
   server: {
     // In dev, forward /api requests to the Spring Boot backend so the browser
     // only ever talks to one origin (localhost:5173) and CORS never applies.
+    // API_PROXY_TARGET lets you point at a backend on another port, e.g. to run two copies at once.
     proxy: {
-      '/api': 'http://localhost:8080',
+      '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:8080',
     },
   },
 })

@@ -68,11 +68,13 @@ class TransactionQueryIntegrationTest {
                 .andExpect(jsonPath("$.items[0].accountName").value("Discover"))
                 .andExpect(jsonPath("$.items[0].amount").value(-9.50))
                 .andExpect(jsonPath("$.items[11].description").value("PIZZA PALACE"))
-                // Sample: spent 170.77, received 273.99. October: spent 29.50.
+                // Sample: spent 170.77, refund 23.99, card payment 250.00 (doesn't count as spending).
+                // October: spent 29.50.
                 .andExpect(jsonPath("$.totals.spent").value(200.27))
-                .andExpect(jsonPath("$.totals.received").value(273.99))
-                .andExpect(jsonPath("$.totals.net").value(73.72))
-                .andExpect(jsonPath("$.totals.count").value(12));
+                .andExpect(jsonPath("$.totals.refunds").value(23.99))
+                .andExpect(jsonPath("$.totals.netSpending").value(176.28))
+                .andExpect(jsonPath("$.totals.count").value(12))
+                .andExpect(jsonPath("$.totals.excludedCount").value(1));
     }
 
     @Test
@@ -95,7 +97,7 @@ class TransactionQueryIntegrationTest {
         mockMvc.perform(list().param("q", "  coffee "))
                 .andExpect(jsonPath("$.totalItems").value(3))
                 .andExpect(jsonPath("$.totals.spent").value(14.25))
-                .andExpect(jsonPath("$.totals.received").value(0.00));
+                .andExpect(jsonPath("$.totals.refunds").value(0.00));
     }
 
     @Test

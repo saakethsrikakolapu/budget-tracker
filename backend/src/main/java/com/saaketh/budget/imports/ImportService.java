@@ -2,6 +2,7 @@ package com.saaketh.budget.imports;
 
 import com.saaketh.budget.account.Account;
 import com.saaketh.budget.account.AccountService;
+import com.saaketh.budget.category.CategoryAssigner;
 import com.saaketh.budget.common.NotFoundException;
 import com.saaketh.budget.imports.parser.ParsedTransaction;
 import com.saaketh.budget.imports.parser.StatementParser;
@@ -46,13 +47,16 @@ public class ImportService {
     private final StatementParser parser;
     private final ImportBatchRepository importBatchRepository;
     private final TransactionRepository transactionRepository;
+    private final CategoryAssigner categoryAssigner;
 
     public ImportService(AccountService accountService, StatementParser parser,
-            ImportBatchRepository importBatchRepository, TransactionRepository transactionRepository) {
+            ImportBatchRepository importBatchRepository, TransactionRepository transactionRepository,
+            CategoryAssigner categoryAssigner) {
         this.accountService = accountService;
         this.parser = parser;
         this.importBatchRepository = importBatchRepository;
         this.transactionRepository = transactionRepository;
+        this.categoryAssigner = categoryAssigner;
     }
 
     /**
@@ -74,10 +78,17 @@ public class ImportService {
 
         ImportBatch batch = importBatchRepository.save(
                 new ImportBatch(userId, account.getId(), fileName, newRows.size(), skipped));
+        CategoryAssigner.Context categories = categoryAssigner.contextFor(userId);
         List<Transaction> transactions = newRows.stream()
-                .map(n -> new Transaction(userId, account.getId(), batch.getId(), n.row().transactionDate(),
-                        n.row().postedDate(), n.row().description(), n.row().amount(), n.row().bankCategory(),
-                        n.occurrence()))
+                .map(n -> {
+                    Transaction t = new Transaction(userId, account.getId(), batch.getId(), n.row().transactionDate(),
+                            n.row().postedDate(), n.row().description(), n.row().amount(), n.row().bankCategory(),
+                            n.occurrence());
+                    CategoryAssigner.Assignment a =
+                            categoryAssigner.assign(categories, n.row().description(), n.row().bankCategory());
+                    t.setCategory(a.categoryId(), a.source());
+                    return t;
+                })
                 .toList();
         try {
             transactionRepository.saveAllAndFlush(transactions);
