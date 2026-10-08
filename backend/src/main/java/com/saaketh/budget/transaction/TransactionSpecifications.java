@@ -1,6 +1,7 @@
 package com.saaketh.budget.transaction;
 
 import com.saaketh.budget.category.Category;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import java.time.LocalDate;
@@ -57,10 +58,18 @@ public final class TransactionSpecifications {
         };
     }
 
-    /** Case-insensitive "contains". % and _ in the search text are matched literally, not as wildcards. */
+    /**
+     * Case-insensitive "contains" that also ignores extra spaces (like rules do), so "uber trip"
+     * finds "UBER   TRIP". % and _ in the search text are matched literally, not as wildcards.
+     */
     public static Specification<Transaction> descriptionContains(String text) {
-        String pattern = "%" + escapeLike(text.toLowerCase(Locale.ROOT)) + "%";
-        return (root, query, cb) -> cb.like(cb.lower(root.get("description")), pattern, '\\');
+        String collapsed = text.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+        String pattern = "%" + escapeLike(collapsed) + "%";
+        return (root, query, cb) -> {
+            Expression<String> description = cb.function("regexp_replace", String.class,
+                    cb.lower(root.get("description")), cb.literal("\\s+"), cb.literal(" "), cb.literal("g"));
+            return cb.like(description, pattern, '\\');
+        };
     }
 
     /** In SQL LIKE, % means "anything" and _ means "any one character"; escape them (and the escape char). */

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import * as api from '../api'
+import { RulesSection } from '../components/RulesSection'
 
 /** Add, rename, and delete your spending categories, and choose which ones count as spending. */
 export function CategoriesPage() {
@@ -119,6 +120,8 @@ export function CategoriesPage() {
       <p className="text-xs text-slate-500">
         Transactions without a category show as <span className="font-medium">Uncategorized</span>.
       </p>
+
+      {categories && <RulesSection categories={categories} />}
     </div>
   )
 }

@@ -27,6 +27,23 @@ export type Category = {
   transactionCount: number
 }
 
+/** Mirrors CategoryRuleService.RuleView: "description contains pattern -> category". */
+export type Rule = {
+  id: number
+  /** Stored uppercase with single spaces, e.g. "POSHMARK". */
+  pattern: string
+  categoryId: number
+  categoryName: string
+  /** How many of your transactions contain the pattern. */
+  matchCount: number
+}
+
+/** Result of creating or editing a rule: how many transactions moved to a different category. */
+export type RuleChange = {
+  rule: Rule
+  recategorizedCount: number
+}
+
 /** Mirrors ImportService.ImportResult. importBatchId is null when every row was already imported. */
 export type ImportResult = {
   importBatchId: number | null
@@ -244,6 +261,21 @@ export function updateCategory(id: number, name: string, countsAsSpending: boole
 /** Its transactions become Uncategorized; they are not deleted. */
 export function deleteCategory(id: number): Promise<void> {
   return apiFetch<void>(`/api/categories/${id}`, { method: 'DELETE' })
+}
+
+/** Most specific first, which is the order they're applied in. */
+export function fetchRules(): Promise<Rule[]> {
+  return apiFetch<Rule[]>('/api/rules')
+}
+
+/** Creates the rule and applies it to your existing (non-manual) transactions. */
+export function createRule(pattern: string, categoryId: number): Promise<RuleChange> {
+  return apiFetch<RuleChange>('/api/rules', { method: 'POST', body: { pattern, categoryId } })
+}
+
+/** Deletes the rule; its transactions fall back to the next matching rule or the bank's label. */
+export function deleteRule(id: number): Promise<{ recategorizedCount: number }> {
+  return apiFetch<{ recategorizedCount: number }>(`/api/rules/${id}`, { method: 'DELETE' })
 }
 
 export function fetchTransactions(filter: TransactionFilter): Promise<TransactionPage> {

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import * as api from '../api'
 import { formatDate, formatMoney, formatMonth, monthRange } from '../format'
+import { changedText, suggestRulePattern } from '../rules'
 
 const ALL_TIME = 'all'
 
@@ -17,6 +18,9 @@ export function TransactionsPage() {
   const [categories, setCategories] = useState<api.Category[]>([])
   // Bumped after a category change so the totals are re-fetched.
   const [reloadKey, setReloadKey] = useState(0)
+  // After a manual category change, offer to turn it into a rule.
+  const [suggestion, setSuggestion] = useState<{ pattern: string; categoryId: number; categoryName: string } | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [months, setMonths] = useState<string[] | null>(null)
   const [data, setData] = useState<api.TransactionPage | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -82,8 +86,32 @@ export function TransactionsPage() {
         previous && { ...previous, items: previous.items.map((t) => (t.id === updated.id ? updated : t)) },
       )
       setReloadKey((key) => key + 1) // totals may change (e.g. moved into "Payments & Transfers")
+      setNotice(null)
+      setSuggestion(
+        updated.categoryId === null
+          ? null
+          : {
+              pattern: suggestRulePattern(updated.description),
+              categoryId: updated.categoryId,
+              categoryName: updated.categoryName ?? '',
+            },
+      )
     } catch {
       setError('Could not change the category. Please try again.')
+    }
+  }
+
+  async function handleCreateSuggestedRule() {
+    if (!suggestion) return
+    try {
+      const change = await api.createRule(suggestion.pattern, suggestion.categoryId)
+      setNotice(`Rule created: "${change.rule.pattern}" → ${change.rule.categoryName}. ${changedText(change.recategorizedCount)}`)
+      setSuggestion(null)
+      setReloadKey((key) => key + 1)
+    } catch (err) {
+      setError(
+        err instanceof api.ApiError ? (Object.values(err.fieldErrors)[0] ?? err.message) : 'Could not create the rule.',
+      )
     }
   }
 
@@ -205,6 +233,39 @@ export function TransactionsPage() {
       {error && (
         <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-red-800">
           {error}
+        </p>
+      )}
+
+      {suggestion && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-900">
+          <span>Always put transactions containing</span>
+          <input
+            type="text"
+            value={suggestion.pattern}
+            onChange={(event) => setSuggestion({ ...suggestion, pattern: event.target.value })}
+            aria-label="Text to match"
+            maxLength={100}
+            className="w-44 rounded-md border border-blue-200 bg-white px-2 py-1 font-mono text-sm"
+          />
+          <span>
+            in <span className="font-medium">{suggestion.categoryName}</span>?
+          </span>
+          <button
+            type="button"
+            onClick={handleCreateSuggestedRule}
+            disabled={suggestion.pattern.trim().length < 2}
+            className="rounded-md bg-blue-900 px-3 py-1 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+          >
+            Create rule
+          </button>
+          <button type="button" onClick={() => setSuggestion(null)} className="px-2 py-1 text-blue-900 underline">
+            Not now
+          </button>
+        </div>
+      )}
+      {notice && (
+        <p role="status" className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
+          {notice}
         </p>
       )}
 

@@ -38,6 +38,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
 
     Optional<Transaction> findByIdAndUserId(Long id, Long userId);
 
+    /** Everything automation is allowed to (re)categorize: all except the user's manual choices. */
+    @Query("""
+            SELECT t FROM Transaction t
+            WHERE t.userId = :userId
+              AND (t.categorySource IS NULL OR t.categorySource <> com.saaketh.budget.transaction.CategorySource.MANUAL)""")
+    List<Transaction> findAutoCategorized(@Param("userId") Long userId);
+
+    @Query("SELECT t.description FROM Transaction t WHERE t.userId = :userId")
+    List<String> findDescriptions(@Param("userId") Long userId);
+
     List<Transaction> findByImportBatchIdOrderByIdAsc(Long importBatchId);
 
     long countByImportBatchId(Long importBatchId);
