@@ -43,6 +43,12 @@ Backend environment variables: `DATABASE_URL` (JDBC URL with `sslmode=require`),
 
 ## Status
 
-Working today: accounts with secure login, Capital One credit card CSV import with duplicate detection and undo, and a searchable transaction list with monthly totals.
+Working today:
+- Secure accounts (Spring Security sessions stored in Postgres, CSRF protection)
+- Capital One credit card CSV import with validation, duplicate detection, and undo
+- Categories: defaults for every user, mapped automatically from the bank's labels, editable by hand
+- Auto-categorization rules ("description contains POSHMARK -> Shopping"), applied retroactively
+- Monthly budgets per category with progress and over-budget warnings
+- Dashboard: spending by category, 6-month trend, and budget status
 
-Next: custom categories with auto-categorization rules, monthly budgets, and dashboard charts.
+Next: a column-mapping screen so CSVs from any bank work.

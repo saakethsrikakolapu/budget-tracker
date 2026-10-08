@@ -22,6 +22,9 @@ export function AppLayout() {
           <span className="text-lg font-semibold text-slate-900">Budget Tracker</span>
           <nav className="flex gap-4">
             <NavLink to="/" end className={linkClass}>
+              Dashboard
+            </NavLink>
+            <NavLink to="/transactions" className={linkClass}>
               Transactions
             </NavLink>
             <NavLink to="/budgets" className={linkClass}>

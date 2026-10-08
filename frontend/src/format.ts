@@ -46,3 +46,9 @@ export function currentMonth(): string {
 export function isMoneyInput(text: string): boolean {
   return /^\d{1,10}(\.\d{1,2})?$/.test(text.trim())
 }
+
+/** "2026-09" -> "Sep" (or "Sep 2026" with year: true) */
+export function formatMonthShort(yearMonth: string, { year = false } = {}): string {
+  const [y, m] = yearMonth.split('-').map(Number)
+  return new Date(y, m - 1, 1).toLocaleDateString('en-US', year ? { month: 'short', year: 'numeric' } : { month: 'short' })
+}

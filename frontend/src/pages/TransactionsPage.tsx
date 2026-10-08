@@ -8,7 +8,7 @@ const ALL_TIME = 'all'
 
 /**
  * Your transactions, filterable by account, month, category, and merchant, with a category
- * dropdown on each row. Filters live in the URL (e.g. /?account=3&month=2026-09&category=7&q=coffee&page=2),
+ * dropdown on each row. Filters live in the URL (e.g. /transactions?account=3&month=2026-09&category=7&q=coffee&page=2),
  * so refresh, the back
  * button, and bookmarks all keep them.
  */

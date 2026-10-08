@@ -65,6 +65,16 @@ export type BudgetOverview = {
   unbudgetedSpending: number
 }
 
+/** Mirrors DashboardService.Dashboard: everything the dashboard shows for one month. */
+export type Dashboard = {
+  month: string
+  totals: Totals
+  /** Biggest first; categoryId null = Uncategorized. Net spending (purchases minus refunds). */
+  spendingByCategory: { categoryId: number | null; categoryName: string; amount: number }[]
+  /** Six months ending with the selected one, oldest first. */
+  monthlyTrend: { month: string; netSpending: number }[]
+}
+
 /** Mirrors ImportService.ImportResult. importBatchId is null when every row was already imported. */
 export type ImportResult = {
   importBatchId: number | null
@@ -297,6 +307,10 @@ export function createRule(pattern: string, categoryId: number): Promise<RuleCha
 /** Deletes the rule; its transactions fall back to the next matching rule or the bank's label. */
 export function deleteRule(id: number): Promise<{ recategorizedCount: number }> {
   return apiFetch<{ recategorizedCount: number }>(`/api/rules/${id}`, { method: 'DELETE' })
+}
+
+export function fetchDashboard(month: string): Promise<Dashboard> {
+  return apiFetch<Dashboard>(`/api/dashboard?month=${encodeURIComponent(month)}`)
 }
 
 export function fetchBudgets(month: string): Promise<BudgetOverview> {
