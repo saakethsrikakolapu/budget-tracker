@@ -1,5 +1,7 @@
 package com.saaketh.budget.transaction;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +49,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
 
     @Query("SELECT t.description FROM Transaction t WHERE t.userId = :userId")
     List<String> findDescriptions(@Param("userId") Long userId);
+
+    /** Sum of amounts for one category (categoryId null = Uncategorized). Negative = net spending. */
+    record CategoryTotal(Long categoryId, BigDecimal total) {
+    }
+
+    /** One row per category with transactions between from and to (inclusive). Used by budgets and charts. */
+    @Query("""
+            SELECT new com.saaketh.budget.transaction.TransactionRepository$CategoryTotal(t.categoryId, SUM(t.amount))
+            FROM Transaction t
+            WHERE t.userId = :userId AND t.transactionDate BETWEEN :from AND :to
+            GROUP BY t.categoryId""")
+    List<CategoryTotal> sumByCategory(@Param("userId") Long userId, @Param("from") LocalDate from,
+            @Param("to") LocalDate to);
 
     List<Transaction> findByImportBatchIdOrderByIdAsc(Long importBatchId);
 

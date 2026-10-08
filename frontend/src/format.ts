@@ -35,3 +35,14 @@ export function monthRange(yearMonth: string): { from: string; to: string } {
   const lastDay = new Date(year, month, 0).getDate() // day 0 of next month = last day of this month
   return { from: `${yearMonth}-01`, to: `${yearMonth}-${String(lastDay).padStart(2, '0')}` }
 }
+
+/** The current month in your time zone, e.g. "2026-10". */
+export function currentMonth(): string {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
+/** Valid money input: digits with at most 2 decimal places, e.g. "200" or "64.90". */
+export function isMoneyInput(text: string): boolean {
+  return /^\d{1,10}(\.\d{1,2})?$/.test(text.trim())
+}

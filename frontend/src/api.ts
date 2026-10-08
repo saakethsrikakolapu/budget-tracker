@@ -44,6 +44,27 @@ export type RuleChange = {
   recategorizedCount: number
 }
 
+/** One budgeted category for one month (mirrors BudgetService.BudgetLine). */
+export type BudgetLine = {
+  categoryId: number
+  categoryName: string
+  limit: number
+  /** Net spending: purchases minus refunds. */
+  spent: number
+  /** Negative when over budget. */
+  remaining: number
+  percentUsed: number
+}
+
+export type BudgetOverview = {
+  month: string // "2026-09"
+  budgets: BudgetLine[]
+  totalBudgeted: number
+  totalSpent: number
+  /** Spending in categories without a budget, plus Uncategorized. */
+  unbudgetedSpending: number
+}
+
 /** Mirrors ImportService.ImportResult. importBatchId is null when every row was already imported. */
 export type ImportResult = {
   importBatchId: number | null
@@ -276,6 +297,22 @@ export function createRule(pattern: string, categoryId: number): Promise<RuleCha
 /** Deletes the rule; its transactions fall back to the next matching rule or the bank's label. */
 export function deleteRule(id: number): Promise<{ recategorizedCount: number }> {
   return apiFetch<{ recategorizedCount: number }>(`/api/rules/${id}`, { method: 'DELETE' })
+}
+
+export function fetchBudgets(month: string): Promise<BudgetOverview> {
+  return apiFetch<BudgetOverview>(`/api/budgets?month=${encodeURIComponent(month)}`)
+}
+
+/**
+ * Set or change a category's monthly limit. The amount is sent as the exact text typed
+ * (e.g. "200.50"), so it never passes through floating point.
+ */
+export function setBudget(categoryId: number, monthlyLimit: string): Promise<void> {
+  return apiFetch<void>(`/api/budgets/${categoryId}`, { method: 'PUT', body: { monthlyLimit } })
+}
+
+export function deleteBudget(categoryId: number): Promise<void> {
+  return apiFetch<void>(`/api/budgets/${categoryId}`, { method: 'DELETE' })
 }
 
 export function fetchTransactions(filter: TransactionFilter): Promise<TransactionPage> {
