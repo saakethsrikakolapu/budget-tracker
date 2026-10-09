@@ -6,7 +6,7 @@ A privacy-first budget tracker for students. No bank login, just upload your sta
 
 Upload bank or credit card CSV files; the app categorizes transactions, tracks monthly budgets, and detects recurring charges. It never connects to your bank account.
 
-**Live demo:** https://budget-tracker-saaketh1.vercel.app (free hosting; the first visit may take about a minute while the server wakes up). Try it with the [sample statement](samples/capital-one-credit-card.csv).
+**Live demo:** https://budget-tracker-saaketh1.vercel.app (free hosting; the first visit may take about a minute while the server wakes up). Try it with the [sample statements](samples/layouts) (fake data).
 
 ## Tech stack
 
@@ -27,7 +27,7 @@ cd frontend && npm install && npm run dev     # terminal 2: app on :5173
 
 Open http://localhost:5173. The API alone: http://localhost:8080/api/health returns `{"status":"UP","database":"UP"}`.
 
-To try an import, create an account and upload [`samples/capital-one-credit-card.csv`](samples/capital-one-credit-card.csv) (fake data).
+To try an import, upload [`samples/capital-one-credit-card.csv`](samples/capital-one-credit-card.csv) or any file in [`samples/layouts/`](samples/layouts) (all fake data).
 
 Tests (`./mvnw test`) start their own throwaway Postgres with Testcontainers, so they only need Docker running.
 
@@ -45,10 +45,10 @@ Backend environment variables: `DATABASE_URL` (JDBC URL with `sslmode=require`),
 
 Working today:
 - Secure accounts (Spring Security sessions stored in Postgres, CSRF protection)
-- Capital One credit card CSV import with validation, duplicate detection, and undo
+- CSV import from any bank: columns are inferred from the values (no fixed formats), shown in a preview you can adjust, and remembered for next time; duplicate detection and undo
 - Categories: defaults for every user, mapped automatically from the bank's labels, editable by hand
 - Auto-categorization rules ("description contains POSHMARK -> Shopping"), applied retroactively
 - Monthly budgets per category with progress and over-budget warnings
 - Dashboard: spending by category, 6-month trend, and budget status
 
-Next: a column-mapping screen so CSVs from any bank work.
+Next: detecting recurring charges (subscriptions).

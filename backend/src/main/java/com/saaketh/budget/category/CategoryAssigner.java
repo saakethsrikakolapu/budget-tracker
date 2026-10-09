@@ -61,7 +61,12 @@ public class CategoryAssigner {
             return new Assignment(rule.get().getCategoryId(), CategorySource.RULE);
         }
         if (bankCategory != null) {
-            Long categoryId = context.bankLabelToCategoryId().get(bankCategory.trim().toLowerCase(Locale.ROOT));
+            String label = bankCategory.trim().toLowerCase(Locale.ROOT);
+            Long categoryId = context.bankLabelToCategoryId().get(label);
+            // Some banks use "Group-Subgroup" labels (e.g. "Restaurant-Restaurant"); try the group.
+            if (categoryId == null && label.contains("-")) {
+                categoryId = context.bankLabelToCategoryId().get(label.substring(0, label.indexOf('-')).trim());
+            }
             if (categoryId != null) {
                 return new Assignment(categoryId, CategorySource.BANK);
             }
