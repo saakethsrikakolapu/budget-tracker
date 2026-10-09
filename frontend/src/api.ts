@@ -266,10 +266,66 @@ export function createAccount(name: string): Promise<Account> {
   return apiFetch<Account>('/api/accounts', { method: 'POST', body: { name } })
 }
 
-export function uploadStatement(accountId: number, file: File): Promise<ImportResult> {
+/**
+ * Which column holds what (0-based positions). Mirrors the backend's ColumnMapping.
+ * SIGNED: one amount column. DEBIT_CREDIT: separate money-out and money-in columns.
+ * UNSIGNED_WITH_TYPE: positive amounts plus a column saying "Debit"/"Credit".
+ */
+export type ColumnMapping = {
+  dateColumn: number
+  postedDateColumn: number | null
+  descriptionColumn: number
+  categoryColumn: number | null
+  amountStyle: 'SIGNED' | 'DEBIT_CREDIT' | 'UNSIGNED_WITH_TYPE'
+  amountColumn: number | null
+  debitColumn: number | null
+  creditColumn: number | null
+  typeColumn: number | null
+  /** SIGNED only: purchases appear as positive numbers in this file. */
+  positiveIsSpending: boolean
+  /** One of DATE_FORMATS' keys, e.g. "M/d/uuuu". */
+  dateFormat: string
+}
+
+/** Mirrors ImportService.Preview: how the file would be read, before anything is saved. */
+export type ImportPreview = {
+  /** CUSTOM = your column choices, SAVED = a format you saved, DETECTED = worked out automatically. */
+  source: 'CUSTOM' | 'SAVED' | 'DETECTED' | null
+  /** null when the columns couldn't be worked out. */
+  mapping: ColumnMapping | null
+  columns: { index: number; name: string; samples: string[] }[]
+  /** The first few transactions, as they'd be imported (amount: negative = spent). */
+  transactions: {
+    transactionDate: string
+    postedDate: string | null
+    description: string
+    amount: number
+    bankCategory: string | null
+  }[]
+  transactionCount: number
+  skippedRows: number
+  warnings: string[]
+  errors: string[]
+}
+
+/** Read a file without importing it. Pass a mapping to try your own column choices. */
+export function previewStatement(file: File, mapping?: ColumnMapping): Promise<ImportPreview> {
+  const form = new FormData()
+  form.append('file', file)
+  if (mapping) form.append('mapping', JSON.stringify(mapping))
+  return apiFetch<ImportPreview>('/api/imports/preview', { method: 'POST', body: form })
+}
+
+export function uploadStatement(
+  accountId: number,
+  file: File,
+  options: { mapping?: ColumnMapping; rememberFormat?: boolean } = {},
+): Promise<ImportResult> {
   const form = new FormData()
   form.append('accountId', String(accountId))
   form.append('file', file)
+  if (options.mapping) form.append('mapping', JSON.stringify(options.mapping))
+  form.append('rememberFormat', String(options.rememberFormat ?? false))
   return apiFetch<ImportResult>('/api/imports', { method: 'POST', body: form })
 }
 
