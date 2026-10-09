@@ -77,15 +77,12 @@ class ImportIntegrationTest {
         long transactionsBefore = transactionRepository.count();
         long batchesBefore = importBatchRepository.count();
 
-        String csv = """
-                Transaction Date,Posted Date,Card No.,Description,Category,Debit,Credit
-                2026-09-01,2026-09-02,1234,GOOD ROW,Other,1.00,
-                not-a-date,2026-09-02,1234,BAD ROW,Other,1.00,
-                """;
+        // The 10 good sample rows plus one with a typo in its date (line 12 of the file).
+        String csv = Files.readString(SAMPLE).strip() + "\nnot-a-date,2026-09-02,1234,BAD ROW,Other,1.00,\n";
         upload(session, accountId, csvFile("bad.csv", csv.getBytes(StandardCharsets.UTF_8)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("The file could not be imported. Nothing was saved."))
-                .andExpect(jsonPath("$.rowErrors[0]").value("Line 3: Transaction Date \"not-a-date\" is not a date like 2026-07-30"));
+                .andExpect(jsonPath("$.rowErrors[0]").value("Row 12: date \"not-a-date\" isn't a date like 2026-07-30"));
 
         assertThat(transactionRepository.count()).isEqualTo(transactionsBefore);
         assertThat(importBatchRepository.count()).isEqualTo(batchesBefore);

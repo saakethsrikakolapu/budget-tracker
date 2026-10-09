@@ -2,6 +2,7 @@ package com.saaketh.budget.imports;
 
 import com.saaketh.budget.auth.AuthenticatedUser;
 import com.saaketh.budget.imports.ImportService.ImportResult;
+import com.saaketh.budget.imports.ImportService.Preview;
 import com.saaketh.budget.imports.ImportService.ImportSummary;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -29,14 +30,28 @@ public class ImportController {
     }
 
     /**
-     * Upload a statement as multipart/form-data with fields "accountId" and "file".
+     * Show how a file would be read, without saving anything: the columns found, the first few
+     * transactions, and any problems. Optional "mapping" (JSON) tries the user's column choices.
+     */
+    @PostMapping(path = "/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Preview preview(@AuthenticationPrincipal AuthenticatedUser user,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "mapping", required = false) String mapping) {
+        return importService.preview(user.getId(), file, mapping);
+    }
+
+    /**
+     * Upload a statement as multipart/form-data: "accountId", "file", and optionally "mapping"
+     * (column choices from the preview, as JSON) and "rememberFormat" (save them for next time).
      * 201 Created if new transactions were saved; 200 OK if every row was already imported.
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ImportResult> upload(@AuthenticationPrincipal AuthenticatedUser user,
             @RequestParam("accountId") Long accountId,
-            @RequestParam("file") MultipartFile file) {
-        ImportResult result = importService.importStatement(user.getId(), accountId, file);
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "mapping", required = false) String mapping,
+            @RequestParam(value = "rememberFormat", defaultValue = "false") boolean rememberFormat) {
+        ImportResult result = importService.importStatement(user.getId(), accountId, file, mapping, rememberFormat);
         return ResponseEntity.status(result.importBatchId() == null ? HttpStatus.OK : HttpStatus.CREATED).body(result);
     }
 

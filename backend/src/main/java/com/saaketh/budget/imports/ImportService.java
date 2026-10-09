@@ -4,8 +4,10 @@ import com.saaketh.budget.account.Account;
 import com.saaketh.budget.account.AccountService;
 import com.saaketh.budget.category.CategoryAssigner;
 import com.saaketh.budget.common.NotFoundException;
+import com.saaketh.budget.imports.csv.ColumnMapping;
+import com.saaketh.budget.imports.csv.MappedCsvParser;
 import com.saaketh.budget.imports.parser.ParsedTransaction;
-import com.saaketh.budget.imports.parser.StatementParser;
+import com.saaketh.budget.imports.parser.StatementParseException;
 import com.saaketh.budget.transaction.Transaction;
 import com.saaketh.budget.transaction.TransactionFingerprint;
 import com.saaketh.budget.transaction.TransactionRepository;
@@ -43,17 +45,35 @@ public class ImportService {
             int importedCount, int skippedCount, Instant createdAt) {
     }
 
+    /** One column of the file, for the preview's column pickers. */
+    public record PreviewColumn(int index, String name, List<String> samples) {
+    }
+
+    /**
+     * What the app would import, without saving anything.
+     *
+     * @param mapping null if the columns couldn't be worked out (then errors explains why)
+     * @param transactions the first few rows as they would be imported
+     * @param skippedRows rows with no amount (e.g. "Beginning balance" lines)
+     */
+    public record Preview(StatementReader.Source source, ColumnMapping mapping, List<PreviewColumn> columns,
+            List<ParsedTransaction> transactions, int transactionCount, int skippedRows,
+            List<String> warnings, List<String> errors) {
+    }
+
+    static final int PREVIEW_ROWS = 8;
+
     private final AccountService accountService;
-    private final StatementParser parser;
+    private final StatementReader statementReader;
     private final ImportBatchRepository importBatchRepository;
     private final TransactionRepository transactionRepository;
     private final CategoryAssigner categoryAssigner;
 
-    public ImportService(AccountService accountService, StatementParser parser,
+    public ImportService(AccountService accountService, StatementReader statementReader,
             ImportBatchRepository importBatchRepository, TransactionRepository transactionRepository,
             CategoryAssigner categoryAssigner) {
         this.accountService = accountService;
-        this.parser = parser;
+        this.statementReader = statementReader;
         this.importBatchRepository = importBatchRepository;
         this.transactionRepository = transactionRepository;
         this.categoryAssigner = categoryAssigner;
@@ -64,10 +84,18 @@ public class ImportService {
      * method is rolled back and the database looks as if the upload never happened.
      */
     @Transactional
-    public ImportResult importStatement(Long userId, Long accountId, MultipartFile file) {
+    public ImportResult importStatement(Long userId, Long accountId, MultipartFile file, String mappingJson,
+            boolean rememberFormat) {
         Account account = accountService.getOwned(userId, accountId);
         String fileName = validateFile(file);
-        List<ParsedTransaction> parsed = parser.parse(readUtf8(file));
+        StatementReader.Plan plan = statementReader.plan(userId, readUtf8(file), mappingJson);
+        if (plan.mapping() == null) {
+            throw new StatementParseException(plan.failure() + " Use the preview to choose the columns.");
+        }
+        List<ParsedTransaction> parsed = MappedCsvParser.parse(plan.table(), plan.mapping()).transactions();
+        if (rememberFormat && plan.source() != StatementReader.Source.SAVED) {
+            statementReader.remember(userId, plan.signature(), plan.mapping());
+        }
 
         List<NewRow> newRows = findNewRows(account.getId(), parsed);
         int skipped = parsed.size() - newRows.size();
@@ -98,6 +126,50 @@ public class ImportService {
             throw new ImportConflictException();
         }
         return new ImportResult(batch.getId(), account.getId(), fileName, transactions.size(), skipped);
+    }
+
+    /**
+     * Reads the file the same way an import would and reports what it found, without saving.
+     * Never throws for a bad file: problems come back in errors so the page can show them.
+     */
+    @Transactional(readOnly = true)
+    public Preview preview(Long userId, MultipartFile file, String mappingJson) {
+        validateFile(file);
+        StatementReader.Plan plan;
+        try {
+            plan = statementReader.plan(userId, readUtf8(file), mappingJson);
+        } catch (StatementParseException e) {
+            return new Preview(null, null, List.of(), List.of(), 0, 0, List.of(), e.getErrors());
+        }
+        List<PreviewColumn> columns = columns(plan);
+        if (plan.mapping() == null) {
+            return new Preview(plan.source(), null, columns, List.of(), 0, 0, plan.warnings(), List.of(plan.failure()));
+        }
+        try {
+            MappedCsvParser.Result result = MappedCsvParser.parse(plan.table(), plan.mapping());
+            List<ParsedTransaction> sample = result.transactions().stream().limit(PREVIEW_ROWS).toList();
+            return new Preview(plan.source(), plan.mapping(), columns, sample, result.transactions().size(),
+                    result.skippedRows(), plan.warnings(), List.of());
+        } catch (StatementParseException e) {
+            return new Preview(plan.source(), plan.mapping(), columns, List.of(), 0, 0, plan.warnings(), e.getErrors());
+        }
+    }
+
+    /** Each column's name and a few example values, so the user can recognize it. */
+    private static List<PreviewColumn> columns(StatementReader.Plan plan) {
+        int firstData = plan.layout().headerRow() + 1;
+        List<PreviewColumn> columns = new ArrayList<>();
+        for (int c = 0; c < plan.layout().columnNames().size(); c++) {
+            final int column = c;
+            List<String> samples = plan.table().rows().stream()
+                    .skip(firstData)
+                    .map(r -> r.cell(column))
+                    .filter(v -> !v.isEmpty())
+                    .limit(3)
+                    .toList();
+            columns.add(new PreviewColumn(c, plan.layout().columnNames().get(c), samples));
+        }
+        return columns;
     }
 
     private record NewRow(ParsedTransaction row, int occurrence) {

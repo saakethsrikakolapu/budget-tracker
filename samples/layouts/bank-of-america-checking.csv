@@ -1,0 +1,15 @@
+Description,,Summary Amt.
+Beginning balance as of 10/01/2026,,"1,000.00"
+Total credits,,"400.00"
+Total debits,,"-130.18"
+Ending balance as of 10/31/2026,,"1,269.82"
+
+Date,Description,Amount,Running Bal.
+10/01/2026,Beginning balance as of 10/01/2026,,"1,000.00"
+10/02/2026,"CAMPUS COFFEE CO","-4.75","995.25"
+10/05/2026,"FRESH MART #212","-48.33","946.92"
+10/10/2026,"STATE UNIVERSITY PAYROLL","400.00","1,346.92"
+10/14/2026,"STREAMFLIX","-15.49","1,331.43"
+10/20/2026,"CELL PHONE CO AUTOPAY","-45.00","1,286.43"
+10/25/2026,"RIDESHARE TRIP","-12.40","1,274.03"
+10/28/2026,"PIZZA PALACE","-4.21","1,269.82"
