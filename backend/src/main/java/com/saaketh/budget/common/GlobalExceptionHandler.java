@@ -3,6 +3,7 @@ package com.saaketh.budget.common;
 import com.saaketh.budget.account.AccountNameTakenException;
 import com.saaketh.budget.auth.EmailAlreadyRegisteredException;
 import com.saaketh.budget.auth.InvalidPasswordException;
+import com.saaketh.budget.auth.LoginRateLimiter;
 import com.saaketh.budget.category.CategoryNameTakenException;
 import com.saaketh.budget.category.RulePatternTakenException;
 import com.saaketh.budget.imports.ImportConflictException;
@@ -10,8 +11,10 @@ import com.saaketh.budget.imports.InvalidUploadException;
 import com.saaketh.budget.imports.parser.StatementParseException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -62,6 +65,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     ProblemDetail handleBadLogin(AuthenticationException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+    }
+
+    /** 429 Too Many Requests, with Retry-After (seconds) so clients know when to try again. */
+    @ExceptionHandler(LoginRateLimiter.TooManyAttemptsException.class)
+    ResponseEntity<ProblemDetail> handleTooManyAttempts(LoginRateLimiter.TooManyAttemptsException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                // Rounded up: telling a client to retry too early would just get it refused again.
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(Math.max(1, (e.getRetryAfter().toMillis() + 999) / 1000)))
+                .body(ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, e.getMessage()));
     }
 
     @ExceptionHandler(BadRequestException.class)

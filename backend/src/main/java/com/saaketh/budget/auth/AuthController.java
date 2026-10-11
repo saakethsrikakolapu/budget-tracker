@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,10 +39,13 @@ public class AuthController {
     private final SecurityContextRepository securityContextRepository;
     /** Spring Session's store (Postgres), when enabled; lets us find every session a user has. */
     private final ObjectProvider<FindByIndexNameSessionRepository<?>> sessionRepository;
+    private final LoginRateLimiter loginRateLimiter;
 
     public AuthController(AuthService authService, AuthenticationManager authenticationManager,
             SecurityContextRepository securityContextRepository,
-            ObjectProvider<FindByIndexNameSessionRepository<?>> sessionRepository) {
+            ObjectProvider<FindByIndexNameSessionRepository<?>> sessionRepository,
+            LoginRateLimiter loginRateLimiter) {
+        this.loginRateLimiter = loginRateLimiter;
         this.authService = authService;
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
@@ -62,9 +66,20 @@ public class AuthController {
     @PostMapping("/login")
     public UserResponse login(@Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-        Authentication authentication = authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken.unauthenticated(
-                        AuthService.normalizeEmail(request.email()), request.password()));
+        String email = AuthService.normalizeEmail(request.email());
+        // Behind Render's proxy this is the visitor's IP (server.forward-headers-strategy=framework).
+        String ip = httpRequest.getRemoteAddr();
+        // Checked before the password, so a locked-out guesser learns nothing (even if right).
+        loginRateLimiter.check(email, ip);
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    UsernamePasswordAuthenticationToken.unauthenticated(email, request.password()));
+        } catch (AuthenticationException e) {
+            loginRateLimiter.recordFailure(email, ip);
+            throw e;
+        }
+        loginRateLimiter.recordSuccess(email);
 
         // Session fixation defense: give the browser a new session id at login, so a session id
         // an attacker planted before login is useless afterwards.

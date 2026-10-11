@@ -45,6 +45,7 @@ Backend environment variables: `DATABASE_URL` (JDBC URL with `sslmode=require`),
 
 Working today:
 - Secure accounts (Spring Security sessions stored in Postgres, CSRF protection)
+- Login rate limiting: 5 failed attempts per email (30 per IP) in 15 minutes, then 429 with Retry-After
 - Delete your account and all your data in one step (password confirmed; logs out every device)
 - CSV import from any bank: columns are inferred from the values (no fixed formats), shown in a preview you can adjust, and remembered for next time; duplicate detection and undo
 - Categories: defaults for every user, mapped automatically from the bank's labels, editable by hand
