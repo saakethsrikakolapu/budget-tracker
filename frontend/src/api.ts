@@ -82,6 +82,8 @@ export type ImportResult = {
   fileName: string
   importedCount: number
   skippedCount: number
+  /** New transactions nothing could categorize automatically. */
+  uncategorizedCount: number
 }
 
 /** Mirrors ImportService.ImportSummary: one row of import history. */
@@ -311,13 +313,19 @@ export type ImportPreview = {
   skippedRows: number
   warnings: string[]
   errors: string[]
+  /** Date range of the file's transactions (null if nothing could be read). */
+  firstDate: string | null
+  lastDate: string | null
+  /** Rows already in the chosen account, which an import would skip (null if no account was given). */
+  alreadyImported: number | null
 }
 
 /** Read a file without importing it. Pass a mapping to try your own column choices. */
-export function previewStatement(file: File, mapping?: ColumnMapping): Promise<ImportPreview> {
+export function previewStatement(file: File, mapping?: ColumnMapping, accountId?: number): Promise<ImportPreview> {
   const form = new FormData()
   form.append('file', file)
   if (mapping) form.append('mapping', JSON.stringify(mapping))
+  if (accountId !== undefined) form.append('accountId', String(accountId))
   return apiFetch<ImportPreview>('/api/imports/preview', { method: 'POST', body: form })
 }
 

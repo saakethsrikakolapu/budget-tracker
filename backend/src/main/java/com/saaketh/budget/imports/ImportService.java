@@ -18,6 +18,7 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,8 +38,14 @@ public class ImportService {
     /** Also enforced earlier by spring.servlet.multipart.max-file-size; this is the backstop. */
     static final long MAX_FILE_BYTES = 2 * 1024 * 1024;
 
-    /** importBatchId is null when every row was a duplicate (no import record is created). */
-    public record ImportResult(Long importBatchId, Long accountId, String fileName, int importedCount, int skippedCount) {
+    /**
+     * importBatchId is null when every row was a duplicate (no import record is created).
+     *
+     * @param uncategorizedCount new transactions that no rule, bank label, or known merchant could
+     *     categorize (the page offers to review them)
+     */
+    public record ImportResult(Long importBatchId, Long accountId, String fileName, int importedCount, int skippedCount,
+            int uncategorizedCount) {
     }
 
     public record ImportSummary(Long id, Long accountId, String accountName, String fileName,
@@ -55,10 +62,20 @@ public class ImportService {
      * @param mapping null if the columns couldn't be worked out (then errors explains why)
      * @param transactions the first few rows as they would be imported
      * @param skippedRows rows with no amount (e.g. "Beginning balance" lines)
+     * @param firstDate earliest transaction date in the file (null if nothing could be read)
+     * @param lastDate latest transaction date in the file
+     * @param alreadyImported rows already in the chosen account, which an import would skip (null
+     *     when no account was given)
      */
     public record Preview(StatementReader.Source source, ColumnMapping mapping, List<PreviewColumn> columns,
             List<ParsedTransaction> transactions, int transactionCount, int skippedRows,
-            List<String> warnings, List<String> errors) {
+            List<String> warnings, List<String> errors, LocalDate firstDate, LocalDate lastDate,
+            Integer alreadyImported) {
+
+        static Preview failed(StatementReader.Source source, ColumnMapping mapping, List<PreviewColumn> columns,
+                List<String> warnings, List<String> errors) {
+            return new Preview(source, mapping, columns, List.of(), 0, 0, warnings, errors, null, null, null);
+        }
     }
 
     static final int PREVIEW_ROWS = 8;
@@ -101,7 +118,7 @@ public class ImportService {
         int skipped = parsed.size() - newRows.size();
         if (newRows.isEmpty()) {
             // Everything was already imported: nothing to save, and no empty import record to undo.
-            return new ImportResult(null, account.getId(), fileName, 0, skipped);
+            return new ImportResult(null, account.getId(), fileName, 0, skipped, 0);
         }
 
         ImportBatch batch = importBatchRepository.save(
@@ -126,7 +143,8 @@ public class ImportService {
             // account saved the same rows a moment ago (e.g. a double-click). This one is rolled back.
             throw new ImportConflictException();
         }
-        return new ImportResult(batch.getId(), account.getId(), fileName, transactions.size(), skipped);
+        int uncategorized = (int) transactions.stream().filter(t -> t.getCategoryId() == null).count();
+        return new ImportResult(batch.getId(), account.getId(), fileName, transactions.size(), skipped, uncategorized);
     }
 
     /**
@@ -134,25 +152,32 @@ public class ImportService {
      * Never throws for a bad file: problems come back in errors so the page can show them.
      */
     @Transactional(readOnly = true)
-    public Preview preview(Long userId, MultipartFile file, String mappingJson) {
+    public Preview preview(Long userId, MultipartFile file, String mappingJson, Long accountId) {
         validateFile(file);
+        // Checked before reading the file, so another user's account id is a plain 404.
+        Account account = accountId == null ? null : accountService.getOwned(userId, accountId);
         StatementReader.Plan plan;
         try {
             plan = statementReader.plan(userId, readUtf8(file), mappingJson);
         } catch (StatementParseException e) {
-            return new Preview(null, null, List.of(), List.of(), 0, 0, List.of(), e.getErrors());
+            return Preview.failed(null, null, List.of(), List.of(), e.getErrors());
         }
         List<PreviewColumn> columns = columns(plan);
         if (plan.mapping() == null) {
-            return new Preview(plan.source(), null, columns, List.of(), 0, 0, plan.warnings(), List.of(plan.failure()));
+            return Preview.failed(plan.source(), null, columns, plan.warnings(), List.of(plan.failure()));
         }
         try {
             MappedCsvParser.Result result = MappedCsvParser.parse(plan.table(), plan.mapping());
-            List<ParsedTransaction> sample = result.transactions().stream().limit(PREVIEW_ROWS).toList();
-            return new Preview(plan.source(), plan.mapping(), columns, sample, result.transactions().size(),
-                    result.skippedRows(), plan.warnings(), List.of());
+            List<ParsedTransaction> all = result.transactions();
+            List<ParsedTransaction> sample = all.stream().limit(PREVIEW_ROWS).toList();
+            LocalDate first = all.stream().map(ParsedTransaction::transactionDate).min(LocalDate::compareTo).orElse(null);
+            LocalDate last = all.stream().map(ParsedTransaction::transactionDate).max(LocalDate::compareTo).orElse(null);
+            // Same duplicate check an import runs, so the page can say "3 already imported" up front.
+            Integer alreadyImported = account == null ? null : all.size() - findNewRows(account.getId(), all).size();
+            return new Preview(plan.source(), plan.mapping(), columns, sample, all.size(), result.skippedRows(),
+                    plan.warnings(), List.of(), first, last, alreadyImported);
         } catch (StatementParseException e) {
-            return new Preview(plan.source(), plan.mapping(), columns, List.of(), 0, 0, plan.warnings(), e.getErrors());
+            return Preview.failed(plan.source(), plan.mapping(), columns, plan.warnings(), e.getErrors());
         }
     }
 

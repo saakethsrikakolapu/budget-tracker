@@ -142,14 +142,56 @@ class ImportPreviewIntegrationTest {
                 .andExpect(jsonPath("$.errors[0]").value("The column choices don't match this file. Choose the columns again."));
     }
 
+    @Test
+    void previewSummarizesDatesAndWhatsAlreadyImported() throws Exception {
+        MockHttpSession session = TestUsers.registerAndLogin(mockMvc);
+        long account = createAccount(session);
+        byte[] file = sample("capital-one-credit-card.csv");
+
+        preview(session, file, null, account)
+                .andExpect(jsonPath("$.firstDate").value("2026-09-15"))
+                .andExpect(jsonPath("$.lastDate").value("2026-09-28"))
+                .andExpect(jsonPath("$.alreadyImported").value(0));
+        // Without an account there's nothing to compare against.
+        preview(session, file, null).andExpect(jsonPath("$.alreadyImported").isEmpty());
+
+        upload(session, account, file, null, false).andExpect(status().isCreated());
+        preview(session, file, null, account).andExpect(jsonPath("$.alreadyImported").value(10));
+
+        MockHttpSession stranger = TestUsers.registerAndLogin(mockMvc);
+        preview(stranger, file, null, account).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void importSaysHowManyNeedACategory() throws Exception {
+        MockHttpSession session = TestUsers.registerAndLogin(mockMvc);
+        byte[] file = """
+                Date,Description,Amount
+                10/20/2026,STARBUCKS STORE 01234,-5.25
+                10/21/2026,STREAMFLIX,-15.49
+                """.getBytes();
+
+        upload(session, createAccount(session), file, null, false)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.importedCount").value(2))
+                .andExpect(jsonPath("$.uncategorizedCount").value(1)); // the made-up STREAMFLIX
+    }
+
     // --- helpers ---
 
     private ResultActions preview(MockHttpSession session, byte[] file, String mapping) throws Exception {
+        return preview(session, file, mapping, null);
+    }
+
+    private ResultActions preview(MockHttpSession session, byte[] file, String mapping, Long account) throws Exception {
         var request = multipart("/api/imports/preview")
                 .file(new MockMultipartFile("file", "statement.csv", "text/csv", file))
                 .session(session).with(csrf());
         if (mapping != null) {
             request.param("mapping", mapping);
+        }
+        if (account != null) {
+            request.param("accountId", String.valueOf(account));
         }
         return mockMvc.perform(request);
     }

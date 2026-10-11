@@ -36,8 +36,9 @@ public class ImportController {
     @PostMapping(path = "/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Preview preview(@AuthenticationPrincipal AuthenticatedUser user,
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "mapping", required = false) String mapping) {
-        return importService.preview(user.getId(), file, mapping);
+            @RequestParam(value = "mapping", required = false) String mapping,
+            @RequestParam(value = "accountId", required = false) Long accountId) {
+        return importService.preview(user.getId(), file, mapping, accountId);
     }
 
     /**
