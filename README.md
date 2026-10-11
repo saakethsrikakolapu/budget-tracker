@@ -138,11 +138,12 @@ Open http://localhost:5173, create an account, and upload a file from [`samples/
 | Database | Neon Postgres | Schema created by Flyway on startup |
 
 Backend environment variables: `DATABASE_URL` (JDBC URL with `sslmode=require`), `DATABASE_USERNAME`,
-`DATABASE_PASSWORD`. For email (password reset, verification), any SMTP provider works:
-`SPRING_MAIL_HOST`, `SPRING_MAIL_PORT` (587), `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`,
-`MAIL_FROM`, and optionally `APP_BASE_URL` (the frontend's address used in email links; defaults to
-`https://www.8022029.xyz`). Without `SPRING_MAIL_HOST`
-nothing is sent; locally, emails are printed to the backend log instead so you can click the links.
+`DATABASE_PASSWORD`. For email (password reset, verification): `BREVO_API_KEY` and `MAIL_FROM`
+(sent over Brevo's HTTPS API, because Render's free plan blocks outgoing SMTP ports). On hosts that
+allow SMTP, `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME` and `SPRING_MAIL_PASSWORD`
+work instead. `APP_BASE_URL` (the address used in email links) defaults to `https://www.8022029.xyz`.
+With no email settings nothing is sent; locally, emails are printed to the backend log so you can
+click the links.
 
 ## Roadmap
 
