@@ -4,6 +4,7 @@
  *
  *   1. Start the app as usual (docker compose up -d, backend, frontend).
  *   2. node scripts/take-screenshots.mjs            (APP_URL defaults to http://localhost:5173)
+ *      THEME=dark node scripts/take-screenshots.mjs (dark mode; files end in -dark.png)
  *
  * It signs up a throwaway demo account, imports samples/subscriptions-6-months.csv (fake data),
  * sets a few budgets, photographs each page in headless Edge or Chrome at 2x resolution, then
@@ -20,6 +21,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const APP_URL = process.env.APP_URL ?? 'http://localhost:5173'
 const OUT = join(ROOT, 'docs', 'screenshots')
 const DEBUG_PORT = 9333
+const DARK = process.env.THEME === 'dark'
+const SUFFIX = DARK ? '-dark' : ''
 const BROWSERS = [
   process.env.BROWSER,
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
@@ -136,8 +139,8 @@ async function shoot(cdp, name, path, { width = 1440, height = 900, mobile = fal
     clip = { x: 0, y: 0, width, height: Math.ceil(cssContentSize.height), scale: 1 }
   }
   const { data } = await cdp.send('Page.captureScreenshot', { format: 'png', clip, captureBeyondViewport: fullPage })
-  writeFileSync(join(OUT, `${name}.png`), Buffer.from(data, 'base64'))
-  console.log(`  docs/screenshots/${name}.png`)
+  writeFileSync(join(OUT, `${name}${SUFFIX}.png`), Buffer.from(data, 'base64'))
+  console.log(`  docs/screenshots/${name}${SUFFIX}.png`)
 }
 
 // --- main ---
@@ -147,8 +150,13 @@ const browser = await launchBrowser()
 const cdp = await connect(browser.wsUrl)
 try {
   await cdp.send('Page.enable')
-  // Final values instead of mid-animation numbers.
-  await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
+  // Final values instead of mid-animation numbers; light or dark as asked (the app follows the system).
+  await cdp.send('Emulation.setEmulatedMedia', {
+    features: [
+      { name: 'prefers-reduced-motion', value: 'reduce' },
+      { name: 'prefers-color-scheme', value: DARK ? 'dark' : 'light' },
+    ],
+  })
 
   console.log('Logged out:')
   await shoot(cdp, 'login', '/login')

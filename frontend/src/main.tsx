@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import './index.css'
+import './theme' // follows the device's light/dark setting from the start
 import App from './App.tsx'
 import { AuthProvider } from './auth/AuthProvider'
 import { ServerWakeGate } from './components/ServerWakeGate'

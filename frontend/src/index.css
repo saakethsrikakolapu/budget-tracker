@@ -1,6 +1,10 @@
 @import "tailwindcss";
 /* Inter, bundled with the app (no request to Google Fonts). Variable font: one file, every weight. */
 @import "@fontsource-variable/inter";
+@import "./theme-dark.css";
+
+/* dark: utilities apply when <html> has the "dark" class (set by src/theme.ts). */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
  * Design system: Swiss minimal (ui-ux-pro-max "Minimalism & Swiss Style" + "Minimal Swiss" type).

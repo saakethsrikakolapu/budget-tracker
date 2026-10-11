@@ -1,9 +1,10 @@
-import { LayoutDashboard, ListOrdered, PiggyBank, Repeat, Tags, Upload } from 'lucide-react'
+import { LayoutDashboard, ListOrdered, LogOut, PiggyBank, Repeat, Tags, Upload } from 'lucide-react'
 import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/authContext'
 import { Logo } from './Logo'
 import { SystemStatus } from './SystemStatus'
+import { ThemeToggle } from './ThemeToggle'
 
 /** Browser-tab title per page; screen readers announce it when the page changes. */
 const TITLES: Record<string, string> = {
@@ -58,7 +59,7 @@ export function AppLayout() {
         Skip to content
       </a>
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 px-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 px-6">
           <NavLink to="/" className="flex items-center gap-2 py-3" aria-label="Budget Tracker home">
             <Logo />
             <span className="hidden text-[15px] font-semibold tracking-tight text-zinc-950 sm:inline">Budget Tracker</span>
@@ -67,7 +68,7 @@ export function AppLayout() {
           {/* Phones: its own full-width row under the logo (scrolls sideways if needed). Wider: inline. */}
           <nav
             aria-label="Main"
-            className="-mb-px order-last flex w-full gap-6 overflow-x-auto [scrollbar-width:none] md:order-none md:w-auto md:flex-1 [&::-webkit-scrollbar]:hidden"
+            className="-mb-px order-last flex w-full gap-5 overflow-x-auto [scrollbar-width:none] md:order-none md:w-auto md:flex-1 [&::-webkit-scrollbar]:hidden"
           >
             {NAV.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
@@ -77,7 +78,8 @@ export function AppLayout() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             <NavLink
               to="/import"
               className="hidden items-center gap-1.5 rounded-lg bg-zinc-950 px-3 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-zinc-800 md:inline-flex"
@@ -96,9 +98,11 @@ export function AppLayout() {
             <button
               type="button"
               onClick={handleLogout}
-              className="text-sm text-zinc-500 transition-colors duration-150 hover:text-zinc-900"
+              aria-label="Log out"
+              title="Log out"
+              className="grid size-9 place-items-center rounded-full text-zinc-600 transition-colors duration-150 hover:bg-zinc-100 hover:text-zinc-900"
             >
-              Log out
+              <LogOut size={18} aria-hidden="true" />
             </button>
           </div>
         </div>

@@ -49,8 +49,9 @@ export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, f
 
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
-      {/* The pitch: only on wide screens, so phones go straight to the form. */}
-      <section className="hidden flex-col justify-between bg-zinc-950 p-12 text-white lg:flex">
+      {/* The pitch: only on wide screens, so phones go straight to the form. Fixed colors (not palette
+          classes) so it stays a dark panel in dark mode too instead of flipping light. */}
+      <section className="hidden flex-col justify-between bg-[#09090b] p-12 text-[#fafafa] lg:flex">
         <div className="flex items-center gap-2">
           <Logo inverted />
           <span className="text-[15px] font-semibold tracking-tight">Budget Tracker</span>
@@ -59,16 +60,16 @@ export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, f
           <h2 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">
             Know where your money goes. No bank login.
           </h2>
-          <ul className="mt-8 space-y-4 text-sm text-zinc-300">
+          <ul className="mt-8 space-y-4 text-sm text-[#d4d4d8]">
             {PITCH.map((line) => (
               <li key={line} className="flex gap-3">
-                <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-indigo-400" />
+                <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[#818cf8]" />
                 {line}
               </li>
             ))}
           </ul>
         </div>
-        <p className="text-xs text-zinc-500">Built for students. Your statements, your data.</p>
+        <p className="text-xs text-[#a1a1aa]">Built for students. Your statements, your data.</p>
       </section>
 
       <div className="flex items-center justify-center bg-white p-6">

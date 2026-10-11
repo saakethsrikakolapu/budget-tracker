@@ -28,6 +28,7 @@ or any file in [`samples/layouts/`](samples/layouts) (all fake data).
 - **Never double-counts.** Re-uploading an overlapping statement skips what's already there, and any
   import can be undone.
 - **Your data stays yours:** delete your account and everything in it in one step.
+- **Light and dark mode,** following your device setting or chosen in the header.
 
 | Transactions | Subscriptions |
 |---|---|
@@ -35,7 +36,9 @@ or any file in [`samples/layouts/`](samples/layouts) (all fake data).
 | **Upload** | **Budgets** |
 | ![Upload: drop a CSV, check the summary, import](docs/screenshots/upload.png) | ![Monthly budgets per category](docs/screenshots/budgets.png) |
 
-<p align="center"><img src="docs/screenshots/dashboard-phone.png" alt="Dashboard on a phone" width="300"></p>
+| Dark mode | On a phone |
+|---|---|
+| ![Dashboard in dark mode](docs/screenshots/dashboard-dark.png) | <img src="docs/screenshots/dashboard-phone.png" alt="Dashboard on a phone" width="260"> |
 
 ## How it works
 
@@ -91,7 +94,7 @@ look like a yearly charge, and merchants whose reference codes are all letters m
   your account removes all your data (every table cascades from the user) and logs out every device.
 - Every page passes an [axe-core](https://github.com/dequelabs/axe-core) audit (WCAG 2.2 AA + best
   practices): keyboard navigation with a skip link, visible focus, 4.5:1 text contrast, labeled controls,
-  charts with table or list alternatives, and reduced motion respected.
+  charts with table or list alternatives, and reduced motion respected, in both light and dark mode.
 
 ## Tech stack
 
@@ -115,8 +118,9 @@ Open http://localhost:5173, create an account, and upload a file from [`samples/
 `http://localhost:8080/api/health` returns `{"status":"UP","database":"UP"}`.
 
 - **Tests:** `cd backend && ./mvnw test` (starts its own throwaway Postgres, so it only needs Docker).
-- **Screenshots:** with the app running, `node scripts/take-screenshots.mjs` regenerates
-  `docs/screenshots/` using a throwaway demo account (headless Edge or Chrome, no dependencies).
+- **Screenshots:** with the app running, `node scripts/take-screenshots.mjs` (add `THEME=dark` for dark
+  mode) regenerates `docs/screenshots/` using a throwaway demo account (headless Edge or Chrome, no
+  dependencies).
 
 ## Deployment
 

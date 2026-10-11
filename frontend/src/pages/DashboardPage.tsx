@@ -15,14 +15,21 @@ import {
   formatShortDate,
 } from '../format'
 import { useCountUp } from '../hooks/useCountUp'
+import { useIsDark } from '../theme'
 
-// Chart colors: the accent (indigo-600, 6.3:1 on white) for the data that matters, a lighter
-// indigo for context, zinc neutrals for everything else. Category charts use each category's color.
-const ACCENT = '#4f46e5'
-const ACCENT_MUTED = '#a5b4fc' // indigo-300: the months that aren't selected (>= 2:1 on white)
-const GRID = '#e4e4e7' // zinc-200: recessive gridlines
-const AXIS_TEXT = '#71717a' // zinc-500: axis labels wear text colors, never the series color
-const HOVER = '#f4f4f5' // zinc-100
+/**
+ * Chart colors, set in JS because Recharts draws SVG with these values. Light: the accent
+ * (indigo-600, 6.3:1 on white) for the data that matters, a lighter indigo for context, zinc for
+ * grid and labels. Dark: the same roles with lighter/darker steps so they still stand out on a
+ * dark card. Category charts use each category's own color in both.
+ */
+function chartColors(dark: boolean) {
+  return dark
+    ? { accent: '#818cf8', accentMuted: '#3730a3', grid: '#27272a', axis: '#a1a1aa', hover: '#27272a', track: '#27272a',
+        tooltip: { background: '#18181b', border: '1px solid #3f3f46', color: '#fafafa' } }
+    : { accent: '#4f46e5', accentMuted: '#a5b4fc', grid: '#e4e4e7', axis: '#71717a', hover: '#f4f4f5', track: '#f4f4f5',
+        tooltip: { background: '#ffffff', border: '1px solid #e4e4e7', color: '#18181b' } }
+}
 
 /** The home page: one month's spending at a glance. The month lives in the URL (?month=2026-09). */
 export function DashboardPage() {
@@ -134,6 +141,7 @@ export function DashboardPage() {
 function NetSpending({ dashboard, seeAllLink }: { dashboard: api.Dashboard; seeAllLink: string }) {
   const shown = useCountUp(dashboard.totals.netSpending)
   const previous = dashboard.monthlyTrend.at(-2)
+  const colors = chartColors(useIsDark())
   return (
     <section className="card flex flex-col p-6 lg:col-span-5">
       <p className="kicker">Net spending</p>
@@ -150,11 +158,11 @@ function NetSpending({ dashboard, seeAllLink }: { dashboard: api.Dashboard; seeA
           <AreaChart data={dashboard.monthlyTrend} margin={{ top: 4, right: 0, bottom: 0, left: 0 }} accessibilityLayer={false}>
             <defs>
               <linearGradient id="spark" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={ACCENT} stopOpacity={0.18} />
-                <stop offset="100%" stopColor={ACCENT} stopOpacity={0} />
+                <stop offset="0%" stopColor={colors.accent} stopOpacity={0.18} />
+                <stop offset="100%" stopColor={colors.accent} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <Area type="monotone" dataKey="netSpending" stroke={ACCENT} strokeWidth={2} fill="url(#spark)" isAnimationActive={false} />
+            <Area type="monotone" dataKey="netSpending" stroke={colors.accent} strokeWidth={2} fill="url(#spark)" isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -274,6 +282,7 @@ function SpendingByCategory({
 
 function MonthlyTrend({ data, selected }: { data: api.Dashboard['monthlyTrend']; selected: string }) {
   const rows = data.map((d) => ({ ...d, label: formatMonthShort(d.month) }))
+  const colors = chartColors(useIsDark())
   return (
     <section className="card h-full p-6">
       <h2 className="text-sm font-semibold text-zinc-950">Spending by month</h2>
@@ -281,17 +290,20 @@ function MonthlyTrend({ data, selected }: { data: api.Dashboard['monthlyTrend'];
       <div className="mt-4 h-56">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: 8 }} barCategoryGap="30%">
-            <CartesianGrid vertical={false} stroke={GRID} />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: AXIS_TEXT, fontSize: 12 }} />
+            <CartesianGrid vertical={false} stroke={colors.grid} />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: colors.axis, fontSize: 12 }} />
             <YAxis
               tickLine={false}
               axisLine={false}
               width={56}
-              tick={{ fill: AXIS_TEXT, fontSize: 12 }}
+              tick={{ fill: colors.axis, fontSize: 12 }}
               tickFormatter={(value: number) => `$${value.toLocaleString('en-US')}`}
             />
             <Tooltip
-              cursor={{ fill: HOVER }}
+              cursor={{ fill: colors.hover }}
+              contentStyle={{ ...colors.tooltip, borderRadius: 8 }}
+              itemStyle={{ color: colors.tooltip.color }}
+              labelStyle={{ color: colors.tooltip.color }}
               formatter={(value) => [formatMoney(Number(value)), 'Net spending']}
               labelFormatter={(_, payload) =>
                 payload?.[0] ? formatMonthShort(String(payload[0].payload.month), { year: true }) : ''
@@ -299,7 +311,7 @@ function MonthlyTrend({ data, selected }: { data: api.Dashboard['monthlyTrend'];
             />
             <Bar dataKey="netSpending" radius={[6, 6, 0, 0]} maxBarSize={40}>
               {rows.map((row) => (
-                <Cell key={row.month} fill={row.month === selected ? ACCENT : ACCENT_MUTED} />
+                <Cell key={row.month} fill={row.month === selected ? colors.accent : colors.accentMuted} />
               ))}
             </Bar>
           </BarChart>
@@ -414,6 +426,7 @@ function BudgetRings({ overview }: { overview: api.BudgetOverview }) {
 }
 
 function Ring({ percent, over }: { percent: number; over: boolean }) {
+  const track = chartColors(useIsDark()).track
   const radius = 30
   const circumference = 2 * Math.PI * radius
   const filled = Math.min(Math.max(percent, 0), 100) / 100
@@ -421,7 +434,7 @@ function Ring({ percent, over }: { percent: number; over: boolean }) {
   return (
     <div className="relative size-20">
       <svg viewBox="0 0 72 72" className="size-20 -rotate-90" aria-hidden="true">
-        <circle cx="36" cy="36" r={radius} fill="none" stroke="#f4f4f5" strokeWidth="7" />
+        <circle cx="36" cy="36" r={radius} fill="none" stroke={track} strokeWidth="7" />
         <circle
           cx="36"
           cy="36"
