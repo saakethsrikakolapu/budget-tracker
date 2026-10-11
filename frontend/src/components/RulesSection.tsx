@@ -55,31 +55,31 @@ export function RulesSection({ categories }: { categories: api.Category[] }) {
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">Rules</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <h2 className="text-lg font-semibold text-zinc-900">Rules</h2>
+        <p className="mt-1 text-sm text-zinc-600">
           Automatically categorize transactions whose description contains some text. Rules beat the bank&apos;s
           categories, the most specific (longest) rule wins, and anything you set by hand is never changed.
         </p>
       </div>
 
-      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow">
+      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-xl border border-zinc-200 bg-white p-4">
         <label className="block flex-1">
-          <span className="text-xs font-medium text-slate-600">If the description contains</span>
+          <span className="text-xs font-medium text-zinc-600">If the description contains</span>
           <input
             type="text"
             value={pattern}
             onChange={(event) => setPattern(event.target.value)}
             placeholder="e.g. POSHMARK"
             maxLength={100}
-            className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
           />
         </label>
         <label className="block">
-          <span className="text-xs font-medium text-slate-600">use category</span>
+          <span className="text-xs font-medium text-zinc-600">use category</span>
           <select
             value={categoryId}
             onChange={(event) => setCategoryId(event.target.value)}
-            className="mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
           >
             <option value="">Choose…</option>
             {categories.map((category) => (
@@ -92,7 +92,7 @@ export function RulesSection({ categories }: { categories: api.Category[] }) {
         <button
           type="submit"
           disabled={saving || pattern.trim() === '' || categoryId === ''}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+          className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-zinc-800 disabled:opacity-50"
         >
           {saving ? 'Adding…' : 'Add rule'}
         </button>
@@ -109,17 +109,17 @@ export function RulesSection({ categories }: { categories: api.Category[] }) {
         </p>
       )}
 
-      {rules !== null && rules.length === 0 && <p className="text-sm text-slate-500">No rules yet.</p>}
+      {rules !== null && rules.length === 0 && <p className="text-sm text-zinc-500">No rules yet.</p>}
       {rules !== null && rules.length > 0 && (
-        <ul className="divide-y divide-slate-100 rounded-xl bg-white shadow">
+        <ul className="divide-y divide-zinc-100 rounded-xl border border-zinc-200 bg-white">
           {rules.map((rule) => (
             <li key={rule.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
               <div>
-                <p className="text-sm text-slate-900">
+                <p className="text-sm text-zinc-900">
                   Contains <span className="font-mono font-medium">{rule.pattern}</span> →{' '}
                   <span className="font-medium">{rule.categoryName}</span>
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-zinc-500">
                   Matches {rule.matchCount} transaction{rule.matchCount === 1 ? '' : 's'}
                 </p>
               </div>

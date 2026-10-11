@@ -43,48 +43,84 @@ export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, f
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <form onSubmit={handleSubmit} noValidate className="w-full max-w-sm rounded-xl bg-white p-6 shadow space-y-4">
-        <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
+    <main className="grid min-h-screen lg:grid-cols-2">
+      {/* The pitch: only on wide screens, so phones go straight to the form. */}
+      <section className="hidden flex-col justify-between bg-zinc-950 p-12 text-white lg:flex">
+        <div className="flex items-center gap-2">
+          <span aria-hidden="true" className="grid size-7 place-items-center rounded-md bg-white text-xs font-bold text-zinc-950">
+            B
+          </span>
+          <span className="text-[15px] font-semibold tracking-tight">Budget Tracker</span>
+        </div>
+        <div>
+          <h2 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">
+            Know where your money goes. No bank login.
+          </h2>
+          <ul className="mt-8 space-y-4 text-sm text-zinc-300">
+            {PITCH.map((line) => (
+              <li key={line} className="flex gap-3">
+                <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
+                {line}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <p className="text-xs text-zinc-500">Built for students. Your statements, your data.</p>
+      </section>
 
-        {formError && (
-          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            {formError}
-          </p>
-        )}
+      <div className="flex items-center justify-center bg-white p-6">
+        <form onSubmit={handleSubmit} noValidate className="w-full max-w-sm space-y-5">
+          <div>
+            <p className="kicker lg:hidden">Budget Tracker</p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950">{title}</h1>
+          </div>
 
-        <Field
-          label="Email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={setEmail}
-          error={fieldErrors.email}
-        />
-        <Field
-          label="Password"
-          type="password"
-          autoComplete={passwordAutoComplete}
-          value={password}
-          onChange={setPassword}
-          error={fieldErrors.password}
-        />
+          {formError && (
+            <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              {formError}
+            </p>
+          )}
 
-        {notice && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{notice}</p>}
+          <Field
+            label="Email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={setEmail}
+            error={fieldErrors.email}
+          />
+          <Field
+            label="Password"
+            type="password"
+            autoComplete={passwordAutoComplete}
+            value={password}
+            onChange={setPassword}
+            error={fieldErrors.password}
+          />
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-lg bg-slate-900 py-2 font-medium text-white hover:bg-slate-700 disabled:opacity-50"
-        >
-          {submitting ? 'Please wait…' : submitLabel}
-        </button>
+          {notice && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{notice}</p>}
 
-        <p className="text-center text-sm text-slate-600">{footer}</p>
-      </form>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full rounded-lg bg-zinc-950 py-2.5 font-medium text-white transition-colors duration-150 hover:bg-zinc-800 disabled:opacity-50"
+          >
+            {submitting ? 'Please wait…' : submitLabel}
+          </button>
+
+          <p className="text-center text-sm text-zinc-600">{footer}</p>
+        </form>
+      </div>
     </main>
   )
 }
+
+const PITCH = [
+  'Upload a CSV from any bank or card. Columns are figured out for you.',
+  'Transactions are categorized automatically; budgets show what is left.',
+  'Subscriptions are found on their own, including ones you forgot.',
+  'Delete your account and every byte of data whenever you want.',
+]
 
 type FieldProps = {
   label: string
@@ -98,15 +134,15 @@ type FieldProps = {
 function Field({ label, type, autoComplete, value, onChange, error }: FieldProps) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-medium text-zinc-700">{label}</span>
       <input
         type={type}
         autoComplete={autoComplete}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={error ? true : undefined}
-        className={`mt-1 w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-400 ${
-          error ? 'border-red-500' : 'border-slate-300'
+        className={`mt-1.5 w-full rounded-lg border px-3 py-2.5 outline-none transition-colors duration-150 focus:border-accent focus:ring-2 focus:ring-accent-soft ${
+          error ? 'border-red-500' : 'border-zinc-300'
         }`}
       />
       {error && <span className="mt-1 block text-sm text-red-600">{error}</span>}

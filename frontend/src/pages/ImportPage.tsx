@@ -152,27 +152,27 @@ export function ImportPage() {
   }
 
   if (accounts === null && error === null) {
-    return <p className="text-slate-500">Loading…</p>
+    return <p className="text-zinc-500">Loading…</p>
   }
 
   const canImport = !!preview && !!mapping && preview.errors.length === 0 && preview.transactionCount > 0
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-semibold text-slate-900">Upload a statement</h1>
-      <p className="mt-2 text-sm text-slate-600">
+      <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Upload a statement</h1>
+      <p className="mt-2 text-sm text-zinc-600">
         Any bank or card&apos;s CSV export works: the columns are worked out automatically and you can check them
         before importing. Your file is read once and never stored; only the transactions are saved.
       </p>
 
-      <div className="mt-6 space-y-5 rounded-xl bg-white p-6 shadow">
+      <div className="mt-6 space-y-5 rounded-xl border border-zinc-200 bg-white p-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Account</span>
+            <span className="text-sm font-medium text-zinc-700">Account</span>
             <select
               value={accountChoice}
               onChange={(event) => setAccountChoice(event.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2"
             >
               {accounts?.map((account) => (
                 <option key={account.id} value={String(account.id)}>
@@ -185,31 +185,31 @@ export function ImportPage() {
 
           {accountChoice === NEW_ACCOUNT && (
             <label className="block">
-              <span className="text-sm font-medium text-slate-700">New account name</span>
+              <span className="text-sm font-medium text-zinc-700">New account name</span>
               <input
                 type="text"
                 value={newAccountName}
                 onChange={(event) => setNewAccountName(event.target.value)}
                 placeholder="e.g. Chase Freedom"
                 maxLength={100}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
               />
             </label>
           )}
         </div>
 
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">CSV file</span>
+          <span className="text-sm font-medium text-zinc-700">CSV file</span>
           <input
             key={fileInputKey}
             type="file"
             accept=".csv,text/csv"
             onChange={(event) => handleFileChosen(event.target.files?.[0] ?? null)}
-            className="mt-1 block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-slate-200"
+            className="mt-1 block w-full text-sm text-zinc-700 file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-zinc-200"
           />
         </label>
 
-        {previewing && !preview && <p className="text-sm text-slate-500">Reading the file…</p>}
+        {previewing && !preview && <p className="text-sm text-zinc-500">Reading the file…</p>}
 
         {preview && (
           <PreviewPanel
@@ -227,8 +227,8 @@ export function ImportPage() {
         )}
 
         {preview && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-4">
+            <label className="flex items-center gap-2 text-sm text-zinc-700">
               <input
                 type="checkbox"
                 checked={rememberFormat}
@@ -240,7 +240,7 @@ export function ImportPage() {
               type="button"
               onClick={handleImport}
               disabled={!canImport || submitting || previewing}
-              className="rounded-lg bg-slate-900 px-5 py-2 font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+              className="rounded-lg bg-zinc-900 px-5 py-2 font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
             >
               {submitting
                 ? 'Importing…'
@@ -267,7 +267,7 @@ export function ImportPage() {
         </div>
       )}
 
-      <h2 className="mt-10 mb-3 text-lg font-semibold text-slate-900">Import history</h2>
+      <h2 className="mt-10 mb-3 text-lg font-semibold text-zinc-900">Import history</h2>
       <ImportHistory imports={imports} onDelete={handleDeleteImport} />
     </div>
   )
@@ -299,9 +299,9 @@ function PreviewPanel({
   return (
     <section aria-label="Preview" className={`space-y-4 ${updating ? 'opacity-60' : ''}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-slate-700">{preview.source ? SOURCE_TEXT[preview.source] : 'Preview'}</p>
+        <p className="text-sm text-zinc-700">{preview.source ? SOURCE_TEXT[preview.source] : 'Preview'}</p>
         {mapping && (
-          <button type="button" onClick={onToggleColumns} className="text-sm text-slate-600 underline">
+          <button type="button" onClick={onToggleColumns} className="text-sm text-zinc-600 underline">
             {showColumns ? 'Hide column choices' : 'Adjust columns'}
           </button>
         )}
@@ -329,22 +329,22 @@ function PreviewPanel({
       )}
 
       {mapping && showColumns && (
-        <div className="rounded-lg border border-slate-200 p-4">
+        <div className="rounded-lg border border-zinc-200 p-4">
           <ColumnMappingEditor columns={preview.columns} mapping={mapping} onChange={onMappingChange} />
         </div>
       )}
 
       {preview.transactions.length > 0 && (
         <div>
-          <p className="mb-2 text-sm text-slate-600">
+          <p className="mb-2 text-sm text-zinc-600">
             {preview.transactionCount} transaction{preview.transactionCount === 1 ? '' : 's'} found
             {preview.skippedRows > 0 &&
               ` (${preview.skippedRows} row${preview.skippedRows === 1 ? '' : 's'} without an amount skipped, like balance lines)`}
             . First {preview.transactions.length}:
           </p>
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <div className="overflow-x-auto rounded-lg border border-zinc-200">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
                 <tr>
                   <th className="px-3 py-2 font-medium">Date</th>
                   <th className="px-3 py-2 font-medium">Description</th>
@@ -352,15 +352,15 @@ function PreviewPanel({
                   <th className="px-3 py-2 text-right font-medium">Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-zinc-100">
                 {preview.transactions.map((t, i) => (
                   <tr key={i}>
-                    <td className="whitespace-nowrap px-3 py-2 text-slate-600">{formatDate(t.transactionDate)}</td>
-                    <td className="px-3 py-2 text-slate-900">{t.description}</td>
-                    <td className="px-3 py-2 text-slate-500">{t.bankCategory ?? '—'}</td>
+                    <td className="whitespace-nowrap px-3 py-2 text-zinc-600">{formatDate(t.transactionDate)}</td>
+                    <td className="px-3 py-2 text-zinc-900">{t.description}</td>
+                    <td className="px-3 py-2 text-zinc-500">{t.bankCategory ?? '—'}</td>
                     <td
                       className={`whitespace-nowrap px-3 py-2 text-right tabular-nums ${
-                        t.amount < 0 ? 'text-slate-900' : 'text-green-700'
+                        t.amount < 0 ? 'text-zinc-900' : 'text-green-700'
                       }`}
                     >
                       {formatMoney(t.amount, { signed: true })}
@@ -370,7 +370,7 @@ function PreviewPanel({
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-zinc-500">
             Spending should show as <span className="font-medium">−</span> and refunds/payments as{' '}
             <span className="font-medium text-green-700">+</span>. If they&apos;re reversed, use Adjust columns.
           </p>

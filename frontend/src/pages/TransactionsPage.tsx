@@ -132,10 +132,10 @@ export function TransactionsPage() {
   if (months !== null && months.length === 0) {
     return (
       <div className="max-w-xl">
-        <h1 className="text-2xl font-semibold text-slate-900">Transactions</h1>
-        <p className="mt-4 text-slate-600">
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Transactions</h1>
+        <p className="mt-4 text-zinc-600">
           No transactions yet.{' '}
-          <Link to="/import" className="font-medium text-slate-900 underline">
+          <Link to="/import" className="font-medium text-accent hover:underline">
             Upload your first statement
           </Link>{' '}
           to get started.
@@ -146,16 +146,16 @@ export function TransactionsPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-semibold text-slate-900">Transactions</h1>
+      <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Transactions</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3">
         <label className="block">
-          <span className="text-xs font-medium text-slate-600">Account</span>
+          <span className="text-xs font-medium text-zinc-600">Account</span>
           <select
             value={accountParam}
             onChange={(event) => updateParam('account', event.target.value)}
-            className="mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
           >
             <option value="">All accounts</option>
             {accounts.map((account) => (
@@ -167,11 +167,11 @@ export function TransactionsPage() {
         </label>
 
         <label className="block">
-          <span className="text-xs font-medium text-slate-600">Category</span>
+          <span className="text-xs font-medium text-zinc-600">Category</span>
           <select
             value={categoryParam}
             onChange={(event) => updateParam('category', event.target.value)}
-            className="mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
           >
             <option value="">All categories</option>
             <option value="uncategorized">Uncategorized</option>
@@ -184,11 +184,11 @@ export function TransactionsPage() {
         </label>
 
         <label className="block">
-          <span className="text-xs font-medium text-slate-600">Month</span>
+          <span className="text-xs font-medium text-zinc-600">Month</span>
           <select
             value={monthParam}
             onChange={(event) => updateParam('month', event.target.value)}
-            className="mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
           >
             <option value={ALL_TIME}>All time</option>
             {months?.map((month) => (
@@ -201,7 +201,7 @@ export function TransactionsPage() {
 
         <form onSubmit={handleSearch} className="flex items-end gap-2">
           <label className="block">
-            <span className="text-xs font-medium text-slate-600">Merchant</span>
+            <span className="text-xs font-medium text-zinc-600">Merchant</span>
             {/* Searches the Description column only; category filtering comes in Stage 2. */}
             <input
               type="search"
@@ -209,10 +209,10 @@ export function TransactionsPage() {
               onChange={(event) => setSearchText(event.target.value)}
               placeholder="Search by merchant name"
               maxLength={100}
-              className="mt-1 block w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 block w-56 rounded-lg border border-zinc-300 px-3 py-2 text-sm"
             />
           </label>
-          <button type="submit" className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">
+          <button type="submit" className="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700">
             Search
           </button>
           {qParam && (
@@ -222,7 +222,7 @@ export function TransactionsPage() {
                 setSearchText('')
                 updateParam('q', '')
               }}
-              className="px-2 py-2 text-sm text-slate-600 underline"
+              className="px-2 py-2 text-sm text-zinc-600 underline"
             >
               Clear
             </button>
@@ -279,7 +279,7 @@ export function TransactionsPage() {
             <Stat label="Transactions" value={String(data.totals.count)} />
           </div>
           {data.totals.excludedCount > 0 && (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-zinc-500">
               {data.totals.excludedCount} transaction{data.totals.excludedCount === 1 ? '' : 's'} (like card payments)
               {data.totals.excludedCount === 1 ? ' is' : ' are'} in categories that don&apos;t count as spending, so{' '}
               {data.totals.excludedCount === 1 ? "it's" : "they're"} left out of these totals.
@@ -287,13 +287,13 @@ export function TransactionsPage() {
           )}
 
           {data.items.length === 0 ? (
-            <p className="rounded-xl bg-white px-4 py-8 text-center text-slate-500 shadow">
+            <p className="rounded-xl border border-zinc-200 bg-white px-4 py-8 text-center text-zinc-500">
               No transactions match these filters.
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-xl bg-white shadow">
+            <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
               <table className="w-full text-left text-sm">
-                <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
+                <thead className="border-b border-zinc-200 text-xs uppercase text-zinc-500">
                   <tr>
                     <th className="px-4 py-3 font-medium">Date</th>
                     <th className="px-4 py-3 font-medium">Description</th>
@@ -302,19 +302,19 @@ export function TransactionsPage() {
                     <th className="px-4 py-3 text-right font-medium">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-zinc-100">
                   {data.items.map((t) => (
                     <tr key={t.id}>
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-600">{formatDate(t.transactionDate)}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900">{t.description}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-zinc-600">{formatDate(t.transactionDate)}</td>
+                      <td className="px-4 py-3 font-medium text-zinc-900">{t.description}</td>
                       <td className="px-4 py-2">
                         <select
                           value={t.categoryId === null ? '' : String(t.categoryId)}
                           onChange={(event) => handleCategoryChange(t, event.target.value)}
                           title={t.bankCategory ? `Bank's label: ${t.bankCategory}` : undefined}
                           aria-label={`Category for ${t.description}`}
-                          className={`rounded-md border border-transparent bg-transparent py-1 text-sm hover:border-slate-300 ${
-                            t.categoryId === null ? 'italic text-slate-400' : 'text-slate-700'
+                          className={`rounded-md border border-transparent bg-transparent py-1 text-sm hover:border-zinc-300 ${
+                            t.categoryId === null ? 'italic text-zinc-400' : 'text-zinc-700'
                           }`}
                         >
                           <option value="">Uncategorized</option>
@@ -325,10 +325,10 @@ export function TransactionsPage() {
                           ))}
                         </select>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-600">{t.accountName}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-zinc-600">{t.accountName}</td>
                       <td
                         className={`whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums ${
-                          t.amount < 0 ? 'text-slate-900' : 'text-green-700'
+                          t.amount < 0 ? 'text-zinc-900' : 'text-green-700'
                         }`}
                       >
                         {formatMoney(t.amount, { signed: true })}
@@ -346,18 +346,18 @@ export function TransactionsPage() {
                 type="button"
                 disabled={pageParam <= 1}
                 onClick={() => updateParam('page', String(pageParam - 1))}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-100 disabled:opacity-40"
+                className="rounded-lg border border-zinc-300 px-3 py-1.5 hover:bg-zinc-100 disabled:opacity-40"
               >
                 ‹ Prev
               </button>
-              <span className="text-slate-600">
+              <span className="text-zinc-600">
                 Page {pageParam} of {data.totalPages}
               </span>
               <button
                 type="button"
                 disabled={pageParam >= data.totalPages}
                 onClick={() => updateParam('page', String(pageParam + 1))}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-100 disabled:opacity-40"
+                className="rounded-lg border border-zinc-300 px-3 py-1.5 hover:bg-zinc-100 disabled:opacity-40"
               >
                 Next ›
               </button>
@@ -371,9 +371,9 @@ export function TransactionsPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-white px-4 py-3 shadow">
-      <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{value}</p>
+    <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
+      <p className="kicker">{label}</p>
+      <p className="mt-1 text-lg font-semibold tabular-nums text-zinc-900">{value}</p>
     </div>
   )
 }

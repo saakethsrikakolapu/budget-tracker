@@ -1,1 +1,67 @@
 @import "tailwindcss";
+
+/*
+ * Design system: Swiss minimal (ui-ux-pro-max "Minimalism & Swiss Style" + "Minimal Swiss" type).
+ * Monochrome zinc neutrals, one accent (blue) for data, links and focus; hairline borders instead
+ * of shadows; tight headings; numbers in tabular figures so columns of money line up.
+ */
+@theme {
+  /* Inter if the device has it; otherwise the OS's own UI sans (Segoe UI, SF Pro). No font is
+     downloaded from a third party, which suits a privacy-first app. */
+  --font-sans: "Inter", "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  --color-accent: #2563eb; /* blue-600: 5.2:1 on white */
+  --color-accent-soft: #dbeafe;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-zinc-50 text-zinc-900;
+    font-feature-settings: "cv11", "ss01"; /* Inter's straighter 1 and a; ignored by other fonts */
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight;
+  }
+
+  /* Visible keyboard focus everywhere, in the accent color (never removed, only restyled). */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  button:not(:disabled),
+  [role="button"],
+  summary,
+  select {
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* The one card style: white, hairline border, no shadow. */
+  .card {
+    @apply rounded-xl border border-zinc-200 bg-white;
+  }
+
+  /* Small uppercase label above a number or section ("NET SPENDING"). */
+  .kicker {
+    @apply text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-500;
+  }
+}

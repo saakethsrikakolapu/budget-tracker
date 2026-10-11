@@ -37,7 +37,7 @@ export function SubscriptionsPage() {
   }
 
   if (overview === null) {
-    return error ? <ErrorMessage text={error} /> : <p className="text-slate-500">Loading…</p>
+    return error ? <ErrorMessage text={error} /> : <p className="text-zinc-500">Loading…</p>
   }
 
   const active = overview.charges.filter((c) => c.active)
@@ -46,8 +46,8 @@ export function SubscriptionsPage() {
   return (
     <div className="max-w-3xl space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Subscriptions</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Subscriptions</h1>
+        <p className="mt-1 text-sm text-zinc-600">
           Found automatically: charges from the same place, for about the same amount, on a regular schedule.
         </p>
       </div>
@@ -55,21 +55,21 @@ export function SubscriptionsPage() {
       {error && <ErrorMessage text={error} />}
 
       {overview.asOf === null ? (
-        <p className="text-slate-600">
-          <Link to="/import" className="font-medium text-slate-900 underline">
+        <p className="text-zinc-600">
+          <Link to="/import" className="font-medium text-accent hover:underline">
             Upload a statement
           </Link>{' '}
           and your subscriptions will show up here. A few months of history works best.
         </p>
       ) : (
         <>
-          <div className="rounded-xl bg-white px-5 py-4 shadow">
-            <p className="text-xs font-medium uppercase text-slate-500">Subscriptions cost you</p>
-            <p className="mt-1 text-3xl font-semibold tabular-nums text-slate-900">
+          <div className="rounded-xl border border-zinc-200 bg-white px-5 py-4">
+            <p className="kicker">Subscriptions cost you</p>
+            <p className="mt-1 text-3xl font-semibold tabular-nums text-zinc-900">
               {formatMoney(overview.activeMonthlyTotal)}
-              <span className="text-base font-normal text-slate-500"> / month</span>
+              <span className="text-base font-normal text-zinc-500"> / month</span>
             </p>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-zinc-500">
               {active.length} active · about {formatMoney(overview.activeMonthlyTotal * 12)} a year
             </p>
           </div>
@@ -89,17 +89,17 @@ export function SubscriptionsPage() {
             />
           )}
           {overview.hidden.length > 0 && (
-            <section className="rounded-xl bg-white p-5 shadow">
-              <h2 className="font-semibold text-slate-900">Not subscriptions</h2>
-              <p className="mt-1 text-sm text-slate-500">You hid these. They don't count in the total.</p>
-              <ul className="mt-3 divide-y divide-slate-100">
+            <section className="rounded-xl border border-zinc-200 bg-white p-5">
+              <h2 className="font-semibold text-zinc-900">Not subscriptions</h2>
+              <p className="mt-1 text-sm text-zinc-500">You hid these. They don't count in the total.</p>
+              <ul className="mt-3 divide-y divide-zinc-100">
                 {overview.hidden.map((c) => (
                   <li key={c.merchantKey} className="flex items-center justify-between py-2 text-sm">
-                    <span className="text-slate-700">{c.name}</span>
+                    <span className="text-zinc-700">{c.name}</span>
                     <button
                       type="button"
                       onClick={() => change(() => api.unhideRecurring(c.merchantKey))}
-                      className="text-slate-600 underline hover:text-slate-900"
+                      className="text-zinc-600 underline hover:text-zinc-900"
                     >
                       Show again
                     </button>
@@ -122,18 +122,18 @@ function ChargeList(props: {
   onHide: (charge: api.RecurringCharge) => void
 }) {
   return (
-    <section className="rounded-xl bg-white p-5 shadow">
-      <h2 className="font-semibold text-slate-900">{props.title}</h2>
-      {props.note && <p className="mt-1 text-sm text-slate-500">{props.note}</p>}
+    <section className="rounded-xl border border-zinc-200 bg-white p-5">
+      <h2 className="font-semibold text-zinc-900">{props.title}</h2>
+      {props.note && <p className="mt-1 text-sm text-zinc-500">{props.note}</p>}
       {props.charges.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-500">{props.empty}</p>
+        <p className="mt-2 text-sm text-zinc-500">{props.empty}</p>
       ) : (
-        <ul className="mt-2 divide-y divide-slate-100">
+        <ul className="mt-2 divide-y divide-zinc-100">
           {props.charges.map((c) => (
             <li key={c.merchantKey} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="min-w-0">
-                <p className="font-medium text-slate-900">{c.name}</p>
-                <p className="text-sm text-slate-500">
+                <p className="font-medium text-zinc-900">{c.name}</p>
+                <p className="text-sm text-zinc-500">
                   {formatCadence(c.cadence)}
                   {c.categoryName && ` · ${c.categoryName}`}
                   {' · '}
@@ -142,16 +142,16 @@ function ChargeList(props: {
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="tabular-nums text-slate-900">{formatMoney(c.amount)}</p>
+                  <p className="tabular-nums text-zinc-900">{formatMoney(c.amount)}</p>
                   {c.cadence !== 'MONTHLY' && (
-                    <p className="text-xs tabular-nums text-slate-500">≈ {formatMoney(c.monthlyCost)}/mo</p>
+                    <p className="text-xs tabular-nums text-zinc-500">≈ {formatMoney(c.monthlyCost)}/mo</p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => props.onHide(c)}
                   title={`Hide ${c.name}: it isn't a subscription`}
-                  className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
+                  className="rounded-lg border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100"
                 >
                   Not a subscription
                 </button>

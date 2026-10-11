@@ -88,17 +88,17 @@ export function BudgetsPage() {
     <div className="max-w-3xl space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Budgets</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Budgets</h1>
+          <p className="mt-1 text-sm text-zinc-600">
             Monthly limits repeat every month. Spending is purchases minus refunds.
           </p>
         </div>
         <label className="block">
-          <span className="text-xs font-medium text-slate-600">Month</span>
+          <span className="text-xs font-medium text-zinc-600">Month</span>
           <select
             value={month}
             onChange={(event) => setSearchParams({ month: event.target.value })}
-            className="mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
           >
             {monthOptions.map((m) => (
               <option key={m} value={m}>
@@ -124,11 +124,11 @@ export function BudgetsPage() {
           </div>
 
           {overview.budgets.length === 0 ? (
-            <p className="rounded-xl bg-white px-4 py-8 text-center text-slate-500 shadow">
+            <p className="rounded-xl border border-zinc-200 bg-white px-4 py-8 text-center text-zinc-500">
               No budgets yet. Add one below, for example Food &amp; Dining at $200 a month.
             </p>
           ) : (
-            <ul className="divide-y divide-slate-100 rounded-xl bg-white shadow">
+            <ul className="divide-y divide-zinc-100 rounded-xl border border-zinc-200 bg-white">
               {overview.budgets.map((line) => (
                 <BudgetRow key={line.categoryId} line={line} onSave={save} onRemove={() => handleRemove(line)} />
               ))}
@@ -137,13 +137,13 @@ export function BudgetsPage() {
         </>
       )}
 
-      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow">
+      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-xl border border-zinc-200 bg-white p-4">
         <label className="block">
-          <span className="text-xs font-medium text-slate-600">Add a budget for</span>
+          <span className="text-xs font-medium text-zinc-600">Add a budget for</span>
           <select
             value={newCategoryId}
             onChange={(event) => setNewCategoryId(event.target.value)}
-            className="mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
           >
             <option value="">Choose a category…</option>
             {addable.map((c) => (
@@ -154,20 +154,20 @@ export function BudgetsPage() {
           </select>
         </label>
         <label className="block">
-          <span className="text-xs font-medium text-slate-600">Per month ($)</span>
+          <span className="text-xs font-medium text-zinc-600">Per month ($)</span>
           <input
             type="text"
             inputMode="decimal"
             value={newAmount}
             onChange={(event) => setNewAmount(event.target.value)}
             placeholder="200"
-            className="mt-1 block w-32 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 block w-32 rounded-lg border border-zinc-300 px-3 py-2 text-sm"
           />
         </label>
         <button
           type="submit"
           disabled={newCategoryId === '' || newAmount.trim() === ''}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+          className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-zinc-800 disabled:opacity-50"
         >
           Add budget
         </button>
@@ -194,13 +194,13 @@ function BudgetRow({
   return (
     <li className="space-y-2 px-4 py-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="font-medium text-slate-900">{line.categoryName}</span>
-        <span className="text-sm tabular-nums text-slate-600">
+        <span className="font-medium text-zinc-900">{line.categoryName}</span>
+        <span className="text-sm tabular-nums text-zinc-600">
           {formatMoney(Math.max(line.spent, 0))} of {formatMoney(line.limit)}
         </span>
       </div>
       <div
-        className="h-2 w-full overflow-hidden rounded-full bg-slate-100"
+        className="h-2 w-full overflow-hidden rounded-full bg-zinc-100"
         role="progressbar"
         aria-valuenow={line.percentUsed}
         aria-valuemin={0}
@@ -210,7 +210,7 @@ function BudgetRow({
         <div className={`h-full ${barColor}`} style={{ width: `${Math.min(line.percentUsed, 100)}%` }} />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-        <span className={over ? 'font-medium text-red-600' : 'text-slate-500'}>
+        <span className={over ? 'font-medium text-red-600' : 'text-zinc-500'}>
           {over ? `${formatMoney(-line.remaining)} over budget` : `${formatMoney(line.remaining)} left`} ·{' '}
           {line.percentUsed}% used
         </span>
@@ -222,7 +222,7 @@ function BudgetRow({
             }}
             className="flex items-center gap-2"
           >
-            <span className="text-slate-500">$</span>
+            <span className="text-zinc-500">$</span>
             <input
               type="text"
               inputMode="decimal"
@@ -230,12 +230,12 @@ function BudgetRow({
               onChange={(event) => setAmount(event.target.value)}
               autoFocus
               aria-label={`Monthly budget for ${line.categoryName}`}
-              className="w-24 rounded-md border border-slate-300 px-2 py-1 text-sm"
+              className="w-24 rounded-md border border-zinc-300 px-2 py-1 text-sm"
             />
-            <button type="submit" className="font-medium text-slate-900">
+            <button type="submit" className="font-medium text-zinc-900">
               Save
             </button>
-            <button type="button" onClick={() => setEditing(false)} className="text-slate-500">
+            <button type="button" onClick={() => setEditing(false)} className="text-zinc-500">
               Cancel
             </button>
           </form>
@@ -244,7 +244,7 @@ function BudgetRow({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="rounded-lg border border-slate-300 px-3 py-1 hover:bg-slate-100"
+              className="rounded-lg border border-zinc-300 px-3 py-1 hover:bg-zinc-100"
             >
               Change
             </button>
@@ -264,9 +264,9 @@ function BudgetRow({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-white px-4 py-3 shadow">
-      <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{value}</p>
+    <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
+      <p className="kicker">{label}</p>
+      <p className="mt-1 text-lg font-semibold tabular-nums text-zinc-900">{value}</p>
     </div>
   )
 }
