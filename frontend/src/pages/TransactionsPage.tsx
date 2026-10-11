@@ -4,7 +4,6 @@ import * as api from '../api'
 import { CategoryIcon } from '../components/CategoryIcon'
 import { MerchantAvatar } from '../components/MerchantAvatar'
 import { formatDayHeading, formatMoney, formatMonth, monthRange } from '../format'
-import { suggestRulePattern } from '../rules'
 
 const ALL_TIME = 'all'
 
@@ -21,7 +20,12 @@ export function TransactionsPage() {
   // Bumped after a category change so the totals are re-fetched.
   const [reloadKey, setReloadKey] = useState(0)
   // After a manual category change, offer to turn it into a rule.
-  const [suggestion, setSuggestion] = useState<{ pattern: string; categoryId: number; categoryName: string } | null>(null)
+  const [suggestion, setSuggestion] = useState<{
+    pattern: string
+    otherMatches: number
+    categoryId: number
+    categoryName: string
+  } | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   /** How to reverse the last "always" choice: delete the new rule, or point the old one back. */
   const [undo, setUndo] = useState<{ ruleId: number; pattern: string; previousCategoryId: number | null } | null>(null)
@@ -92,15 +96,17 @@ export function TransactionsPage() {
       setReloadKey((key) => key + 1) // totals may change (e.g. moved into "Payments & Transfers")
       setNotice(null)
       setUndo(null)
-      setSuggestion(
-        updated.categoryId === null
-          ? null
-          : {
-              pattern: suggestRulePattern(updated.description),
-              categoryId: updated.categoryId,
-              categoryName: updated.categoryName ?? '',
-            },
-      )
+      setSuggestion(null)
+      if (updated.categoryId !== null) {
+        // Ask the server which merchant text to offer: it knows every way this merchant appears.
+        // If this fails, the category change still stands; there's just no prompt.
+        const categoryId = updated.categoryId
+        api.fetchRuleSuggestion(updated.id)
+          .then(({ pattern, otherMatches }) =>
+            setSuggestion({ pattern, otherMatches, categoryId, categoryName: updated.categoryName ?? '' }),
+          )
+          .catch(() => setSuggestion(null))
+      }
     } catch {
       setError('Could not change the category. Please try again.')
     }
@@ -284,7 +290,11 @@ export function TransactionsPage() {
               <p className="text-sm font-medium text-zinc-900">
                 Always put &ldquo;{suggestion.pattern}&rdquo; in {suggestion.categoryName}?
               </p>
-              <p className="text-xs text-zinc-600">Past and future transactions from this merchant will move too.</p>
+              <p className="text-xs text-zinc-600">
+                {suggestion.otherMatches > 0
+                  ? `${suggestion.otherMatches} other transaction${suggestion.otherMatches === 1 ? '' : 's'} and future ones will move too.`
+                  : 'Future transactions from this merchant will go there too.'}
+              </p>
             </div>
           </div>
           <div className="flex gap-2">

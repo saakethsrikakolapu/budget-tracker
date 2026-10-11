@@ -4,7 +4,6 @@ import com.saaketh.budget.category.MerchantKeywords;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Reduces a bank description to a stable merchant key, so the same merchant groups together
@@ -26,13 +25,18 @@ public final class MerchantKey {
             "WITHDRAWAL");
 
     public static String of(String description) {
-        List<String> words = Arrays.stream(MerchantKeywords.normalize(description).split(" "))
+        List<String> words = words(description);
+        return words.isEmpty() ? MerchantKeywords.normalize(description) : String.join(" ", words);
+    }
+
+    /** The meaningful words of a description, in order (at most {@value #MAX_WORDS}). */
+    public static List<String> words(String description) {
+        return Arrays.stream(MerchantKeywords.normalize(description).split(" "))
                 .filter(w -> !w.isEmpty())
                 .filter(w -> w.chars().noneMatch(Character::isDigit)) // dates, store and card numbers
                 .filter(w -> !FILLER.contains(w))
                 .filter(w -> w.length() > 1) // stray letters left over from symbols
                 .limit(MAX_WORDS)
                 .toList();
-        return words.isEmpty() ? MerchantKeywords.normalize(description) : words.stream().collect(Collectors.joining(" "));
     }
 }

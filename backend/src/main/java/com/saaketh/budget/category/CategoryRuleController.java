@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,6 +46,13 @@ public class CategoryRuleController {
     @GetMapping
     public List<RuleView> list(@AuthenticationPrincipal AuthenticatedUser user) {
         return ruleService.list(user.getId());
+    }
+
+    /** GET /api/rules/suggestion?transactionId=12: the merchant text to offer in the "always" prompt. */
+    @GetMapping("/suggestion")
+    public CategoryRuleService.RuleSuggestion suggestion(@AuthenticationPrincipal AuthenticatedUser user,
+            @RequestParam Long transactionId) {
+        return ruleService.suggest(user.getId(), transactionId);
     }
 
     /** Creates the rule and applies it to existing (non-manual) transactions. */

@@ -40,6 +40,22 @@ public class CategoryRuleService {
         this.transactionRepository = transactionRepository;
     }
 
+    /** @param otherMatches how many other transactions the suggested pattern would also match */
+    public record RuleSuggestion(String pattern, long otherMatches) {
+    }
+
+    /** What an "always put this merchant in ..." prompt should offer for one transaction. */
+    @Transactional(readOnly = true)
+    public RuleSuggestion suggest(Long userId, Long transactionId) {
+        Transaction transaction = transactionRepository.findByIdAndUserId(transactionId, userId)
+                .orElseThrow(() -> new NotFoundException("Transaction not found"));
+        List<String> descriptions = transactionRepository.findDescriptions(userId).stream()
+                .map(CategoryRules::normalize)
+                .toList();
+        CategoryRules.Suggestion suggestion = CategoryRules.suggest(transaction.getDescription(), descriptions);
+        return new RuleSuggestion(suggestion.pattern(), Math.max(0, suggestion.matchCount() - 1));
+    }
+
     /** Most specific first (the order they're applied in). */
     @Transactional(readOnly = true)
     public List<RuleView> list(Long userId) {

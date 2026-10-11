@@ -169,6 +169,21 @@ class CategoryRuleIntegrationTest {
         mockMvc.perform(get("/api/rules").session(stranger)).andExpect(jsonPath("$.length()").value(0));
     }
 
+    @Test
+    void suggestsTheMerchantTextForTheAlwaysPrompt() throws Exception {
+        long uberTrip = transactionId("UBER TRIP");
+
+        // "UBER" also catches "Uber Eats Order", so it's offered (the user can still say "Just this one").
+        mockMvc.perform(get("/api/rules/suggestion").session(session).param("transactionId", String.valueOf(uberTrip)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pattern").value("UBER"))
+                .andExpect(jsonPath("$.otherMatches").value(1));
+
+        MockHttpSession stranger = TestUsers.registerAndLogin(mockMvc);
+        mockMvc.perform(get("/api/rules/suggestion").session(stranger).param("transactionId", String.valueOf(uberTrip)))
+                .andExpect(status().isNotFound());
+    }
+
     // --- helpers ---
 
     private ResultActions createRule(String pattern, long categoryId) throws Exception {

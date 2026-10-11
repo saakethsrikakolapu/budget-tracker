@@ -365,6 +365,11 @@ export function createRule(pattern: string, categoryId: number): Promise<RuleCha
   return apiFetch<RuleChange>('/api/rules', { method: 'POST', body: { pattern, categoryId } })
 }
 
+/** The merchant text to offer for "always put this merchant in ...", and how many others it matches. */
+export function fetchRuleSuggestion(transactionId: number): Promise<{ pattern: string; otherMatches: number }> {
+  return apiFetch(`/api/rules/suggestion?transactionId=${transactionId}`)
+}
+
 /** Points an existing rule at a different category (and re-sorts its transactions). */
 export function updateRule(id: number, pattern: string, categoryId: number): Promise<RuleChange> {
   return apiFetch<RuleChange>(`/api/rules/${id}`, { method: 'PUT', body: { pattern, categoryId } })
