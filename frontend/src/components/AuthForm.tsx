@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { ApiError } from '../api'
+import { Logo } from './Logo'
 
 type Props = {
   title: string
@@ -47,9 +48,7 @@ export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, f
       {/* The pitch: only on wide screens, so phones go straight to the form. */}
       <section className="hidden flex-col justify-between bg-zinc-950 p-12 text-white lg:flex">
         <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="grid size-7 place-items-center rounded-md bg-white text-xs font-bold text-zinc-950">
-            B
-          </span>
+          <Logo inverted />
           <span className="text-[15px] font-semibold tracking-tight">Budget Tracker</span>
         </div>
         <div>
@@ -59,7 +58,7 @@ export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, f
           <ul className="mt-8 space-y-4 text-sm text-zinc-300">
             {PITCH.map((line) => (
               <li key={line} className="flex gap-3">
-                <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
+                <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-indigo-400" />
                 {line}
               </li>
             ))}
@@ -71,7 +70,10 @@ export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, f
       <div className="flex items-center justify-center bg-white p-6">
         <form onSubmit={handleSubmit} noValidate className="w-full max-w-sm space-y-5">
           <div>
-            <p className="kicker lg:hidden">Budget Tracker</p>
+            <div className="mb-6 flex items-center gap-2 lg:hidden">
+              <Logo />
+              <span className="font-semibold tracking-tight text-zinc-950">Budget Tracker</span>
+            </div>
             <h1 className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950">{title}</h1>
           </div>
 

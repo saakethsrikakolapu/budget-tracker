@@ -65,3 +65,29 @@ const CADENCE_LABELS: Record<string, string> = {
 export function formatCadence(cadence: string): string {
   return CADENCE_LABELS[cadence] ?? cadence
 }
+
+/** "2026-09-26" -> "Sep 26" (built from parts in the local time zone, like formatDate). */
+export function formatShortDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+/** "2026-09-26" -> "Friday, Sep 26" (adds the year only when it isn't this year). */
+export function formatDayHeading(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    ...(year !== new Date().getFullYear() && { year: 'numeric' }),
+  })
+}
+
+/** Whole days from today to an ISO date: 0 = today, 3 = in three days, -2 = two days ago. */
+export function daysFromToday(isoDate: string): number {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return Math.round((new Date(year, month - 1, day).getTime() - today.getTime()) / 86_400_000)
+}

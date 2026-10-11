@@ -1,18 +1,18 @@
 @import "tailwindcss";
+/* Inter, bundled with the app (no request to Google Fonts). Variable font: one file, every weight. */
+@import "@fontsource-variable/inter";
 
 /*
  * Design system: Swiss minimal (ui-ux-pro-max "Minimalism & Swiss Style" + "Minimal Swiss" type).
- * Monochrome zinc neutrals, one accent (blue) for data, links and focus; hairline borders instead
+ * Monochrome zinc neutrals, one accent (indigo) for data, links and focus; hairline borders instead
  * of shadows; tight headings; numbers in tabular figures so columns of money line up.
  */
 @theme {
-  /* Inter if the device has it; otherwise the OS's own UI sans (Segoe UI, SF Pro). No font is
-     downloaded from a third party, which suits a privacy-first app. */
-  --font-sans: "Inter", "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
 
-  --color-accent: #2563eb; /* blue-600: 5.2:1 on white */
-  --color-accent-soft: #dbeafe;
+  --color-accent: #4f46e5; /* indigo-600: 6.3:1 on white */
+  --color-accent-soft: #e0e7ff; /* indigo-100 */
 }
 
 @layer base {
@@ -55,6 +55,11 @@
 }
 
 @layer components {
+  /* Placeholder shape shown while data loads (instead of "Loading…"). */
+  .skeleton {
+    @apply animate-pulse rounded-md bg-zinc-200/70;
+  }
+
   /* The one card style: white, hairline border, no shadow. */
   .card {
     @apply rounded-xl border border-zinc-200 bg-white;

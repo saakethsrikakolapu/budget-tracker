@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router'
+import { CategoryIcon } from '../components/CategoryIcon'
 import * as api from '../api'
 import { currentMonth, formatMoney, formatMonth, isMoneyInput } from '../format'
 
@@ -194,7 +195,10 @@ function BudgetRow({
   return (
     <li className="space-y-2 px-4 py-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="font-medium text-zinc-900">{line.categoryName}</span>
+        <span className="flex items-center gap-2 font-medium text-zinc-900">
+          <CategoryIcon name={line.categoryName} />
+          {line.categoryName}
+        </span>
         <span className="text-sm tabular-nums text-zinc-600">
           {formatMoney(Math.max(line.spent, 0))} of {formatMoney(line.limit)}
         </span>

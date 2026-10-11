@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { CategoryIcon } from '../components/CategoryIcon'
 import * as api from '../api'
 import { RulesSection } from '../components/RulesSection'
 
@@ -186,10 +187,15 @@ function CategoryRow({ category, onSaved, onDelete, onError }: RowProps) {
           </form>
         ) : (
           <>
-            <p className="font-medium text-zinc-900">{category.name}</p>
-            <p className="text-xs text-zinc-500">
-              {category.transactionCount} transaction{category.transactionCount === 1 ? '' : 's'}
-            </p>
+            <div className="flex items-center gap-3">
+              <CategoryIcon name={category.name} />
+              <div>
+                <p className="font-medium text-zinc-900">{category.name}</p>
+                <p className="text-xs text-zinc-500">
+                  {category.transactionCount} transaction{category.transactionCount === 1 ? '' : 's'}
+                </p>
+              </div>
+            </div>
           </>
         )}
       </div>

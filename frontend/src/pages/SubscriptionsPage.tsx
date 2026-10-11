@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { MerchantAvatar } from '../components/MerchantAvatar'
 import * as api from '../api'
 import { formatCadence, formatDate, formatMoney } from '../format'
 
@@ -131,14 +132,17 @@ function ChargeList(props: {
         <ul className="mt-2 divide-y divide-zinc-100">
           {props.charges.map((c) => (
             <li key={c.merchantKey} className="flex flex-wrap items-center justify-between gap-3 py-3">
-              <div className="min-w-0">
-                <p className="font-medium text-zinc-900">{c.name}</p>
-                <p className="text-sm text-zinc-500">
-                  {formatCadence(c.cadence)}
-                  {c.categoryName && ` · ${c.categoryName}`}
-                  {' · '}
-                  {c.active ? `next around ${formatDate(c.nextExpected)}` : `last charged ${formatDate(c.lastDate)}`}
-                </p>
+              <div className="flex min-w-0 items-center gap-3">
+                <MerchantAvatar description={c.description} />
+                <div className="min-w-0">
+                  <p className="font-medium text-zinc-900">{c.name}</p>
+                  <p className="text-sm text-zinc-500">
+                    {formatCadence(c.cadence)}
+                    {c.categoryName && ` · ${c.categoryName}`}
+                    {' · '}
+                    {c.active ? `next around ${formatDate(c.nextExpected)}` : `last charged ${formatDate(c.lastDate)}`}
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">

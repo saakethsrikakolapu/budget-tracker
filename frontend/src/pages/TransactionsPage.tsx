@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import * as api from '../api'
-import { formatDate, formatMoney, formatMonth, monthRange } from '../format'
+import { CategoryIcon } from '../components/CategoryIcon'
+import { MerchantAvatar } from '../components/MerchantAvatar'
+import { formatDayHeading, formatMoney, formatMonth, monthRange } from '../format'
 import { changedText, suggestRulePattern } from '../rules'
 
 const ALL_TIME = 'all'
@@ -212,7 +214,7 @@ export function TransactionsPage() {
               className="mt-1 block w-56 rounded-lg border border-zinc-300 px-3 py-2 text-sm"
             />
           </label>
-          <button type="submit" className="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700">
+          <button type="submit" className="rounded-lg bg-zinc-950 px-3 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-zinc-800">
             Search
           </button>
           {qParam && (
@@ -291,52 +293,51 @@ export function TransactionsPage() {
               No transactions match these filters.
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-zinc-200 text-xs uppercase text-zinc-500">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Date</th>
-                    <th className="px-4 py-3 font-medium">Description</th>
-                    <th className="px-4 py-3 font-medium">Category</th>
-                    <th className="px-4 py-3 font-medium">Account</th>
-                    <th className="px-4 py-3 text-right font-medium">Amount</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100">
-                  {data.items.map((t) => (
-                    <tr key={t.id}>
-                      <td className="whitespace-nowrap px-4 py-3 text-zinc-600">{formatDate(t.transactionDate)}</td>
-                      <td className="px-4 py-3 font-medium text-zinc-900">{t.description}</td>
-                      <td className="px-4 py-2">
-                        <select
-                          value={t.categoryId === null ? '' : String(t.categoryId)}
-                          onChange={(event) => handleCategoryChange(t, event.target.value)}
-                          title={t.bankCategory ? `Bank's label: ${t.bankCategory}` : undefined}
-                          aria-label={`Category for ${t.description}`}
-                          className={`rounded-md border border-transparent bg-transparent py-1 text-sm hover:border-zinc-300 ${
-                            t.categoryId === null ? 'italic text-zinc-400' : 'text-zinc-700'
+            // Grouped by day, newest first (the backend already sorts by date).
+            <div className="card divide-y divide-zinc-100 overflow-hidden">
+              {groupByDay(data.items).map(([day, items]) => (
+                <section key={day} aria-label={formatDayHeading(day)}>
+                  <h2 className="bg-zinc-50/80 px-4 py-2 text-xs font-medium text-zinc-500">{formatDayHeading(day)}</h2>
+                  <ul className="divide-y divide-zinc-100">
+                    {items.map((t) => (
+                      <li key={t.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 sm:flex-nowrap">
+                        <MerchantAvatar description={t.description} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-zinc-900">{t.description}</p>
+                          <p className="truncate text-xs text-zinc-500">{t.accountName}</p>
+                        </div>
+                        {/* The category is a quiet dropdown: looks like a label, changes on click. */}
+                        <div className="order-last flex w-full items-center gap-2 pl-12 sm:order-none sm:w-56 sm:pl-0">
+                          <CategoryIcon name={t.categoryName} size="sm" />
+                          <select
+                            value={t.categoryId === null ? '' : String(t.categoryId)}
+                            onChange={(event) => handleCategoryChange(t, event.target.value)}
+                            title={t.bankCategory ? `Bank's label: ${t.bankCategory}` : undefined}
+                            aria-label={`Category for ${t.description}`}
+                            className={`min-w-0 flex-1 truncate rounded-md border border-transparent bg-transparent py-1 text-sm transition-colors duration-150 hover:border-zinc-300 ${
+                              t.categoryId === null ? 'italic text-zinc-400' : 'text-zinc-700'
+                            }`}
+                          >
+                            <option value="">Uncategorized</option>
+                            {categories.map((category) => (
+                              <option key={category.id} value={String(category.id)}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <span
+                          className={`w-24 text-right text-sm font-medium tabular-nums ${
+                            t.amount < 0 ? 'text-zinc-900' : 'text-emerald-700'
                           }`}
                         >
-                          <option value="">Uncategorized</option>
-                          {categories.map((category) => (
-                            <option key={category.id} value={String(category.id)}>
-                              {category.name}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-zinc-600">{t.accountName}</td>
-                      <td
-                        className={`whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums ${
-                          t.amount < 0 ? 'text-zinc-900' : 'text-green-700'
-                        }`}
-                      >
-                        {formatMoney(t.amount, { signed: true })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          {formatMoney(t.amount, { signed: true })}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
             </div>
           )}
 
@@ -367,6 +368,15 @@ export function TransactionsPage() {
       )}
     </div>
   )
+}
+
+/** [day, transactions] pairs in the order the days first appear. */
+function groupByDay(items: api.Transaction[]): [string, api.Transaction[]][] {
+  const groups = new Map<string, api.Transaction[]>()
+  for (const t of items) {
+    groups.set(t.transactionDate, [...(groups.get(t.transactionDate) ?? []), t])
+  }
+  return [...groups.entries()]
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
