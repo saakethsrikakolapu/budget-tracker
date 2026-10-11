@@ -1,7 +1,7 @@
 package com.saaketh.budget.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -9,7 +9,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.saaketh.budget.TestcontainersConfiguration;
 import jakarta.servlet.http.Cookie;
+import java.util.Arrays;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,11 +20,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 /**
  * Production stores login sessions in Postgres (Spring Session JDBC) so they survive restarts.
  * Other tests turn Spring Session off (see src/test/resources/config/application.properties);
  * this one turns it back on and logs in with a real session cookie, like a browser would.
+ *
+ * <p>CSRF is done the browser's way too (XSRF-TOKEN cookie echoed in a header) instead of the
+ * test helper csrf(), which swaps in a session-based token store that outlives the request and
+ * would create sessions in later tests.
  */
 @SpringBootTest(properties = {
         "spring.autoconfigure.exclude=",                // turn Spring Session back on
@@ -42,11 +49,11 @@ class SessionPersistenceIntegrationTest {
         String email = "user-" + UUID.randomUUID() + "@example.com";
         String body = """
                 {"email": "%s", "password": "correct-horse-battery"}""".formatted(email);
-        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body).with(csrf()))
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body).with(browserCsrf()))
                 .andExpect(status().isCreated());
 
         Cookie sessionCookie = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON).content(body).with(csrf()))
+                        .contentType(MediaType.APPLICATION_JSON).content(body).with(browserCsrf()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getCookie("SESSION");
 
@@ -61,10 +68,37 @@ class SessionPersistenceIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(email));
 
-        mockMvc.perform(post("/api/auth/logout").cookie(sessionCookie).with(csrf())).andExpect(status().isOk());
+        mockMvc.perform(post("/api/auth/logout").cookie(sessionCookie).with(browserCsrf())).andExpect(status().isOk());
 
         mockMvc.perform(get("/api/auth/me").cookie(sessionCookie)).andExpect(status().isUnauthorized());
         assertThat(sessionsFor(email)).as("session row deleted on logout").isZero();
+    }
+
+    @Test
+    void deletingTheAccountLogsOutEveryDevice() throws Exception {
+        String email = "user-" + UUID.randomUUID() + "@example.com";
+        String body = """
+                {"email": "%s", "password": "correct-horse-battery"}""".formatted(email);
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body).with(browserCsrf()))
+                .andExpect(status().isCreated());
+        Cookie laptop = login(body);
+        Cookie phone = login(body);
+        assertThat(sessionsFor(email)).isEqualTo(2);
+
+        mockMvc.perform(delete("/api/auth/account").cookie(laptop).with(browserCsrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isNoContent());
+
+        // The phone's session would otherwise keep acting as a user that no longer exists.
+        mockMvc.perform(get("/api/auth/me").cookie(phone)).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/auth/me").cookie(laptop)).andExpect(status().isUnauthorized());
+        assertThat(sessionsFor(email)).isZero();
+    }
+
+    private Cookie login(String body) throws Exception {
+        return mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(body).with(browserCsrf()))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getCookie("SESSION");
     }
 
     @Test
@@ -75,6 +109,17 @@ class SessionPersistenceIntegrationTest {
 
         assertThat(response.getCookie("SESSION")).as("no session cookie for a denied anonymous request").isNull();
         assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM spring_session", Integer.class)).isEqualTo(before);
+    }
+
+    private static RequestPostProcessor browserCsrf() {
+        return request -> {
+            String token = UUID.randomUUID().toString();
+            Cookie[] existing = request.getCookies() == null ? new Cookie[0] : request.getCookies();
+            request.setCookies(Stream.concat(Arrays.stream(existing), Stream.of(new Cookie("XSRF-TOKEN", token)))
+                    .toArray(Cookie[]::new));
+            request.addHeader("X-XSRF-TOKEN", token);
+            return request;
+        };
     }
 
     private int sessionsFor(String email) {

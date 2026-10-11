@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import { RequireAuth } from './auth/RequireAuth'
+import { AccountPage } from './pages/AccountPage'
 import { AppLayout } from './components/AppLayout'
 import { BudgetsPage } from './pages/BudgetsPage'
 import { CategoriesPage } from './pages/CategoriesPage'
@@ -42,6 +43,7 @@ function App() {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/budgets" element={<BudgetsPage />} />
         <Route path="/subscriptions" element={<SubscriptionsPage />} />
+        <Route path="/account" element={<AccountPage />} />
       </Route>
 
       {/* Unknown URL: go home (which redirects to /login if logged out). */}

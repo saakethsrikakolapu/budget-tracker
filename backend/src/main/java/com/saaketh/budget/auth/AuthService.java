@@ -53,6 +53,20 @@ public class AuthService {
         return user;
     }
 
+    /**
+     * Deletes the user and everything they own. One DELETE is enough: every table references users
+     * with ON DELETE CASCADE, so Postgres removes accounts, transactions, categories, rules, budgets,
+     * remembered formats, and hidden merchants in the same transaction.
+     */
+    @Transactional
+    public void deleteAccount(Long userId, String password) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new InvalidPasswordException("Wrong password"));
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new InvalidPasswordException("Wrong password");
+        }
+        userRepository.delete(user);
+    }
+
     /** "  Saaketh@Gmail.com " and "saaketh@gmail.com" are the same account. */
     public static String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);

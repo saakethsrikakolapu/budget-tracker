@@ -42,7 +42,9 @@ export function AppLayout() {
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-600">{user?.email}</span>
+          <NavLink to="/account" className={linkClass} title="Your account">
+            {user?.email}
+          </NavLink>
           <button
             type="button"
             onClick={handleLogout}

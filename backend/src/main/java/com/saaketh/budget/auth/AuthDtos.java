@@ -36,6 +36,11 @@ public final class AuthDtos {
         }
     }
 
+    /** Deleting an account asks for the password again, in case someone else is at the keyboard. */
+    public record DeleteAccountRequest(
+            @NotBlank(message = "Enter your password to confirm") @Size(max = 72) String password) {
+    }
+
     /** What the frontend gets back about a user. Never includes the password hash. */
     public record UserResponse(Long id, String email) {
     }

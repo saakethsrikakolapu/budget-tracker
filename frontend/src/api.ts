@@ -258,6 +258,11 @@ export function logout(): Promise<void> {
   return apiFetch<void>('/api/auth/logout', { method: 'POST' })
 }
 
+/** Permanently deletes your account and all your data. Asks for the password again to confirm. */
+export function deleteAccount(password: string): Promise<void> {
+  return apiFetch<void>('/api/auth/account', { method: 'DELETE', body: { password } })
+}
+
 export function fetchAccounts(): Promise<Account[]> {
   return apiFetch<Account[]>('/api/accounts')
 }
