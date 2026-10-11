@@ -11,7 +11,7 @@ categories, monthly budgets, and the subscriptions you forgot about. The app nev
 minute while the server wakes up). Try it with [`samples/subscriptions-6-months.csv`](samples/subscriptions-6-months.csv)
 or any file in [`samples/layouts/`](samples/layouts) (all fake data).
 
-![Dashboard](docs/screenshots/dashboard.png)
+![Demo: upload a statement, see the summary, import, then the dashboard, transactions, subscriptions, and dark mode](docs/demo.png)
 
 ## What it does
 
@@ -30,6 +30,8 @@ or any file in [`samples/layouts/`](samples/layouts) (all fake data).
 - **Your data stays yours:** delete your account and everything in it in one step.
 - **Password reset and email verification** by emailed one-time links.
 - **Light and dark mode,** following your device setting or chosen in the header.
+
+![Dashboard](docs/screenshots/dashboard.png)
 
 | Transactions | Subscriptions |
 |---|---|
@@ -122,9 +124,10 @@ Open http://localhost:5173, create an account, and upload a file from [`samples/
 `http://localhost:8080/api/health` returns `{"status":"UP","database":"UP"}`.
 
 - **Tests:** `cd backend && ./mvnw test` (starts its own throwaway Postgres, so it only needs Docker).
-- **Screenshots:** with the app running, `node scripts/take-screenshots.mjs` (add `THEME=dark` for dark
-  mode) regenerates `docs/screenshots/` using a throwaway demo account (headless Edge or Chrome, no
-  dependencies).
+- **Screenshots and demo:** with the app running, `node scripts/take-screenshots.mjs` (add `THEME=dark`
+  for dark mode) regenerates `docs/screenshots/`, and `node scripts/record-demo.mjs` records
+  `docs/demo.png` (an animated PNG). Both use a throwaway demo account in headless Edge or Chrome and
+  need no dependencies.
 
 ## Deployment
 
