@@ -33,7 +33,7 @@ export function AccountPage() {
       <section className="rounded-xl border border-red-200 bg-white p-5">
         <h2 className="font-semibold text-zinc-900">Delete account</h2>
         <p className="mt-1 text-sm text-zinc-600">
-          Permanently deletes your account and everything in it: statements, transactions, categories, rules,
+          Permanently deletes your account and everything in it: statements, transactions, categories, sorting choices,
           budgets, and subscriptions. This can't be undone.
         </p>
 

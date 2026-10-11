@@ -365,6 +365,11 @@ export function createRule(pattern: string, categoryId: number): Promise<RuleCha
   return apiFetch<RuleChange>('/api/rules', { method: 'POST', body: { pattern, categoryId } })
 }
 
+/** Points an existing rule at a different category (and re-sorts its transactions). */
+export function updateRule(id: number, pattern: string, categoryId: number): Promise<RuleChange> {
+  return apiFetch<RuleChange>(`/api/rules/${id}`, { method: 'PUT', body: { pattern, categoryId } })
+}
+
 /** Deletes the rule; its transactions fall back to the next matching rule or the bank's label. */
 export function deleteRule(id: number): Promise<{ recategorizedCount: number }> {
   return apiFetch<{ recategorizedCount: number }>(`/api/rules/${id}`, { method: 'DELETE' })

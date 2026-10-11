@@ -4,7 +4,7 @@ import * as api from '../api'
 import { CategoryIcon } from '../components/CategoryIcon'
 import { MerchantAvatar } from '../components/MerchantAvatar'
 import { formatDayHeading, formatMoney, formatMonth, monthRange } from '../format'
-import { changedText, suggestRulePattern } from '../rules'
+import { suggestRulePattern } from '../rules'
 
 const ALL_TIME = 'all'
 
@@ -23,6 +23,8 @@ export function TransactionsPage() {
   // After a manual category change, offer to turn it into a rule.
   const [suggestion, setSuggestion] = useState<{ pattern: string; categoryId: number; categoryName: string } | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  /** How to reverse the last "always" choice: delete the new rule, or point the old one back. */
+  const [undo, setUndo] = useState<{ ruleId: number; pattern: string; previousCategoryId: number | null } | null>(null)
   const [months, setMonths] = useState<string[] | null>(null)
   const [data, setData] = useState<api.TransactionPage | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -89,6 +91,7 @@ export function TransactionsPage() {
       )
       setReloadKey((key) => key + 1) // totals may change (e.g. moved into "Payments & Transfers")
       setNotice(null)
+      setUndo(null)
       setSuggestion(
         updated.categoryId === null
           ? null
@@ -103,19 +106,54 @@ export function TransactionsPage() {
     }
   }
 
-  async function handleCreateSuggestedRule() {
+  /**
+   * "Yes, always": every transaction from this merchant goes to this category, now and in future
+   * imports. Behind the scenes that's a rule; if one already exists for this merchant it's updated
+   * instead, so the user never sees a "rule already exists" error.
+   */
+  async function handleAlways() {
     if (!suggestion) return
     try {
-      const change = await api.createRule(suggestion.pattern, suggestion.categoryId)
-      setNotice(`Rule created: "${change.rule.pattern}" → ${change.rule.categoryName}. ${changedText(change.recategorizedCount)}`)
+      let change: api.RuleChange
+      let previousCategoryId: number | null = null
+      try {
+        change = await api.createRule(suggestion.pattern, suggestion.categoryId)
+      } catch (err) {
+        if (!(err instanceof api.ApiError && err.status === 409)) throw err
+        const existing = (await api.fetchRules()).find((r) => r.pattern === suggestion.pattern.toUpperCase())
+        if (!existing) throw err
+        previousCategoryId = existing.categoryId
+        change = await api.updateRule(existing.id, existing.pattern, suggestion.categoryId)
+      }
+      const others = change.recategorizedCount
+      setNotice(
+        `"${change.rule.pattern}" will always go to ${change.rule.categoryName}.` +
+          (others > 0 ? ` ${others} other transaction${others === 1 ? '' : 's'} moved too.` : ''),
+      )
+      setUndo({ ruleId: change.rule.id, pattern: change.rule.pattern, previousCategoryId })
       setSuggestion(null)
       setReloadKey((key) => key + 1)
-    } catch (err) {
-      setError(
-        err instanceof api.ApiError ? (Object.values(err.fieldErrors)[0] ?? err.message) : 'Could not create the rule.',
-      )
+    } catch {
+      setError('Could not save that. Please try again.')
     }
   }
+
+  async function handleUndo() {
+    if (!undo) return
+    try {
+      if (undo.previousCategoryId === null) {
+        await api.deleteRule(undo.ruleId)
+      } else {
+        await api.updateRule(undo.ruleId, undo.pattern, undo.previousCategoryId)
+      }
+      setNotice('Undone.')
+      setUndo(null)
+      setReloadKey((key) => key + 1)
+    } catch {
+      setError('Could not undo. Please try again.')
+    }
+  }
+
 
   /** Change one filter; any filter change goes back to page 1. */
   function updateParam(key: string, value: string) {
@@ -239,38 +277,44 @@ export function TransactionsPage() {
       )}
 
       {suggestion && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-900">
-          <span>Always put transactions containing</span>
-          <input
-            type="text"
-            value={suggestion.pattern}
-            onChange={(event) => setSuggestion({ ...suggestion, pattern: event.target.value })}
-            aria-label="Text to match"
-            maxLength={100}
-            className="w-44 rounded-md border border-blue-200 bg-white px-2 py-1 font-mono text-sm"
-          />
-          <span>
-            in <span className="font-medium">{suggestion.categoryName}</span>?
-          </span>
-          <button
-            type="button"
-            onClick={handleCreateSuggestedRule}
-            disabled={suggestion.pattern.trim().length < 2}
-            className="rounded-md bg-blue-900 px-3 py-1 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
-          >
-            Create rule
-          </button>
-          <button type="button" onClick={() => setSuggestion(null)} className="px-2 py-1 text-blue-900 underline">
-            Not now
-          </button>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <CategoryIcon name={suggestion.categoryName} />
+            <div>
+              <p className="text-sm font-medium text-zinc-900">
+                Always put &ldquo;{suggestion.pattern}&rdquo; in {suggestion.categoryName}?
+              </p>
+              <p className="text-xs text-zinc-600">Past and future transactions from this merchant will move too.</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleAlways}
+              className="rounded-lg bg-zinc-950 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-zinc-800"
+            >
+              Yes, always
+            </button>
+            <button
+              type="button"
+              onClick={() => setSuggestion(null)}
+              className="rounded-lg px-3 py-1.5 text-sm text-zinc-700 transition-colors duration-150 hover:bg-indigo-100"
+            >
+              Just this one
+            </button>
+          </div>
         </div>
       )}
       {notice && (
-        <p role="status" className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
+        <p role="status" className="flex flex-wrap items-center gap-3 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           {notice}
+          {undo && (
+            <button type="button" onClick={handleUndo} className="font-medium underline">
+              Undo
+            </button>
+          )}
         </p>
       )}
-
       {data && (
         <>
           {/* Totals over all matching transactions, from the backend */}

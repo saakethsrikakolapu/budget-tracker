@@ -15,9 +15,3 @@ export function suggestRulePattern(description: string): string {
     .trim()
   return merchant.length >= 2 ? merchant : full
 }
-
-/** "3 transactions changed category." */
-export function changedText(count: number): string {
-  if (count === 0) return 'No transactions changed category.'
-  return `${count} transaction${count === 1 ? '' : 's'} changed category.`
-}
