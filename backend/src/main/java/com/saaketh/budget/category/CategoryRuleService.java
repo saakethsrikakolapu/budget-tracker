@@ -96,7 +96,7 @@ public class CategoryRuleService {
         CategoryAssigner.Context context = assigner.contextFor(userId);
         int changed = 0;
         for (Transaction t : transactionRepository.findAutoCategorized(userId)) {
-            CategoryAssigner.Assignment a = assigner.assign(context, t.getDescription(), t.getBankCategory());
+            CategoryAssigner.Assignment a = assigner.assign(context, t.getDescription(), t.getBankCategory(), t.getAmount());
             if (!Objects.equals(a.categoryId(), t.getCategoryId())) {
                 changed++;
             }

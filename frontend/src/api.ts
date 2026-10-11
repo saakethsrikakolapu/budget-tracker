@@ -109,8 +109,8 @@ export type Transaction = {
   /** null = Uncategorized */
   categoryId: number | null
   categoryName: string | null
-  /** How the category was set: from the bank's label, one of your rules, or by you. */
-  categorySource: 'BANK' | 'RULE' | 'MANUAL' | null
+  /** How the category was set: from the bank's label, one of your rules, the built-in merchant list, or by you. */
+  categorySource: 'BANK' | 'RULE' | 'KEYWORD' | 'MANUAL' | null
 }
 
 /**

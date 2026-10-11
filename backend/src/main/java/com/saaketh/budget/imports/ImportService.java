@@ -113,7 +113,8 @@ public class ImportService {
                             n.row().postedDate(), n.row().description(), n.row().amount(), n.row().bankCategory(),
                             n.occurrence());
                     CategoryAssigner.Assignment a =
-                            categoryAssigner.assign(categories, n.row().description(), n.row().bankCategory());
+                            categoryAssigner.assign(categories, n.row().description(), n.row().bankCategory(),
+                                    n.row().amount());
                     t.setCategory(a.categoryId(), a.source());
                     return t;
                 })

@@ -28,7 +28,7 @@ import org.springframework.test.web.servlet.ResultActions;
 /**
  * Rules end to end. Each test starts with a fresh user who imported:
  *   POSHMARK (Merchandise -> Shopping), UBER TRIP (Other Travel -> Travel),
- *   UBER EATS (Dining -> Food & Dining), BARBER (Other Services -> Uncategorized).
+ *   UBER EATS (Dining -> Food & Dining), STUDIO (Other Services -> Uncategorized; not in the merchant dictionary).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -40,7 +40,7 @@ class CategoryRuleIntegrationTest {
             2026-09-01,2026-09-02,1234,POSHMARK,Merchandise,6.09,
             2026-09-02,2026-09-03,1234,UBER   TRIP 1234,Other Travel,12.40,
             2026-09-03,2026-09-04,1234,Uber Eats Order,Dining,18.00,
-            2026-09-04,2026-09-05,1234,STYLE STREET BARBERS,Other Services,41.40,
+            2026-09-04,2026-09-05,1234,STYLE STREET STUDIO,Other Services,41.40,
             """;
 
     @Autowired
@@ -58,14 +58,14 @@ class CategoryRuleIntegrationTest {
 
     @Test
     void newRuleRecategorizesExistingTransactions() throws Exception {
-        createRule(" barbers ", categoryId("Health & Personal Care"))
+        createRule(" studio ", categoryId("Health & Personal Care"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.rule.pattern").value("BARBERS"))
+                .andExpect(jsonPath("$.rule.pattern").value("STUDIO"))
                 .andExpect(jsonPath("$.rule.categoryName").value("Health & Personal Care"))
                 .andExpect(jsonPath("$.rule.matchCount").value(1))
                 .andExpect(jsonPath("$.recategorizedCount").value(1));
 
-        expectCategory("BARBERS", "Health & Personal Care", "RULE");
+        expectCategory("STUDIO", "Health & Personal Care", "RULE");
     }
 
     @Test
@@ -124,15 +124,15 @@ class CategoryRuleIntegrationTest {
 
     @Test
     void editingARuleMovesItsTransactions() throws Exception {
-        long ruleId = idOf(createRule("BARBERS", categoryId("Other")), "$.rule.id");
+        long ruleId = idOf(createRule("STUDIO", categoryId("Other")), "$.rule.id");
 
         mockMvc.perform(put("/api/rules/" + ruleId).session(session).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"pattern\": \"barbers\", \"categoryId\": " + categoryId("Health & Personal Care") + "}"))
+                        .content("{\"pattern\": \"studio\", \"categoryId\": " + categoryId("Health & Personal Care") + "}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.recategorizedCount").value(1));
 
-        expectCategory("BARBERS", "Health & Personal Care", "RULE");
+        expectCategory("STUDIO", "Health & Personal Care", "RULE");
     }
 
     @Test
