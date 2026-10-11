@@ -33,6 +33,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  async function refreshUser() {
+    setUser(await api.fetchCurrentUser())
+  }
+
   async function deleteAccount(password: string) {
     await api.deleteAccount(password)
     // Kept here rather than passed through navigation: the logged-out redirect to /login
@@ -42,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, notice, loading, login, register, logout, deleteAccount }}>
+    <AuthContext.Provider value={{ user, notice, loading, login, register, logout, refreshUser, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   )

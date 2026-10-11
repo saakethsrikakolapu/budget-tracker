@@ -11,6 +11,8 @@ export type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  /** Asks the server again who is logged in (e.g. after verifying the email). */
+  refreshUser: () => Promise<void>
   /** Deletes the account and everything in it, then you're logged out. */
   deleteAccount: (password: string) => Promise<void>
 }

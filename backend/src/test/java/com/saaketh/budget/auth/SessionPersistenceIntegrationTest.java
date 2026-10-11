@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.saaketh.budget.TestcontainersConfiguration;
+import com.saaketh.budget.email.RecordingEmailSender;
 import jakarta.servlet.http.Cookie;
 import java.util.Arrays;
 import java.util.UUID;
@@ -35,7 +36,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
         "spring.autoconfigure.exclude=",                // turn Spring Session back on
         "server.servlet.session.cookie.secure=true"})   // as in application-prod.properties
 @AutoConfigureMockMvc
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, RecordingEmailSender.Config.class})
 class SessionPersistenceIntegrationTest {
 
     @Autowired
@@ -43,6 +44,9 @@ class SessionPersistenceIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private RecordingEmailSender emails;
 
     @Test
     void loginSessionIsStoredInPostgresAndRemovedOnLogout() throws Exception {
@@ -91,6 +95,31 @@ class SessionPersistenceIntegrationTest {
 
         // The phone's session would otherwise keep acting as a user that no longer exists.
         mockMvc.perform(get("/api/auth/me").cookie(phone)).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/auth/me").cookie(laptop)).andExpect(status().isUnauthorized());
+        assertThat(sessionsFor(email)).isZero();
+    }
+
+    @Test
+    void resettingThePasswordLogsOutEveryDevice() throws Exception {
+        String email = "user-" + UUID.randomUUID() + "@example.com";
+        String body = """
+                {"email": "%s", "password": "correct-horse-battery"}""".formatted(email);
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body).with(browserCsrf()))
+                .andExpect(status().isCreated());
+        Cookie laptop = login(body);
+        assertThat(sessionsFor(email)).isEqualTo(1);
+
+        // From another browser (not logged in): forgot password, then the emailed link.
+        mockMvc.perform(post("/api/auth/forgot-password").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"" + email + "\"}").with(browserCsrf()))
+                .andExpect(status().isAccepted());
+        String token = emails.latestToken(email, "Reset your");
+        mockMvc.perform(post("/api/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\": \"" + token + "\", \"password\": \"brand-new-password\"}")
+                        .with(browserCsrf()))
+                .andExpect(status().isNoContent());
+
+        // Whoever was using the old password is out.
         mockMvc.perform(get("/api/auth/me").cookie(laptop)).andExpect(status().isUnauthorized());
         assertThat(sessionsFor(email)).isZero();
     }

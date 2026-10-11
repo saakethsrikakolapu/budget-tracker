@@ -29,6 +29,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
+		<!-- Sends password-reset and verification emails over SMTP (any provider). -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 		<dependency>
 			<!-- Store login sessions in Postgres so they survive restarts (e.g. Render's free tier sleeping). -->
 			<groupId>org.springframework.boot</groupId>

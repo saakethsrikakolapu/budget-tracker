@@ -4,12 +4,15 @@ import { RequireAuth } from './auth/RequireAuth'
 import { AccountPage } from './pages/AccountPage'
 import { AppLayout } from './components/AppLayout'
 import { BudgetsPage } from './pages/BudgetsPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { CategoriesPage } from './pages/CategoriesPage'
 import { ImportPage } from './pages/ImportPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { SubscriptionsPage } from './pages/SubscriptionsPage'
 import { TransactionsPage } from './pages/TransactionsPage'
+import { VerifyEmailPage } from './pages/VerifyEmailPage'
 
 // The dashboard pulls in the chart library (the biggest dependency), so it's downloaded only when
 // you open it ("code splitting"); the login page and other pages load without it.
@@ -21,6 +24,10 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      {/* Reached from emailed links, logged in or not. */}
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
 
       {/* Logged-in pages: checked once by RequireAuth, wrapped in the shared header/footer. */}
       <Route

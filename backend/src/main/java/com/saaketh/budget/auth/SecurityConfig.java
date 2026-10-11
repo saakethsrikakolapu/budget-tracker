@@ -31,7 +31,9 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/health", "/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/api/health", "/api/auth/register", "/api/auth/login",
+                                "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/verify-email")
+                        .permitAll()
                         // Spring's error responses are rendered at /error; let them through.
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/**").authenticated()

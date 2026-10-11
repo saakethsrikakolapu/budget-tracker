@@ -41,7 +41,21 @@ public final class AuthDtos {
             @NotBlank(message = "Enter your password to confirm") @Size(max = 72) String password) {
     }
 
+    /** "Forgot password": just the email. The response is the same whether or not it has an account. */
+    public record ForgotPasswordRequest(@NotBlank(message = "Enter your email") @Size(max = 254) String email) {
+    }
+
+    /** The token from the emailed link, and the new password (same rules as sign-up). */
+    public record ResetPasswordRequest(
+            @NotBlank @Size(max = 100) String token,
+            @NotBlank(message = "Password is required")
+            @Size(min = 8, max = 72, message = "Password must be 8 to 72 characters") String password) {
+    }
+
+    public record VerifyEmailRequest(@NotBlank @Size(max = 100) String token) {
+    }
+
     /** What the frontend gets back about a user. Never includes the password hash. */
-    public record UserResponse(Long id, String email) {
+    public record UserResponse(Long id, String email, boolean emailVerified) {
     }
 }

@@ -26,6 +26,10 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    /** When the user proved they own the email; null until then. */
+    @Column(name = "email_verified_at")
+    private Instant emailVerifiedAt;
+
     /** Required by JPA, which creates objects by reflection when loading rows. */
     protected User() {
     }
@@ -51,5 +55,20 @@ public class User {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerifiedAt != null;
+    }
+
+    public void markEmailVerified() {
+        if (emailVerifiedAt == null) {
+            emailVerifiedAt = Instant.now();
+        }
+    }
+
+    /** @param passwordHash already encoded (BCrypt), never the plain password */
+    public void changePasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 }

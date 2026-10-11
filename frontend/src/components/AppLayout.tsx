@@ -1,5 +1,6 @@
-import { LayoutDashboard, ListOrdered, LogOut, PiggyBank, Repeat, Tags, Upload } from 'lucide-react'
-import { useEffect } from 'react'
+import { LayoutDashboard, ListOrdered, LogOut, Mail, PiggyBank, Repeat, Tags, Upload, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import * as api from '../api'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/authContext'
 import { Logo } from './Logo'
@@ -108,6 +109,8 @@ export function AppLayout() {
         </div>
       </header>
 
+      {user && !user.emailVerified && <VerifyBanner />}
+
       <main id="main" tabIndex={-1} className="mx-auto w-full max-w-6xl flex-1 px-6 py-8 outline-none">
         {/* Upload is a button on wide screens; on small ones it lives here, at the top of every page. */}
         <NavLink to="/import" className="mb-6 block text-sm font-medium text-accent underline md:hidden">
@@ -121,6 +124,72 @@ export function AppLayout() {
           <SystemStatus />
         </div>
       </footer>
+    </div>
+  )
+}
+
+/**
+ * Shown until the email is verified. Soft on purpose: everything works without verifying, but a
+ * verified email is how a forgotten password gets reset. Dismissing hides it until the next visit.
+ */
+function VerifyBanner() {
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'hidden'>(() => {
+    try {
+      return sessionStorage.getItem('verify-banner-hidden') ? 'hidden' : 'idle'
+    } catch {
+      return 'idle'
+    }
+  })
+
+  if (state === 'hidden') return null
+
+  async function resend() {
+    setState('sending')
+    try {
+      await api.resendVerification()
+      setState('sent')
+    } catch {
+      setState('idle')
+    }
+  }
+
+  function hide() {
+    try {
+      sessionStorage.setItem('verify-banner-hidden', '1')
+    } catch {
+      // can't remember; hides for now anyway
+    }
+    setState('hidden')
+  }
+
+  return (
+    <div className="border-b border-indigo-100 bg-indigo-50">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-2.5 text-sm text-indigo-900">
+        <Mail size={16} className="shrink-0" aria-hidden="true" />
+        <p className="flex-1">
+          {state === 'sent'
+            ? 'Sent! Check your inbox (and spam) for the link.'
+            : 'Verify your email so you can reset your password if you forget it. The link is in your inbox.'}
+        </p>
+        {state !== 'sent' && (
+          <button
+            type="button"
+            onClick={resend}
+            disabled={state === 'sending'}
+            className="shrink-0 font-medium underline disabled:opacity-60"
+          >
+            {state === 'sending' ? 'Sending…' : 'Resend email'}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={hide}
+          aria-label="Hide this message"
+          className="grid size-7 shrink-0 place-items-center rounded-full hover:bg-indigo-100"
+        >
+          <X size={14} aria-hidden="true" />
+        </button>
+      </div>
     </div>
   )
 }

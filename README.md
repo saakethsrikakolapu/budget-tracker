@@ -28,6 +28,7 @@ or any file in [`samples/layouts/`](samples/layouts) (all fake data).
 - **Never double-counts.** Re-uploading an overlapping statement skips what's already there, and any
   import can be undone.
 - **Your data stays yours:** delete your account and everything in it in one step.
+- **Password reset and email verification** by emailed one-time links.
 - **Light and dark mode,** following your device setting or chosen in the header.
 
 | Transactions | Subscriptions |
@@ -90,6 +91,9 @@ look like a yearly charge, and merchants whose reference codes are all letters m
   every change; BCrypt passwords; session id rotated at login.
 - Failed logins are rate-limited per email (5) and per IP (30) per 15 minutes, answering 429 with
   Retry-After, without revealing which emails exist.
+- Password-reset and verification links carry 256 random bits, are stored only as SHA-256 hashes,
+  expire (30 minutes / 24 hours), work once, and a reset logs out every device. "Forgot password"
+  answers the same for unknown emails and sends at most 3 emails per account per hour.
 - Uploaded files are read once and never stored; every query is scoped to the logged-in user. Deleting
   your account removes all your data (every table cascades from the user) and logs out every device.
 - Every page passes an [axe-core](https://github.com/dequelabs/axe-core) audit (WCAG 2.2 AA + best
@@ -131,7 +135,10 @@ Open http://localhost:5173, create an account, and upload a file from [`samples/
 | Database | Neon Postgres | Schema created by Flyway on startup |
 
 Backend environment variables: `DATABASE_URL` (JDBC URL with `sslmode=require`), `DATABASE_USERNAME`,
-`DATABASE_PASSWORD`.
+`DATABASE_PASSWORD`. For email (password reset, verification), any SMTP provider works:
+`SPRING_MAIL_HOST`, `SPRING_MAIL_PORT` (587), `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`,
+`MAIL_FROM`, and `APP_BASE_URL` (the frontend's address, used in links). Without `SPRING_MAIL_HOST`
+nothing is sent; locally, emails are printed to the backend log instead so you can click the links.
 
 ## Roadmap
 
@@ -140,4 +147,4 @@ Backend environment variables: `DATABASE_URL` (JDBC URL with `sslmode=require`),
 - [x] Recurring charge detection with measured accuracy
 - [x] Redesign, simpler flows, accessibility pass
 - [ ] ML categorization service (Python, scikit-learn) compared against the rule-based baseline
-- [ ] Password reset and email verification
+- [x] Password reset and email verification, dark mode

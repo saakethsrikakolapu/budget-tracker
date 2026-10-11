@@ -10,6 +10,8 @@ export type HealthResponse = {
 export type User = {
   id: number
   email: string
+  /** False until the user clicks the link in the verification email (or resets their password). */
+  emailVerified: boolean
 }
 
 /** Mirrors AccountController.AccountResponse. */
@@ -258,6 +260,24 @@ export function register(email: string, password: string): Promise<User> {
 
 export function logout(): Promise<void> {
   return apiFetch<void>('/api/auth/logout', { method: 'POST' })
+}
+
+/** Emails a reset link if the address has an account. Same response either way, by design. */
+export function forgotPassword(email: string): Promise<void> {
+  return apiFetch<void>('/api/auth/forgot-password', { method: 'POST', body: { email } })
+}
+
+/** Sets a new password from an emailed link; afterwards every device is logged out. */
+export function resetPassword(token: string, password: string): Promise<void> {
+  return apiFetch<void>('/api/auth/reset-password', { method: 'POST', body: { token, password } })
+}
+
+export function verifyEmail(token: string): Promise<void> {
+  return apiFetch<void>('/api/auth/verify-email', { method: 'POST', body: { token } })
+}
+
+export function resendVerification(): Promise<void> {
+  return apiFetch<void>('/api/auth/resend-verification', { method: 'POST' })
 }
 
 /** Permanently deletes your account and all your data. Asks for the password again to confirm. */
