@@ -147,7 +147,7 @@ function NetSpending({ dashboard, seeAllLink }: { dashboard: api.Dashboard; seeA
       {/* Sparkline: the same 6 months as the trend chart, as a quiet shape. */}
       <div className="mt-4 h-14" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={dashboard.monthlyTrend} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+          <AreaChart data={dashboard.monthlyTrend} margin={{ top: 4, right: 0, bottom: 0, left: 0 }} accessibilityLayer={false}>
             <defs>
               <linearGradient id="spark" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={ACCENT} stopOpacity={0.18} />
@@ -219,7 +219,7 @@ function SpendingByCategory({
           {/* Donut: decorative summary; the list beside it has every exact value. */}
           <div className="relative size-44 shrink-0" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart accessibilityLayer={false}>
                 <Pie
                   data={data}
                   dataKey="amount"
@@ -229,6 +229,7 @@ function SpendingByCategory({
                   paddingAngle={2}
                   stroke="none"
                   isAnimationActive={false}
+                  rootTabIndex={-1}
                 >
                   {data.map((d) => (
                     <Cell key={d.categoryName} fill={categoryStyle(d.categoryName).color} />

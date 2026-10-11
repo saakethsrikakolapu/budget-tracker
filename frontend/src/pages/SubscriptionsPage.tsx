@@ -155,7 +155,7 @@ function ChargeList(props: {
                   type="button"
                   onClick={() => props.onHide(c)}
                   title={`Hide ${c.name}: it isn't a subscription`}
-                  className="rounded-lg border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100"
+                  className="min-h-9 rounded-lg border border-zinc-300 px-3 py-1.5 text-xs text-zinc-700 transition-colors duration-150 hover:bg-zinc-100"
                 >
                   Not a subscription
                 </button>

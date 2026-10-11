@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { ApiError } from '../api'
 import { Logo } from './Logo'
 
@@ -20,6 +20,10 @@ export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, f
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    document.title = `${title} · Budget Tracker`
+  }, [title])
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault() // stop the browser's default full-page form submission

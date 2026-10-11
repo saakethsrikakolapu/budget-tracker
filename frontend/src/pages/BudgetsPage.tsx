@@ -234,7 +234,7 @@ function BudgetRow({
               onChange={(event) => setAmount(event.target.value)}
               autoFocus
               aria-label={`Monthly budget for ${line.categoryName}`}
-              className="w-24 rounded-md border border-zinc-300 px-2 py-1 text-sm"
+              className="min-h-9 w-24 rounded-md border border-zinc-300 px-2 py-1.5 text-sm"
             />
             <button type="submit" className="font-medium text-zinc-900">
               Save
@@ -248,14 +248,14 @@ function BudgetRow({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="rounded-lg border border-zinc-300 px-3 py-1 hover:bg-zinc-100"
+              className="min-h-9 rounded-lg border border-zinc-300 px-3 py-1.5 hover:bg-zinc-100"
             >
               Change
             </button>
             <button
               type="button"
               onClick={onRemove}
-              className="rounded-lg border border-red-300 px-3 py-1 text-red-700 hover:bg-red-50"
+              className="min-h-9 rounded-lg border border-red-300 px-3 py-1.5 text-red-700 hover:bg-red-50"
             >
               Remove
             </button>

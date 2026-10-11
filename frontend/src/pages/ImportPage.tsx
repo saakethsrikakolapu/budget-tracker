@@ -214,7 +214,7 @@ export function ImportPage() {
               }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
-              className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors duration-150 ${
+              className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
                 dragging ? 'border-accent bg-accent-soft/40' : 'border-zinc-300 hover:border-zinc-400 hover:bg-zinc-50'
               }`}
             >

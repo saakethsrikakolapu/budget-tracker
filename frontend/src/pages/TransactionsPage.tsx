@@ -368,8 +368,8 @@ export function TransactionsPage() {
                             onChange={(event) => handleCategoryChange(t, event.target.value)}
                             title={t.bankCategory ? `Bank's label: ${t.bankCategory}` : undefined}
                             aria-label={`Category for ${t.description}`}
-                            className={`min-w-0 flex-1 truncate rounded-md border border-transparent bg-transparent py-1 text-sm transition-colors duration-150 hover:border-zinc-300 ${
-                              t.categoryId === null ? 'italic text-zinc-400' : 'text-zinc-700'
+                            className={`min-h-9 min-w-0 flex-1 truncate rounded-md border border-transparent bg-transparent py-1.5 text-sm transition-colors duration-150 hover:border-zinc-300 ${
+                              t.categoryId === null ? 'italic text-zinc-500' : 'text-zinc-700'
                             }`}
                           >
                             <option value="">Uncategorized</option>

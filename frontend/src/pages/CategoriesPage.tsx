@@ -167,7 +167,7 @@ function CategoryRow({ category, onSaved, onDelete, onError }: RowProps) {
               onChange={(event) => setName(event.target.value)}
               maxLength={50}
               autoFocus
-              className="w-full rounded-lg border border-zinc-300 px-2 py-1 text-sm"
+              className="min-h-9 w-full rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
             />
             <button type="submit" disabled={saving || name.trim() === ''} className="text-sm font-medium text-zinc-900">
               Save
@@ -213,14 +213,14 @@ function CategoryRow({ category, onSaved, onDelete, onError }: RowProps) {
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="rounded-lg border border-zinc-300 px-3 py-1 text-sm hover:bg-zinc-100"
+            className="min-h-9 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
           >
             Rename
           </button>
           <button
             type="button"
             onClick={onDelete}
-            className="rounded-lg border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50"
+            className="min-h-9 rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50"
           >
             Delete
           </button>

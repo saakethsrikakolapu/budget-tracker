@@ -1,8 +1,20 @@
 import { LayoutDashboard, ListOrdered, PiggyBank, Repeat, Tags, Upload } from 'lucide-react'
-import { NavLink, Outlet, useNavigate } from 'react-router'
+import { useEffect } from 'react'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/authContext'
 import { Logo } from './Logo'
 import { SystemStatus } from './SystemStatus'
+
+/** Browser-tab title per page; screen readers announce it when the page changes. */
+const TITLES: Record<string, string> = {
+  '/': 'Dashboard',
+  '/transactions': 'Transactions',
+  '/budgets': 'Budgets',
+  '/subscriptions': 'Subscriptions',
+  '/categories': 'Categories',
+  '/import': 'Upload a statement',
+  '/account': 'Account',
+}
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -16,6 +28,12 @@ const NAV = [
 export function AppLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    const page = TITLES[pathname]
+    document.title = page ? `${page} · Budget Tracker` : 'Budget Tracker'
+  }, [pathname])
 
   async function handleLogout() {
     await logout()
@@ -32,6 +50,13 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* First thing a keyboard user reaches: jump past the navigation. Visible only when focused. */}
+      <a
+        href="#main"
+        className="sr-only z-20 rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      >
+        Skip to content
+      </a>
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 px-6">
           <NavLink to="/" className="flex items-center gap-2 py-3" aria-label="Budget Tracker home">
@@ -79,7 +104,7 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-6xl flex-1 px-6 py-8 outline-none">
         {/* Upload is a button on wide screens; on small ones it lives here, at the top of every page. */}
         <NavLink to="/import" className="mb-6 block text-sm font-medium text-accent underline md:hidden">
           Upload statement

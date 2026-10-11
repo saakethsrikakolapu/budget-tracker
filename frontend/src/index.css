@@ -26,6 +26,11 @@
     font-feature-settings: "cv11", "ss01"; /* Inter's straighter 1 and a; ignored by other fonts */
   }
 
+  /* Placeholder text: zinc-500 is 4.8:1 on white (the browser default is too faint). */
+  ::placeholder {
+    @apply text-zinc-500 opacity-100;
+  }
+
   h1,
   h2,
   h3 {
