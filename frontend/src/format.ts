@@ -52,3 +52,16 @@ export function formatMonthShort(yearMonth: string, { year = false } = {}): stri
   const [y, m] = yearMonth.split('-').map(Number)
   return new Date(y, m - 1, 1).toLocaleDateString('en-US', year ? { month: 'short', year: 'numeric' } : { month: 'short' })
 }
+
+const CADENCE_LABELS: Record<string, string> = {
+  WEEKLY: 'Weekly',
+  BIWEEKLY: 'Every 2 weeks',
+  MONTHLY: 'Monthly',
+  QUARTERLY: 'Every 3 months',
+  YEARLY: 'Yearly',
+}
+
+/** "BIWEEKLY" -> "Every 2 weeks" */
+export function formatCadence(cadence: string): string {
+  return CADENCE_LABELS[cadence] ?? cadence
+}

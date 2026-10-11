@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import * as api from '../api'
-import { formatMoney, formatMonth, formatMonthShort } from '../format'
+import { formatCadence, formatMoney, formatMonth, formatMonthShort } from '../format'
 
 // Chart colors from the validated reference palette (blue ramp). Checked with the dataviz
 // validator against the white card surface: all checks pass, contrast >= 3:1.
@@ -18,6 +18,7 @@ export function DashboardPage() {
   const [months, setMonths] = useState<string[] | null>(null)
   const [dashboard, setDashboard] = useState<api.Dashboard | null>(null)
   const [budgets, setBudgets] = useState<api.BudgetOverview | null>(null)
+  const [recurring, setRecurring] = useState<api.RecurringOverview | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const month = searchParams.get('month') ?? months?.[0] ?? null
@@ -26,6 +27,10 @@ export function DashboardPage() {
     api.fetchTransactionMonths()
       .then(setMonths)
       .catch(() => setError('Could not load your data.'))
+    // Subscriptions don't depend on the month: load once. The card just stays hidden if this fails.
+    api.fetchRecurring()
+      .then(setRecurring)
+      .catch(() => setRecurring(null))
   }, [])
 
   useEffect(() => {
@@ -117,7 +122,10 @@ export function DashboardPage() {
             <MonthlyTrend data={dashboard.monthlyTrend} selected={dashboard.month} />
           </div>
 
-          {budgets && <BudgetSnapshot overview={budgets} />}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {budgets && <BudgetSnapshot overview={budgets} />}
+            {recurring && <SubscriptionSnapshot overview={recurring} />}
+          </div>
 
           <p className="text-sm">
             <Link to={transactionsLink()} className="font-medium text-slate-900 underline">
@@ -288,6 +296,43 @@ function BudgetSnapshot({ overview }: { overview: api.BudgetOverview }) {
             )
           })}
         </ul>
+      )}
+    </section>
+  )
+}
+
+function SubscriptionSnapshot({ overview }: { overview: api.RecurringOverview }) {
+  const active = overview.charges.filter((c) => c.active)
+  const top = active.slice(0, 4) // already sorted: most expensive per month first
+  return (
+    <section className="rounded-xl bg-white p-5 shadow">
+      <div className="flex items-baseline justify-between">
+        <h2 className="font-semibold text-slate-900">Subscriptions</h2>
+        <Link to="/subscriptions" className="text-sm text-slate-600 underline">
+          See all
+        </Link>
+      </div>
+      {top.length === 0 ? (
+        <p className="mt-2 text-sm text-slate-500">
+          None found yet. Subscriptions show up once a few months of statements are uploaded.
+        </p>
+      ) : (
+        <>
+          <p className="mt-1 text-sm text-slate-600">
+            <span className="font-semibold tabular-nums text-slate-900">{formatMoney(overview.activeMonthlyTotal)}</span>{' '}
+            a month across {active.length} active
+          </p>
+          <ul className="mt-3 divide-y divide-slate-100">
+            {top.map((c) => (
+              <li key={c.merchantKey} className="flex justify-between py-2 text-sm">
+                <span className="text-slate-800">
+                  {c.name} <span className="text-slate-500">· {formatCadence(c.cadence)}</span>
+                </span>
+                <span className="tabular-nums text-slate-700">{formatMoney(c.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   )

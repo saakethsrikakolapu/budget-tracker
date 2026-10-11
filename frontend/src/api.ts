@@ -408,3 +408,49 @@ export function fetchTransactionMonths(): Promise<string[]> {
 export function deleteImport(id: number): Promise<void> {
   return apiFetch<void>(`/api/imports/${id}`, { method: 'DELETE' })
 }
+
+export type Cadence = 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
+
+/** Mirrors RecurringService.RecurringCharge: a subscription or bill found in your transactions. */
+export type RecurringCharge = {
+  /** Identifies the merchant, e.g. "NETFLIX COM"; used to hide it. */
+  merchantKey: string
+  /** Friendlier name, e.g. "Netflix". */
+  name: string
+  /** The latest charge exactly as the bank wrote it. */
+  description: string
+  cadence: Cadence
+  /** The latest charge (current price), positive. */
+  amount: number
+  monthlyCost: number
+  chargeCount: number
+  firstDate: string
+  lastDate: string
+  nextExpected: string
+  /** false = an expected charge never came: probably cancelled. */
+  active: boolean
+  categoryId: number | null
+  categoryName: string | null
+}
+
+export type RecurringOverview = {
+  charges: RecurringCharge[]
+  /** Ones you marked "not a subscription". */
+  hidden: RecurringCharge[]
+  activeMonthlyTotal: number
+  /** Your latest transaction date (null with no transactions); "cancelled" is judged from here. */
+  asOf: string | null
+}
+
+export function fetchRecurring(): Promise<RecurringOverview> {
+  return apiFetch<RecurringOverview>('/api/recurring')
+}
+
+/** "Not a subscription": leave this merchant off the list. */
+export function hideRecurring(merchantKey: string): Promise<void> {
+  return apiFetch<void>(`/api/recurring/hidden/${encodeURIComponent(merchantKey)}`, { method: 'PUT' })
+}
+
+export function unhideRecurring(merchantKey: string): Promise<void> {
+  return apiFetch<void>(`/api/recurring/hidden/${encodeURIComponent(merchantKey)}`, { method: 'DELETE' })
+}

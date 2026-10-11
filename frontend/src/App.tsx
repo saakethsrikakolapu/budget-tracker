@@ -7,6 +7,7 @@ import { CategoriesPage } from './pages/CategoriesPage'
 import { ImportPage } from './pages/ImportPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { SubscriptionsPage } from './pages/SubscriptionsPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 
 // The dashboard pulls in the chart library (the biggest dependency), so it's downloaded only when
@@ -40,6 +41,7 @@ function App() {
         <Route path="/import" element={<ImportPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/budgets" element={<BudgetsPage />} />
+        <Route path="/subscriptions" element={<SubscriptionsPage />} />
       </Route>
 
       {/* Unknown URL: go home (which redirects to /login if logged out). */}

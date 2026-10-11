@@ -63,6 +63,20 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
     List<CategoryTotal> sumByCategory(@Param("userId") Long userId, @Param("from") LocalDate from,
             @Param("to") LocalDate to);
 
+    /** Just the fields recurring-charge detection needs, for every purchase (money out). */
+    record SpendingRow(LocalDate date, String description, BigDecimal amount, Long categoryId) {
+    }
+
+    @Query("""
+            SELECT new com.saaketh.budget.transaction.TransactionRepository$SpendingRow(
+                       t.transactionDate, t.description, t.amount, t.categoryId)
+            FROM Transaction t
+            WHERE t.userId = :userId AND t.amount < 0""")
+    List<SpendingRow> findSpending(@Param("userId") Long userId);
+
+    @Query("SELECT MAX(t.transactionDate) FROM Transaction t WHERE t.userId = :userId")
+    Optional<LocalDate> findLatestDate(@Param("userId") Long userId);
+
     List<Transaction> findByImportBatchIdOrderByIdAsc(Long importBatchId);
 
     long countByImportBatchId(Long importBatchId);

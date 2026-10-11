@@ -49,6 +49,20 @@ Working today:
 - Categories: defaults for every user, mapped automatically from the bank's labels, editable by hand
 - Auto-categorization rules ("description contains POSHMARK -> Shopping"), applied retroactively
 - Monthly budgets per category with progress and over-budget warnings
-- Dashboard: spending by category, 6-month trend, and budget status
+- Dashboard: spending by category, 6-month trend, budget status, and subscriptions
+- Recurring charge detection: subscriptions and bills found automatically (same merchant, similar amount, regular weekly/monthly/quarterly/yearly schedule), with cost per month, next expected date, "looks cancelled" when a charge stops, and "not a subscription" to hide false alarms
 
-Next: detecting recurring charges (subscriptions).
+### Recurring detection accuracy
+
+Measured by `RecurringAccuracyTest` on 200 synthetic students (18 months each, seeded so the numbers are reproducible). The data includes the hard cases on purpose: price increases, posting-date jitter, a skipped month, varying phone and electric bills, cancelled and new subscriptions, and look-alikes that aren't recurring (coffee, groceries, rides, takeout at a steady price).
+
+| Metric | Result |
+| --- | --- |
+| Precision (flagged charges that really are recurring) | 0.999 (1 false positive in 1,421) |
+| Recall (recurring charges found) | 0.999 (1 missed of 1,421) |
+| Schedule identified correctly | 100% |
+| Active vs. cancelled correct | 100% |
+
+The data is synthetic: this shows the detector handles the cases it was designed for, not how it does on every real statement. Known limits: two one-off purchases from the same store about a year apart can look like a yearly charge, and merchants whose reference codes are all letters may not group together. Try it with [`samples/subscriptions-6-months.csv`](samples/subscriptions-6-months.csv) (fake data).
+
+Next: polish, simpler screens, and real users.
