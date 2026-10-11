@@ -7,7 +7,7 @@
 Export a CSV from any bank or card, drop it in, and see where your money goes: transactions sorted into
 categories, monthly budgets, and the subscriptions you forgot about. The app never connects to your bank.
 
-**Live demo:** https://budget-tracker-saaketh1.vercel.app (free hosting: the first visit can take about a
+**Live demo:** https://www.8022029.xyz (also at https://budget-tracker-saaketh1.vercel.app; free hosting: the first visit can take about a
 minute while the server wakes up). Try it with [`samples/subscriptions-6-months.csv`](samples/subscriptions-6-months.csv)
 or any file in [`samples/layouts/`](samples/layouts) (all fake data).
 
@@ -133,14 +133,15 @@ Open http://localhost:5173, create an account, and upload a file from [`samples/
 
 | Part | Host | Config |
 |---|---|---|
-| Frontend | Vercel (root directory `frontend`) | [`frontend/vercel.json`](frontend/vercel.json) forwards `/api/*` to the backend and serves `index.html` for app routes |
+| Frontend | Vercel (root directory `frontend`), custom domain `www.8022029.xyz` | [`frontend/vercel.json`](frontend/vercel.json) forwards `/api/*` to the backend and serves `index.html` for app routes |
 | Backend | Render web service (Docker, root directory `backend`) | [`backend/Dockerfile`](backend/Dockerfile), `prod` profile in [`application-prod.properties`](backend/src/main/resources/application-prod.properties) |
 | Database | Neon Postgres | Schema created by Flyway on startup |
 
 Backend environment variables: `DATABASE_URL` (JDBC URL with `sslmode=require`), `DATABASE_USERNAME`,
 `DATABASE_PASSWORD`. For email (password reset, verification), any SMTP provider works:
 `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT` (587), `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`,
-`MAIL_FROM`, and `APP_BASE_URL` (the frontend's address, used in links). Without `SPRING_MAIL_HOST`
+`MAIL_FROM`, and optionally `APP_BASE_URL` (the frontend's address used in email links; defaults to
+`https://www.8022029.xyz`). Without `SPRING_MAIL_HOST`
 nothing is sent; locally, emails are printed to the backend log instead so you can click the links.
 
 ## Roadmap
