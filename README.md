@@ -19,7 +19,9 @@ or any file in [`samples/layouts/`](samples/layouts) (all fake data).
   (which column holds dates, which holds money, debit/credit pairs, running balances to ignore). Tested
   against 12 layouts from Chase, Bank of America, Wells Fargo, Capital One, Amex, Discover, Citi, Apple
   Card, US Bank, and PNC. The upload is one step: drop the file, read the summary, import.
-- **Sorts transactions automatically,** from the bank's own labels or a dictionary of 480+ merchants.
+- **Sorts transactions automatically,** from the bank's own labels, a dictionary of 480+ merchants, and
+  a machine-learning model for messy descriptions the rules miss (`DOMINOSPIZZA`, `WALGRNS`, `HARRIS TEE`),
+  shown as *Suggested* with one click to confirm.
   Fix one and it asks *"Always put STREAMFLIX in Entertainment?"*; one click moves every past and future
   transaction from that merchant, with Undo.
 - **Finds subscriptions and bills** (same merchant, similar amount, regular schedule), shows what they
@@ -59,7 +61,8 @@ React + TypeScript (Vercel) ──/api──▶ Spring Boot (Render) ──▶ P
   same file adds nothing. A unique (account, fingerprint, occurrence) constraint keeps it safe even if
   two uploads race.
 - **Categorization order:** your manual choices > your "always" choices > the bank's label > the
-  merchant dictionary > Uncategorized. Changing a choice re-sorts past transactions (except manual ones).
+  merchant dictionary > a model suggestion > Uncategorized. Changing a choice re-sorts past transactions
+  (except manual ones).
 - **Recurring detection** ([`recurring/RecurringDetector.java`](backend/src/main/java/com/saaketh/budget/recurring/RecurringDetector.java)):
   descriptions are reduced to a merchant key (`PURCHASE AUTHORIZED ON 10/27 NETFLIX.COM CARD 1234` →
   `NETFLIX COM`), then each merchant's gaps are matched to a cadence (weekly to yearly, allowing one
@@ -67,6 +70,27 @@ React + TypeScript (Vercel) ──/api──▶ Spring Boot (Render) ──▶ P
   request, so it's never out of date.
 - **Money** is `BigDecimal` in Java and `NUMERIC(12,2)` in Postgres, never floating point. The schema is
   managed only by Flyway migrations.
+
+### Machine-learning categorization (trained in Python, served in Java)
+
+[`ml/`](ml) trains a TF-IDF model over character 3-5-grams with multinomial logistic regression
+(scikit-learn). Character pieces survive what breaks whole-word rules: glued words, text cut at ~22
+characters, dropped vowels. Instead of a second (sleeping) service, the model is exported as JSON and
+[`CategoryModel.java`](backend/src/main/java/com/saaketh/budget/category/CategoryModel.java) runs the
+same math inside the backend; a parity test checks Java against Python's probabilities (within 1e-9)
+on 155 cases. It only suggests when at least {int(t*100)}% sure, only for spending, and never over a
+person's choice.
+
+Measured by [`ml/budget_ml/train.py`](ml/budget_ml/train.py) on synthetic descriptions in real banks'
+formats ({r['trainExamples']:,} training examples, {r['categories']} spending categories):
+
+{table}
+
+"Unseen merchants" were held out of training entirely: a bare brand name ("BOJANGLES") carries no hint
+of its category, so that stays hard, and the model only helps when the text has a telling word. The
+data is synthetic and its labels come from the same generator the model learns from, so these numbers
+show the model handles the patterns it was built for; real users' corrections are the next training
+data.
 
 ### Recurring detection accuracy
 
@@ -106,8 +130,9 @@ look like a yearly charge, and merchants whose reference codes are all letters m
 
 - **Backend:** Java 25, Spring Boot 4 (Web, Security, Data JPA, Validation, Session JDBC), PostgreSQL, Flyway
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4, Recharts, Lucide icons, Inter (self-hosted)
-- **Testing:** JUnit 5, Spring Boot tests with Testcontainers (real Postgres), 198 backend tests
-- **Dev and CI:** Docker Compose, GitHub Actions (build, test, lint on every push)
+- **ML:** Python 3.13, scikit-learn, numpy, pytest (training and evaluation); inference in Java
+- **Testing:** JUnit 5, Spring Boot tests with Testcontainers (real Postgres), 219 backend tests, 14 Python tests
+- **Dev and CI:** Docker Compose, GitHub Actions (backend tests, frontend lint and build, Python tests on every push)
 
 ## Run locally
 
@@ -151,5 +176,5 @@ click the links.
 - [x] Categories, automatic sorting, budgets, dashboard
 - [x] Recurring charge detection with measured accuracy
 - [x] Redesign, simpler flows, accessibility pass
-- [ ] ML categorization service (Python, scikit-learn) compared against the rule-based baseline
+- [x] ML categorization (Python, scikit-learn) compared against the rule-based baseline
 - [x] Password reset and email verification, dark mode

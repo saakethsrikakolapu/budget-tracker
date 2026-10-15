@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { Check, Sparkles } from 'lucide-react'
 import * as api from '../api'
 import { CategoryIcon } from '../components/CategoryIcon'
 import { MerchantAvatar } from '../components/MerchantAvatar'
@@ -361,7 +362,7 @@ export function TransactionsPage() {
                           <p className="truncate text-xs text-zinc-500">{t.accountName}</p>
                         </div>
                         {/* The category is a quiet dropdown: looks like a label, changes on click. */}
-                        <div className="order-last flex w-full items-center gap-2 pl-12 sm:order-none sm:w-56 sm:pl-0">
+                        <div className="order-last flex w-full items-center gap-2 pl-12 sm:order-none sm:w-72 sm:pl-0">
                           <CategoryIcon name={t.categoryName} size="sm" />
                           <select
                             value={t.categoryId === null ? '' : String(t.categoryId)}
@@ -379,6 +380,20 @@ export function TransactionsPage() {
                               </option>
                             ))}
                           </select>
+                          {/* A guess by the model: one click to keep it (it then counts as the person's choice). */}
+                          {t.categorySource === 'SUGGESTED' && t.categoryId !== null && (
+                            <button
+                              type="button"
+                              onClick={() => handleCategoryChange(t, String(t.categoryId))}
+                              title="Suggested automatically. Click to confirm, or pick another category."
+                              aria-label={`Confirm suggested category ${t.categoryName} for ${t.description}`}
+                              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-medium text-indigo-700 transition-colors duration-150 hover:bg-indigo-100"
+                            >
+                              <Sparkles size={12} aria-hidden="true" />
+                              Suggested
+                              <Check size={12} aria-hidden="true" />
+                            </button>
+                          )}
                         </div>
                         <span
                           className={`w-24 text-right text-sm font-medium tabular-nums ${

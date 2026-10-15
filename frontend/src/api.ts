@@ -114,7 +114,8 @@ export type Transaction = {
   categoryId: number | null
   categoryName: string | null
   /** How the category was set: from the bank's label, one of your rules, the built-in merchant list, or by you. */
-  categorySource: 'BANK' | 'RULE' | 'KEYWORD' | 'MANUAL' | null
+  /** SUGGESTED = guessed by the machine-learning model; shown with a "Suggested" badge. */
+  categorySource: 'BANK' | 'RULE' | 'KEYWORD' | 'SUGGESTED' | 'MANUAL' | null
 }
 
 /**
