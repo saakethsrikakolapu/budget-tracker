@@ -100,7 +100,9 @@ class MerchantDictionaryIntegrationTest {
         BigDecimal value = new BigDecimal(amount);
 
         CategoryAssigner.Assignment java = assigner.assign(context, description, null, value);
-        String fromJava = java.categoryId() == null ? "-" : categoryNames.get(java.categoryId());
+        // This test is about the dictionary; a model suggestion (SnackBar -> Food) is not a dictionary match.
+        boolean fromDictionary = java.categoryId() != null && java.source() != CategorySource.SUGGESTED;
+        String fromJava = fromDictionary ? categoryNames.get(java.categoryId()) : "-";
         List<String> sql = jdbcTemplate.queryForList(SQL_MATCH, String.class, description, value);
         String fromSql = sql.isEmpty() ? "-" : sql.getFirst().toLowerCase();
 

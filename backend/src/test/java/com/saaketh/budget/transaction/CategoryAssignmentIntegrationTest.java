@@ -64,7 +64,7 @@ class CategoryAssignmentIntegrationTest {
     void vagueOrUnknownBankLabelsStayUncategorized() throws Exception {
         upload(header() + """
                 2026-09-01,2026-09-02,1234,STYLE STUDIO,Other Services,20.00,
-                2026-09-02,2026-09-03,1234,MYSTERY,Something New,5.00,
+                2026-09-02,2026-09-03,1234,XQJZ,Something New,5.00,
                 2026-09-03,2026-09-04,1234,NO LABEL,,7.00,
                 """);
 

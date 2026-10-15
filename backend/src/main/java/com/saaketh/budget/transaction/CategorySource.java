@@ -8,6 +8,8 @@ public enum CategorySource {
     RULE,
     /** Matched the built-in merchant dictionary, e.g. "PIZZA" -> Food & Dining. */
     KEYWORD,
+    /** Guessed by the machine-learning model (CategoryModel) when nothing else matched; shown as "Suggested". */
+    SUGGESTED,
     /** Chosen by the user. Automation never overwrites it. */
     MANUAL
 }

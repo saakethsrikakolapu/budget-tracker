@@ -77,6 +77,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
     @Query("SELECT MAX(t.transactionDate) FROM Transaction t WHERE t.userId = :userId")
     Optional<LocalDate> findLatestDate(@Param("userId") Long userId);
 
+    /** Spending nothing has categorized yet (never set by hand): candidates for a model suggestion. */
+    @Query("""
+            SELECT t FROM Transaction t
+            WHERE t.categoryId IS NULL AND t.categorySource IS NULL AND t.amount < 0
+            ORDER BY t.userId""")
+    List<Transaction> findUncategorizedSpending();
+
     List<Transaction> findByImportBatchIdOrderByIdAsc(Long importBatchId);
 
     long countByImportBatchId(Long importBatchId);

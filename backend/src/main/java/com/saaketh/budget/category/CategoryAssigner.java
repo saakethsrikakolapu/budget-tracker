@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>the user's rules (most specific first)</li>
  *   <li>the bank's own category label (via bank_category_mappings)</li>
  *   <li>the built-in merchant dictionary (merchant_keywords), for banks without category labels</li>
+ *   <li>the machine-learning model's suggestion, for spending only and only when it's confident</li>
  *   <li>otherwise Uncategorized</li>
  * </ol>
  * Manual choices sit above all of these; callers never pass manual transactions through here.
@@ -42,9 +43,11 @@ public class CategoryAssigner {
     private final BankCategoryMappingRepository mappingRepository;
     private final CategoryRuleRepository ruleRepository;
     private final MerchantKeywordRepository keywordRepository;
+    private final CategoryModel model;
 
     public CategoryAssigner(CategoryRepository categoryRepository, BankCategoryMappingRepository mappingRepository,
-            CategoryRuleRepository ruleRepository, MerchantKeywordRepository keywordRepository) {
+            CategoryRuleRepository ruleRepository, MerchantKeywordRepository keywordRepository, CategoryModel model) {
+        this.model = model;
         this.categoryRepository = categoryRepository;
         this.mappingRepository = mappingRepository;
         this.ruleRepository = ruleRepository;
@@ -85,6 +88,14 @@ public class CategoryAssigner {
         if (keyword.isPresent()) {
             Long categoryId = context.categoryIdByLowerName().get(keyword.get().categoryName().toLowerCase(Locale.ROOT));
             return new Assignment(categoryId, CategorySource.KEYWORD);
+        }
+        // Last resort: the model, trained on spending categories only (money in is left to the rules).
+        if (amount != null && amount.signum() < 0) {
+            Optional<Long> suggested = model.suggest(description)
+                    .map(s -> context.categoryIdByLowerName().get(s.categoryName().toLowerCase(Locale.ROOT)));
+            if (suggested.isPresent()) { // the user may have renamed or deleted that category
+                return new Assignment(suggested.get(), CategorySource.SUGGESTED);
+            }
         }
         return Assignment.NONE;
     }
