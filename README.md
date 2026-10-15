@@ -1,142 +1,58 @@
 # Budget Tracker
 
-[![CI](https://github.com/saakethsrikakolapu/budget-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/saakethsrikakolapu/budget-tracker/actions/workflows/ci.yml)
-
 **A privacy-first budget tracker for students. No bank login, just upload your statements.**
 
-Export a CSV from any bank or card, drop it in, and see where your money goes: transactions sorted into
-categories, monthly budgets, and the subscriptions you forgot about. The app never connects to your bank.
+👉 **[www.8022029.xyz](https://www.8022029.xyz)** (free to use; the first visit can take about a minute while the server wakes up)
 
-**Live demo:** https://www.8022029.xyz (also at https://budget-tracker-saaketh1.vercel.app; free hosting: the first visit can take about a
-minute while the server wakes up). Try it with [`samples/subscriptions-6-months.csv`](samples/subscriptions-6-months.csv)
-or any file in [`samples/layouts/`](samples/layouts) (all fake data).
+![Demo: upload a statement, then the dashboard, transactions, subscriptions, and dark mode](docs/demo.png)
 
-![Demo: upload a statement, see the summary, import, then the dashboard, transactions, subscriptions, and dark mode](docs/demo.png)
+## What you can do
 
-## What it does
+- **Upload a statement from any bank or card.** Download a CSV from your bank's website and drop it in.
+  The app figures out the columns on its own.
+- **See where your money goes.** Transactions are sorted into categories automatically, with a dashboard
+  of your spending by category and by month.
+- **Set monthly budgets** and see how much is left in each category.
+- **Find your subscriptions,** including ones you forgot, with what they cost per month and when the
+  next charge is due.
+- **Fix anything in one click.** Change a category and the app offers to do the same for that merchant
+  from now on.
 
-- **Reads any bank's CSV.** No per-bank templates: columns are worked out from the values themselves
-  (which column holds dates, which holds money, debit/credit pairs, running balances to ignore). Tested
-  against 12 layouts from Chase, Bank of America, Wells Fargo, Capital One, Amex, Discover, Citi, Apple
-  Card, US Bank, and PNC. The upload is one step: drop the file, read the summary, import.
-- **Sorts transactions automatically,** from the bank's own labels, a dictionary of 480+ merchants, and
-  a machine-learning model for messy descriptions the rules miss (`DOMINOSPIZZA`, `WALGRNS`, `HARRIS TEE`),
-  shown as *Suggested* with one click to confirm.
-  Fix one and it asks *"Always put STREAMFLIX in Entertainment?"*; one click moves every past and future
-  transaction from that merchant, with Undo.
-- **Finds subscriptions and bills** (same merchant, similar amount, regular schedule), shows what they
-  cost per month and when the next charge is due, and flags ones that look cancelled.
-- **Monthly budgets** per category, with progress rings on the dashboard.
-- **Never double-counts.** Re-uploading an overlapping statement skips what's already there, and any
-  import can be undone.
-- **Your data stays yours:** delete your account and everything in it in one step.
-- **Password reset and email verification** by emailed one-time links.
-- **Light and dark mode,** following your device setting or chosen in the header.
+## Getting started
 
-![Dashboard](docs/screenshots/dashboard.png)
+1. **Create an account** at [www.8022029.xyz](https://www.8022029.xyz).
+2. **Download a statement as a CSV** from your bank or card website (usually under *Statements*,
+   *Activity*, or *Download transactions*; choose CSV). A few months of history works best.
+3. **Upload it.** Check the one-line summary and click *Import*. Uploading an overlapping statement
+   later is fine: transactions already imported are skipped.
+4. **Look over anything Uncategorized** and pick a category. Set a budget or two if you like.
 
-| Transactions | Subscriptions |
+No statement handy? Try the fake sample [`samples/subscriptions-6-months.csv`](samples/subscriptions-6-months.csv).
+
+## Your privacy
+
+- The app **never connects to your bank**. It only sees the files you choose to upload.
+- Uploaded files are read once and **not stored**; only the transactions are saved, visible only to you.
+- You can **undo any upload** or **delete your account and all its data** at any time (Account page).
+
+## Good to know
+
+- **PayPal, Venmo, Zelle and Cash App:** your bank only sees the money going to the app, not the store,
+  so those purchases can't be categorized automatically. Pick a category once and choose
+  *"Yes, always"* to file them all the same way.
+- **"Suggested" categories** are the app's best guess for unfamiliar descriptions. Click the badge to
+  confirm, or choose a different category.
+- **Light and dark mode** follow your device; switch in the header.
+
+| Dashboard | On a phone |
 |---|---|
-| ![Transactions grouped by day with merchant avatars and category icons](docs/screenshots/transactions.png) | ![Subscriptions found automatically, with monthly cost](docs/screenshots/subscriptions.png) |
-| **Upload** | **Budgets** |
-| ![Upload: drop a CSV, check the summary, import](docs/screenshots/upload.png) | ![Monthly budgets per category](docs/screenshots/budgets.png) |
+| ![Dashboard](docs/screenshots/dashboard.png) | <img src="docs/screenshots/dashboard-phone.png" alt="Dashboard on a phone" width="260"> |
 
-| Dark mode | On a phone |
-|---|---|
-| ![Dashboard in dark mode](docs/screenshots/dashboard-dark.png) | <img src="docs/screenshots/dashboard-phone.png" alt="Dashboard on a phone" width="260"> |
+## For developers
 
-## How it works
-
-```
-React + TypeScript (Vercel) ──/api──▶ Spring Boot (Render) ──▶ PostgreSQL (Neon)
-                                      Spring Security sessions stored in Postgres
-```
-
-- **CSV inference** ([`imports/csv/ColumnInference.java`](backend/src/main/java/com/saaketh/budget/imports/csv/ColumnInference.java)):
-  scores every column by its values, not its header. The earlier of two date columns is the transaction
-  date; a column that changes by exactly each row's amount is a running balance and is ignored; the
-  description is the text column with the most variety. Formats you confirm are remembered per file shape.
-- **Duplicate detection:** each row gets a SHA-256 fingerprint of its date, amount, and description plus
-  an occurrence number, so two genuinely identical coffees on one day both count, but re-importing the
-  same file adds nothing. A unique (account, fingerprint, occurrence) constraint keeps it safe even if
-  two uploads race.
-- **Categorization order:** your manual choices > your "always" choices > the bank's label > the
-  merchant dictionary > a model suggestion > Uncategorized. Changing a choice re-sorts past transactions
-  (except manual ones).
-- **Recurring detection** ([`recurring/RecurringDetector.java`](backend/src/main/java/com/saaketh/budget/recurring/RecurringDetector.java)):
-  descriptions are reduced to a merchant key (`PURCHASE AUTHORIZED ON 10/27 NETFLIX.COM CARD 1234` →
-  `NETFLIX COM`), then each merchant's gaps are matched to a cadence (weekly to yearly, allowing one
-  skipped period) and amounts must stay within 25% (50% for bills with spotless timing). Computed on
-  request, so it's never out of date.
-- **Money** is `BigDecimal` in Java and `NUMERIC(12,2)` in Postgres, never floating point. The schema is
-  managed only by Flyway migrations.
-
-### Machine-learning categorization (trained in Python, served in Java)
-
-[`ml/`](ml) trains a TF-IDF model over character 3-5-grams with multinomial logistic regression
-(scikit-learn). Character pieces survive what breaks whole-word rules: glued words, text cut at ~22
-characters, dropped vowels. Instead of a second (sleeping) service, the model is exported as JSON and
-[`CategoryModel.java`](backend/src/main/java/com/saaketh/budget/category/CategoryModel.java) runs the
-same math inside the backend; a parity test checks Java against Python's probabilities (within 1e-9)
-on 155 cases. It only suggests when at least {int(t*100)}% sure, only for spending, and never over a
-person's choice.
-
-Measured by [`ml/budget_ml/train.py`](ml/budget_ml/train.py) on synthetic descriptions in real banks'
-formats ({r['trainExamples']:,} training examples, {r['categories']} spending categories):
-
-{table}
-
-"Unseen merchants" were held out of training entirely: a bare brand name ("BOJANGLES") carries no hint
-of its category, so that stays hard, and the model only helps when the text has a telling word. The
-data is synthetic and its labels come from the same generator the model learns from, so these numbers
-show the model handles the patterns it was built for; real users' corrections are the next training
-data.
-
-### Recurring detection accuracy
-
-Measured by [`RecurringAccuracyTest`](backend/src/test/java/com/saaketh/budget/recurring/RecurringAccuracyTest.java)
-on 200 synthetic students (18 months each, seeded so the numbers are reproducible). The data includes the
-hard cases on purpose: price increases, posting-date jitter, a skipped month, varying phone and electric
-bills, cancelled and new subscriptions, and look-alikes that aren't recurring (coffee, groceries, rides,
-takeout at a steady price).
-
-| Metric | Result |
-| --- | --- |
-| Precision (flagged charges that really are recurring) | 0.999 (1 false positive in 1,421) |
-| Recall (recurring charges found) | 0.999 (1 missed of 1,421) |
-| Schedule identified correctly | 100% |
-| Active vs. cancelled correct | 100% |
-
-The data is synthetic, so this shows the detector handles the cases it was designed for, not how it does
-on every real statement. Known limits: two one-off purchases from the same store about a year apart can
-look like a yearly charge, and merchants whose reference codes are all letters may not group together.
-
-## Security, privacy, and accessibility
-
-- Server-side sessions (Spring Session JDBC) in an HttpOnly, SameSite=Lax, Secure cookie; CSRF tokens on
-  every change; BCrypt passwords; session id rotated at login.
-- Failed logins are rate-limited per email (5) and per IP (30) per 15 minutes, answering 429 with
-  Retry-After, without revealing which emails exist.
-- Password-reset and verification links carry 256 random bits, are stored only as SHA-256 hashes,
-  expire (30 minutes / 24 hours), work once, and a reset logs out every device. "Forgot password"
-  answers the same for unknown emails and sends at most 3 emails per account per hour.
-- Uploaded files are read once and never stored; every query is scoped to the logged-in user. Deleting
-  your account removes all your data (every table cascades from the user) and logs out every device.
-- Every page passes an [axe-core](https://github.com/dequelabs/axe-core) audit (WCAG 2.2 AA + best
-  practices): keyboard navigation with a skip link, visible focus, 4.5:1 text contrast, labeled controls,
-  charts with table or list alternatives, and reduced motion respected, in both light and dark mode.
-
-## Tech stack
-
-- **Backend:** Java 25, Spring Boot 4 (Web, Security, Data JPA, Validation, Session JDBC), PostgreSQL, Flyway
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4, Recharts, Lucide icons, Inter (self-hosted)
-- **ML:** Python 3.13, scikit-learn, numpy, pytest (training and evaluation); inference in Java
-- **Testing:** JUnit 5, Spring Boot tests with Testcontainers (real Postgres), 219 backend tests, 14 Python tests
-- **Dev and CI:** Docker Compose, GitHub Actions (backend tests, frontend lint and build, Python tests on every push)
-
-## Run locally
-
-Requires Java 25, Node 22+, and Docker.
+Java 25 and Spring Boot backend, React and TypeScript frontend, PostgreSQL, and a category model trained
+in Python with scikit-learn. How it all works, the measured accuracy, and deployment details are in
+[docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md).
 
 ```bash
 cp .env.example .env            # then set DB_PASSWORD in .env
@@ -145,36 +61,4 @@ cd backend && ./mvnw spring-boot:run          # terminal 1: API on :8080
 cd frontend && npm install && npm run dev     # terminal 2: app on :5173
 ```
 
-Open http://localhost:5173, create an account, and upload a file from [`samples/`](samples).
-`http://localhost:8080/api/health` returns `{"status":"UP","database":"UP"}`.
-
-- **Tests:** `cd backend && ./mvnw test` (starts its own throwaway Postgres, so it only needs Docker).
-- **Screenshots and demo:** with the app running, `node scripts/take-screenshots.mjs` (add `THEME=dark`
-  for dark mode) regenerates `docs/screenshots/`, and `node scripts/record-demo.mjs` records
-  `docs/demo.png` (an animated PNG). Both use a throwaway demo account in headless Edge or Chrome and
-  need no dependencies.
-
-## Deployment
-
-| Part | Host | Config |
-|---|---|---|
-| Frontend | Vercel (root directory `frontend`), custom domain `www.8022029.xyz` | [`frontend/vercel.json`](frontend/vercel.json) forwards `/api/*` to the backend and serves `index.html` for app routes |
-| Backend | Render web service (Docker, root directory `backend`) | [`backend/Dockerfile`](backend/Dockerfile), `prod` profile in [`application-prod.properties`](backend/src/main/resources/application-prod.properties) |
-| Database | Neon Postgres | Schema created by Flyway on startup |
-
-Backend environment variables: `DATABASE_URL` (JDBC URL with `sslmode=require`), `DATABASE_USERNAME`,
-`DATABASE_PASSWORD`. For email (password reset, verification): `BREVO_API_KEY` and `MAIL_FROM`
-(sent over Brevo's HTTPS API, because Render's free plan blocks outgoing SMTP ports). On hosts that
-allow SMTP, `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME` and `SPRING_MAIL_PASSWORD`
-work instead. `APP_BASE_URL` (the address used in email links) defaults to `https://www.8022029.xyz`.
-With no email settings nothing is sent; locally, emails are printed to the backend log so you can
-click the links.
-
-## Roadmap
-
-- [x] Accounts, CSV import from any bank, duplicate detection, undo
-- [x] Categories, automatic sorting, budgets, dashboard
-- [x] Recurring charge detection with measured accuracy
-- [x] Redesign, simpler flows, accessibility pass
-- [x] ML categorization (Python, scikit-learn) compared against the rule-based baseline
-- [x] Password reset and email verification, dark mode
+Requires Java 25, Node 22+, and Docker. Then open http://localhost:5173.
