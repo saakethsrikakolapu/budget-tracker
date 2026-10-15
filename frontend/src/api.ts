@@ -371,19 +371,6 @@ export function fetchCategories(): Promise<Category[]> {
   return apiFetch<Category[]>('/api/categories')
 }
 
-export function createCategory(name: string, countsAsSpending: boolean): Promise<Category> {
-  return apiFetch<Category>('/api/categories', { method: 'POST', body: { name, countsAsSpending } })
-}
-
-export function updateCategory(id: number, name: string, countsAsSpending: boolean): Promise<Category> {
-  return apiFetch<Category>(`/api/categories/${id}`, { method: 'PUT', body: { name, countsAsSpending } })
-}
-
-/** Its transactions become Uncategorized; they are not deleted. */
-export function deleteCategory(id: number): Promise<void> {
-  return apiFetch<void>(`/api/categories/${id}`, { method: 'DELETE' })
-}
-
 /** Most specific first, which is the order they're applied in. */
 export function fetchRules(): Promise<Rule[]> {
   return apiFetch<Rule[]>('/api/rules')

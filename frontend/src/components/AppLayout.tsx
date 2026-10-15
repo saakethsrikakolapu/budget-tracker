@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListOrdered, LogOut, Mail, PiggyBank, Repeat, Tags, Upload, X } from 'lucide-react'
+import { LayoutDashboard, ListOrdered, LogOut, Mail, PiggyBank, Repeat, Upload, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import * as api from '../api'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
@@ -13,7 +13,6 @@ const TITLES: Record<string, string> = {
   '/transactions': 'Transactions',
   '/budgets': 'Budgets',
   '/subscriptions': 'Subscriptions',
-  '/categories': 'Categories',
   '/import': 'Upload a statement',
   '/account': 'Account',
 }
@@ -23,7 +22,6 @@ const NAV = [
   { to: '/transactions', label: 'Transactions', icon: ListOrdered },
   { to: '/budgets', label: 'Budgets', icon: PiggyBank },
   { to: '/subscriptions', label: 'Subscriptions', icon: Repeat },
-  { to: '/categories', label: 'Categories', icon: Tags },
 ]
 
 /** Header + footer around every logged-in page. The current page renders at <Outlet />. */

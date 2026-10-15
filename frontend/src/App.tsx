@@ -5,7 +5,6 @@ import { AccountPage } from './pages/AccountPage'
 import { AppLayout } from './components/AppLayout'
 import { BudgetsPage } from './pages/BudgetsPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
-import { CategoriesPage } from './pages/CategoriesPage'
 import { ImportPage } from './pages/ImportPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -47,7 +46,6 @@ function App() {
         />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/import" element={<ImportPage />} />
-        <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/budgets" element={<BudgetsPage />} />
         <Route path="/subscriptions" element={<SubscriptionsPage />} />
         <Route path="/account" element={<AccountPage />} />
