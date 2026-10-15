@@ -1,5 +1,5 @@
 /**
- * Shared by take-screenshots.mjs and record-demo.mjs: a throwaway demo account with fake data,
+ * Used by record-demo.mjs (and handy for one-off scripts): a throwaway demo account with fake data,
  * and a headless Edge/Chrome driven over the Chrome DevTools Protocol. No dependencies.
  */
 import { spawn } from 'node:child_process'

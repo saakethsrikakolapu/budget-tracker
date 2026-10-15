@@ -95,8 +95,8 @@ apart can look yearly; merchants whose reference codes are all letters may not g
   `cd backend && ./mvnw test`
 - 14 Python tests for the model: `cd ml && python -m pytest`
 - GitHub Actions runs the backend tests, frontend lint and build, and the Python tests on every push.
-- `node scripts/take-screenshots.mjs` (add `THEME=dark` for dark mode) and `node scripts/record-demo.mjs`
-  regenerate the README images from a running app, using a throwaway demo account.
+- `node scripts/record-demo.mjs` regenerates the README demo animation from a running app, using a
+  throwaway demo account.
 
 ## Deployment
 
