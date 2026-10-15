@@ -12,6 +12,9 @@ public final class CategoryRules {
     private CategoryRules() {
     }
 
+    /** Payment apps that stand between the bank and the real store. */
+    static final List<String> PASS_THROUGH = List.of("PAYPAL", "VENMO", "CASH APP");
+
     /** "  Uber   eats " -> "UBER EATS". Applied to both patterns and descriptions. */
     public static String normalize(String text) {
         return text.trim().replaceAll("\\s+", " ").toUpperCase(Locale.ROOT);
@@ -52,6 +55,15 @@ public final class CategoryRules {
      */
     public static Suggestion suggest(String description, List<String> normalizedDescriptions) {
         String normalized = normalize(description);
+        // "Withdrawal from PAYPAL to JANE DOE PURCHASE": the bank only knows the money went to PayPal;
+        // the store is only in PayPal's own records. The processor is the only stable text, so offer
+        // that. (With a store after it, like "PAYPAL *STEAM", the store is used as usual.)
+        for (String processor : PASS_THROUGH) {
+            if ((" " + normalized + " ").contains(" " + processor + " ") && !description.contains("*")) {
+                return new Suggestion(processor,
+                        normalizedDescriptions.stream().filter(d -> (" " + d + " ").contains(" " + processor + " ")).count());
+            }
+        }
         List<String> words = MerchantKey.words(description);
         Suggestion best = null;
         for (int k = 1; k <= words.size(); k++) {

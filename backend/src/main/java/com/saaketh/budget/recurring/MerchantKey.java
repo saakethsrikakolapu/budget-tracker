@@ -22,7 +22,9 @@ public final class MerchantKey {
             "PURCHASE", "AUTHORIZED", "ON", "CARD", "DEBIT", "CREDIT", "POS", "ACH", "RECURRING", "CHECKCARD",
             "WEB", "ID", "PPD", "WWW", "SQ", "TST", "PAYPAL", "INC", "LLC", "CO", "THE", "US", "USA", "VISA",
             "DDA", "TRANSACTION", "PREAUTHORIZED", "ONLINE", "PMT", "PAYMENT", "PAYMENTS", "BILL", "BILLPAY", "ELECTRONIC",
-            "WITHDRAWAL");
+            "WITHDRAWAL", "DIGITAL", "ADJUSTMENT", "SIGNATURE", "CHECKING", "SAVINGS",
+            // Linking words around the actual name ("Withdrawal from PAYPAL to ...", "money sent to ...").
+            "FROM", "TO", "AT", "FOR", "OF", "AND", "MONEY", "SENT", "RECEIVED", "DEPOSIT", "TRANSFER");
 
     public static String of(String description) {
         List<String> words = words(description);

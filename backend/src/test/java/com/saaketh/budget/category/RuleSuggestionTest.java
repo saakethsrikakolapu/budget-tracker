@@ -54,6 +54,35 @@ class RuleSuggestionTest {
         assertThat(CategoryRules.suggest("  12345 / 678 ", HISTORY)).isEqualTo(new Suggestion("12345 / 678", 0));
     }
 
+    @Test
+    void paymentAppsWithoutAStoreSuggestTheAppNotTheLinkingWords() {
+        // Shapes from a real checking export, with made-up names. Before: "FROM" was offered, which
+        // would also have caught every Zelle and Cash App line.
+        List<String> history = normalized(
+                "Withdrawal from PAYPAL to JANE DOE PURCHASE",
+                "Withdrawal from PAYPAL to JANE DOE PURCHASE",
+                "Deposit from PAYPAL from JANE DOE TRANSFER",
+                "Deposit from Cash App Jane Doe",
+                "Zelle money received from JOHN ROE",
+                "Digital Card Purchase - DEPOP P476922841744 8449353879 NY",
+                "Debit Card Purchase - DEPOP P470816315920 8449353879 NY",
+                "PAYPAL *STEAMGAMES 4029357733");
+
+        assertThat(CategoryRules.suggest("Withdrawal from PAYPAL to JANE DOE PURCHASE", history))
+                .isEqualTo(new Suggestion("PAYPAL", 4));
+        assertThat(CategoryRules.suggest("Deposit from Cash App Jane Doe", history))
+                .isEqualTo(new Suggestion("CASH APP", 1));
+        // A store after the processor is used as usual.
+        assertThat(CategoryRules.suggest("PAYPAL *STEAMGAMES 4029357733", history))
+                .isEqualTo(new Suggestion("STEAMGAMES", 1));
+        // "Digital Card Purchase" is bank filler, like "Debit Card Purchase".
+        assertThat(CategoryRules.suggest("Digital Card Purchase - DEPOP P476922841744 8449353879 NY", history))
+                .isEqualTo(new Suggestion("DEPOP", 2));
+        // Person-to-person apps: never the linking words.
+        assertThat(CategoryRules.suggest("Zelle money received from JOHN ROE", history).pattern())
+                .isNotIn("FROM", "MONEY", "RECEIVED");
+    }
+
     private static List<String> normalized(String... descriptions) {
         return List.of(descriptions).stream().map(CategoryRules::normalize).toList();
     }
