@@ -157,3 +157,13 @@
   --color-accent: oklch(67.3% 0.182 276.935);
   --color-accent-soft: color-mix(in oklab, oklch(58.5% 0.233 277.117) 26%, oklch(21% 0.006 285.885));
 }
+
+/*
+ * A select's open list is drawn by the browser: its options inherit the select's light text but
+ * not its dark background, so on Windows the list showed light text on white. Set both explicitly.
+ */
+.dark option,
+.dark optgroup {
+  background-color: var(--color-white);
+  color: var(--color-zinc-900);
+}
