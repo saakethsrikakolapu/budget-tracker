@@ -21,12 +21,16 @@ async function shoot(cdp, name, path, { width = 1440, height = 900, mobile = fal
   await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 2, mobile })
   await cdp.send('Page.navigate', { url: APP_URL + path })
   await sleep(2500) // data loads, charts draw
-  let clip
   if (fullPage) {
+    // Make the window as tall as the page, then take a normal screenshot. (Capturing "beyond the
+    // viewport" instead left the sticky header's links and the chart blank.)
     const { cssContentSize } = await cdp.send('Page.getLayoutMetrics')
-    clip = { x: 0, y: 0, width, height: Math.ceil(cssContentSize.height), scale: 1 }
+    await cdp.send('Emulation.setDeviceMetricsOverride', {
+      width, height: Math.ceil(cssContentSize.height), deviceScaleFactor: 2, mobile,
+    })
+    await sleep(1000) // charts redraw at the new size
   }
-  const { data } = await cdp.send('Page.captureScreenshot', { format: 'png', clip, captureBeyondViewport: fullPage })
+  const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' })
   writeFileSync(join(OUT, `${name}${SUFFIX}.png`), Buffer.from(data, 'base64'))
   console.log(`  docs/screenshots/${name}${SUFFIX}.png`)
 }
