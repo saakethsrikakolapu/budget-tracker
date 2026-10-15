@@ -1,7 +1,6 @@
 import { hash } from '../categoryStyle'
 
 const TINTS = [
-  'bg-indigo-100 text-indigo-700',
   'bg-emerald-100 text-emerald-700',
   'bg-orange-100 text-orange-700',
   'bg-sky-100 text-sky-700',

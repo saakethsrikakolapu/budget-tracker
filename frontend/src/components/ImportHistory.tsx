@@ -24,16 +24,16 @@ export function ImportHistory({ imports, onDelete }: Props) {
   }
 
   if (imports.length === 0) {
-    return <p className="text-sm text-zinc-500">No imports yet.</p>
+    return <p className="text-sm text-stone-500">No imports yet.</p>
   }
 
   return (
-    <ul className="divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white">
+    <ul className="divide-y divide-stone-200 rounded-lg border border-stone-200 bg-white">
       {imports.map((item) => (
         <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="min-w-0">
-            <p className="truncate font-medium text-zinc-900">{item.fileName}</p>
-            <p className="text-sm text-zinc-500">
+            <p className="truncate font-medium text-stone-900">{item.fileName}</p>
+            <p className="text-sm text-stone-500">
               {item.accountName} · {new Date(item.createdAt).toLocaleString()} · {item.importedCount} added
               {item.skippedCount > 0 && `, ${item.skippedCount} skipped as duplicates`}
             </p>

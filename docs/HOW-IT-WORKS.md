@@ -1,6 +1,6 @@
 # How it works
 
-The technical side of [Budget Tracker](../README.md): architecture, the algorithms, how accurate they
+The technical side of [Spendr](../README.md): architecture, the algorithms, how accurate they
 are, security, and how it's tested and deployed.
 
 [![CI](https://github.com/saakethsrikakolapu/budget-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/saakethsrikakolapu/budget-tracker/actions/workflows/ci.yml)

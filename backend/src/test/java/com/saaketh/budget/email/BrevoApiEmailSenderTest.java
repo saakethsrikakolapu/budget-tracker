@@ -30,15 +30,15 @@ class BrevoApiEmailSenderTest {
                 .andExpect(header("api-key", "test-key"))
                 .andExpect(content().json("""
                         {
-                          "sender": {"name": "Budget Tracker", "email": "no-reply@8022029.xyz"},
+                          "sender": {"name": "Spendr", "email": "no-reply@8022029.xyz"},
                           "to": [{"email": "student@example.com"}],
-                          "subject": "Reset your Budget Tracker password",
+                          "subject": "Reset your Spendr password",
                           "textContent": "Choose a new password here: https://www.8022029.xyz/reset-password?token=abc"
                         }"""))
                 .andRespond(withSuccess("{\"messageId\": \"<1@smtp-relay.mailin.fr>\"}", MediaType.APPLICATION_JSON));
 
-        new BrevoApiEmailSender(builder.build(), "test-key", "Budget Tracker <no-reply@8022029.xyz>")
-                .send("student@example.com", "Reset your Budget Tracker password",
+        new BrevoApiEmailSender(builder.build(), "test-key", "Spendr <no-reply@8022029.xyz>")
+                .send("student@example.com", "Reset your Spendr password",
                         "Choose a new password here: https://www.8022029.xyz/reset-password?token=abc");
 
         server.verify();
@@ -57,8 +57,8 @@ class BrevoApiEmailSenderTest {
 
     @Test
     void readsTheFromAddressWithOrWithoutAName() {
-        assertThat(BrevoApiEmailSender.parseFrom("Budget Tracker <no-reply@8022029.xyz>"))
-                .isEqualTo(Map.of("name", "Budget Tracker", "email", "no-reply@8022029.xyz"));
+        assertThat(BrevoApiEmailSender.parseFrom("Spendr <no-reply@8022029.xyz>"))
+                .isEqualTo(Map.of("name", "Spendr", "email", "no-reply@8022029.xyz"));
         assertThat(BrevoApiEmailSender.parseFrom("  no-reply@8022029.xyz "))
                 .isEqualTo(Map.of("email", "no-reply@8022029.xyz"));
         assertThat(BrevoApiEmailSender.parseFrom("<no-reply@8022029.xyz>"))

@@ -26,13 +26,13 @@ export function AccountPage() {
   return (
     <div className="max-w-xl space-y-5">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Account</h1>
-        <p className="mt-1 text-sm text-zinc-600">Logged in as {user?.email}</p>
+        <h1 className="text-3xl font-bold text-stone-950">Account</h1>
+        <p className="mt-1 text-sm text-stone-600">Logged in as {user?.email}</p>
       </div>
 
-      <section className="rounded-xl border border-red-200 bg-white p-5">
-        <h2 className="font-semibold text-zinc-900">Delete account</h2>
-        <p className="mt-1 text-sm text-zinc-600">
+      <section className="rounded-lg border border-red-200 bg-white p-5">
+        <h2 className="font-semibold text-stone-900">Delete account</h2>
+        <p className="mt-1 text-sm text-stone-600">
           Permanently deletes your account and everything in it: statements, transactions, categories, sorting choices,
           budgets, and subscriptions. This can't be undone.
         </p>
@@ -48,14 +48,14 @@ export function AccountPage() {
         ) : (
           <form onSubmit={handleDelete} className="mt-4 space-y-3">
             <label className="block">
-              <span className="text-sm font-medium text-zinc-700">Enter your password to confirm</span>
+              <span className="text-sm font-medium text-stone-700">Enter your password to confirm</span>
               <input
                 type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 autoFocus
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2"
+                className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2"
               />
             </label>
             {error && (
@@ -78,7 +78,7 @@ export function AccountPage() {
                   setPassword('')
                   setError(null)
                 }}
-                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100"
+                className="rounded-lg border border-stone-300 px-3 py-2 text-sm hover:bg-stone-100"
               >
                 Cancel
               </button>

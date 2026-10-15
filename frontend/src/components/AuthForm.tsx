@@ -71,7 +71,7 @@ export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, f
 
         <SubmitButton busy={submitting}>{submitLabel}</SubmitButton>
 
-        <p className="text-center text-sm text-zinc-600">{footer}</p>
+        <p className="text-center text-sm text-stone-600">{footer}</p>
       </form>
     </AuthLayout>
   )

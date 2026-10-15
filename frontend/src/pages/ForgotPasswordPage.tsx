@@ -39,21 +39,21 @@ export function ForgotPasswordPage() {
           <span className="grid size-12 place-items-center rounded-full bg-accent-soft text-accent">
             <MailCheck size={22} aria-hidden="true" />
           </span>
-          <p role="status" className="text-zinc-700">
-            If <span className="font-medium text-zinc-950">{email.trim()}</span> has an account, a link to reset the
+          <p role="status" className="text-stone-700">
+            If <span className="font-medium text-stone-950">{email.trim()}</span> has an account, a link to reset the
             password is on its way. It works for 30 minutes.
           </p>
-          <p className="text-sm text-zinc-500">Nothing after a few minutes? Check your spam folder.</p>
+          <p className="text-sm text-stone-500">Nothing after a few minutes? Check your spam folder.</p>
           <Link to="/login" className="inline-block text-sm font-medium text-accent hover:underline">
             Back to log in
           </Link>
         </div>
       ) : (
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
-          <p className="text-sm text-zinc-600">Enter the email you signed up with and we&apos;ll send you a link.</p>
+          <p className="text-sm text-stone-600">Enter the email you signed up with and we&apos;ll send you a link.</p>
           <Field label="Email" type="email" autoComplete="email" value={email} onChange={setEmail} error={error ?? undefined} />
           <SubmitButton busy={busy}>Send reset link</SubmitButton>
-          <p className="text-center text-sm text-zinc-600">
+          <p className="text-center text-sm text-stone-600">
             Remembered it?{' '}
             <Link to="/login" className="font-medium text-accent hover:underline">
               Log in

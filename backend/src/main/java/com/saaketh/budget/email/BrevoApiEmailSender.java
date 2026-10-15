@@ -15,7 +15,7 @@ import org.springframework.web.client.RestClient;
 public class BrevoApiEmailSender implements EmailSender {
 
     static final String API_URL = "https://api.brevo.com/v3/smtp/email";
-    /** "Budget Tracker <no-reply@example.com>" or just "no-reply@example.com". */
+    /** "Spendr <no-reply@example.com>" or just "no-reply@example.com". */
     private static final Pattern NAME_AND_ADDRESS = Pattern.compile("^\\s*(.*?)\\s*<\\s*([^>]+?)\\s*>\\s*$");
 
     private final RestClient restClient;

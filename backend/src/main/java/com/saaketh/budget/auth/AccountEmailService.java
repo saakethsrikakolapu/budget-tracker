@@ -82,8 +82,8 @@ public class AccountEmailService {
             return newLink(user, Purpose.VERIFY_EMAIL, Duration.ofHours(VERIFY_HOURS), "/verify-email", now);
         });
         if (link != null) {
-            send(link.email(), "Verify your email for Budget Tracker", """
-                    Welcome to Budget Tracker!
+            send(link.email(), "Verify your email for Spendr", """
+                    Welcome to Spendr!
 
                     Confirm this is your email address so you can reset your password if you ever forget it:
 
@@ -120,8 +120,8 @@ public class AccountEmailService {
             return newLink(user, Purpose.RESET_PASSWORD, Duration.ofMinutes(RESET_MINUTES), "/reset-password", now);
         });
         if (link != null) {
-            send(link.email(), "Reset your Budget Tracker password", """
-                    Someone (hopefully you) asked to reset the password for this Budget Tracker account.
+            send(link.email(), "Reset your Spendr password", """
+                    Someone (hopefully you) asked to reset the password for this Spendr account.
 
                     Choose a new password here:
 

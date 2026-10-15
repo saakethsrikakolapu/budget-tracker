@@ -86,20 +86,20 @@ export function BudgetsPage() {
   }
 
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="max-w-3xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Budgets</h1>
-          <p className="mt-1 text-sm text-zinc-600">
+          <h1 className="text-3xl font-bold text-stone-950">Budgets</h1>
+          <p className="mt-1 text-sm text-stone-600">
             Monthly limits repeat every month. Spending is purchases minus refunds.
           </p>
         </div>
         <label className="block">
-          <span className="text-xs font-medium text-zinc-600">Month</span>
+          <span className="text-xs font-medium text-stone-600">Month</span>
           <select
             value={month}
             onChange={(event) => setSearchParams({ month: event.target.value })}
-            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
           >
             {monthOptions.map((m) => (
               <option key={m} value={m}>
@@ -118,18 +118,37 @@ export function BudgetsPage() {
 
       {overview && (
         <>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Stat label="Budgeted" value={formatMoney(overview.totalBudgeted)} />
-            <Stat label="Spent in budgets" value={formatMoney(overview.totalSpent)} />
-            <Stat label="Unbudgeted spending" value={formatMoney(overview.unbudgetedSpending)} />
-          </div>
+          {overview.budgets.length > 0 && (
+            <p className="font-display text-2xl font-semibold leading-snug tracking-tight text-stone-950">
+              {overview.totalSpent <= overview.totalBudgeted ? (
+                <>
+                  <span className="text-accent tabular-nums">
+                    {formatMoney(overview.totalBudgeted - overview.totalSpent)}
+                  </span>{' '}
+                  left of {formatMoney(overview.totalBudgeted)} this month.
+                </>
+              ) : (
+                <>
+                  <span className="text-red-600 tabular-nums">
+                    {formatMoney(overview.totalSpent - overview.totalBudgeted)}
+                  </span>{' '}
+                  over your {formatMoney(overview.totalBudgeted)} budget this month.
+                </>
+              )}
+              {overview.unbudgetedSpending > 0 && (
+                <span className="mt-1 block font-sans text-sm font-normal tracking-normal text-stone-600">
+                  Plus {formatMoney(overview.unbudgetedSpending)} in categories without a budget.
+                </span>
+              )}
+            </p>
+          )}
 
           {overview.budgets.length === 0 ? (
-            <p className="rounded-xl border border-zinc-200 bg-white px-4 py-8 text-center text-zinc-500">
+            <p className="rounded-lg border border-stone-200 bg-white px-4 py-8 text-center text-stone-500">
               No budgets yet. Add one below, for example Food &amp; Dining at $200 a month.
             </p>
           ) : (
-            <ul className="divide-y divide-zinc-100 rounded-xl border border-zinc-200 bg-white">
+            <ul className="divide-y divide-stone-100 rounded-lg border border-stone-200 bg-white">
               {overview.budgets.map((line) => (
                 <BudgetRow key={line.categoryId} line={line} onSave={save} onRemove={() => handleRemove(line)} />
               ))}
@@ -138,13 +157,13 @@ export function BudgetsPage() {
         </>
       )}
 
-      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-xl border border-zinc-200 bg-white p-4">
+      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-lg border border-stone-200 bg-white p-4">
         <label className="block">
-          <span className="text-xs font-medium text-zinc-600">Add a budget for</span>
+          <span className="text-xs font-medium text-stone-600">Add a budget for</span>
           <select
             value={newCategoryId}
             onChange={(event) => setNewCategoryId(event.target.value)}
-            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
           >
             <option value="">Choose a category…</option>
             {addable.map((c) => (
@@ -155,20 +174,20 @@ export function BudgetsPage() {
           </select>
         </label>
         <label className="block">
-          <span className="text-xs font-medium text-zinc-600">Per month ($)</span>
+          <span className="text-xs font-medium text-stone-600">Per month ($)</span>
           <input
             type="text"
             inputMode="decimal"
             value={newAmount}
             onChange={(event) => setNewAmount(event.target.value)}
             placeholder="200"
-            className="mt-1 block w-32 rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+            className="mt-1 block w-32 rounded-lg border border-stone-300 px-3 py-2 text-sm"
           />
         </label>
         <button
           type="submit"
           disabled={newCategoryId === '' || newAmount.trim() === ''}
-          className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-zinc-800 disabled:opacity-50"
+          className="rounded-lg bg-stone-950 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-800 disabled:opacity-50"
         >
           Add budget
         </button>
@@ -189,32 +208,32 @@ function BudgetRow({
   const [editing, setEditing] = useState(false)
   const [amount, setAmount] = useState(line.limit.toFixed(2))
   const over = line.remaining < 0
-  // Green under 80%, amber 80-100%, red over budget.
-  const barColor = over ? 'bg-red-500' : line.percentUsed >= 80 ? 'bg-amber-500' : 'bg-emerald-500'
+  // Green until the limit, red once over (the words below say it too).
+  const barColor = over ? 'bg-red-600' : 'bg-accent'
 
   return (
     <li className="space-y-2 px-4 py-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="flex items-center gap-2 font-medium text-zinc-900">
+        <span className="flex items-center gap-2 font-medium text-stone-900">
           <CategoryIcon name={line.categoryName} />
           {line.categoryName}
         </span>
-        <span className="text-sm tabular-nums text-zinc-600">
+        <span className="text-sm tabular-nums text-stone-600">
           {formatMoney(Math.max(line.spent, 0))} of {formatMoney(line.limit)}
         </span>
       </div>
       <div
-        className="h-2 w-full overflow-hidden rounded-full bg-zinc-100"
+        className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100"
         role="progressbar"
         aria-valuenow={line.percentUsed}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={`${line.categoryName}: ${line.percentUsed}% of budget used`}
       >
-        <div className={`h-full ${barColor}`} style={{ width: `${Math.min(line.percentUsed, 100)}%` }} />
+        <div className={`h-full rounded-full ${barColor}`} style={{ width: `${Math.min(line.percentUsed, 100)}%` }} />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-        <span className={over ? 'font-medium text-red-600' : 'text-zinc-500'}>
+        <span className={over ? 'font-medium text-red-600' : 'text-stone-500'}>
           {over ? `${formatMoney(-line.remaining)} over budget` : `${formatMoney(line.remaining)} left`} ·{' '}
           {line.percentUsed}% used
         </span>
@@ -226,7 +245,7 @@ function BudgetRow({
             }}
             className="flex items-center gap-2"
           >
-            <span className="text-zinc-500">$</span>
+            <span className="text-stone-500">$</span>
             <input
               type="text"
               inputMode="decimal"
@@ -234,12 +253,12 @@ function BudgetRow({
               onChange={(event) => setAmount(event.target.value)}
               autoFocus
               aria-label={`Monthly budget for ${line.categoryName}`}
-              className="min-h-9 w-24 rounded-md border border-zinc-300 px-2 py-1.5 text-sm"
+              className="min-h-9 w-24 rounded-md border border-stone-300 px-2 py-1.5 text-sm"
             />
-            <button type="submit" className="font-medium text-zinc-900">
+            <button type="submit" className="font-medium text-stone-900">
               Save
             </button>
-            <button type="button" onClick={() => setEditing(false)} className="text-zinc-500">
+            <button type="button" onClick={() => setEditing(false)} className="text-stone-500">
               Cancel
             </button>
           </form>
@@ -248,7 +267,7 @@ function BudgetRow({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="min-h-9 rounded-lg border border-zinc-300 px-3 py-1.5 hover:bg-zinc-100"
+              className="min-h-9 rounded-lg border border-stone-300 px-3 py-1.5 hover:bg-stone-100"
             >
               Change
             </button>
@@ -263,14 +282,5 @@ function BudgetRow({
         )}
       </div>
     </li>
-  )
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
-      <p className="kicker">{label}</p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-zinc-900">{value}</p>
-    </div>
   )
 }

@@ -3,8 +3,8 @@ import { Link, useSearchParams } from 'react-router'
 import { Check, Sparkles } from 'lucide-react'
 import * as api from '../api'
 import { CategoryIcon } from '../components/CategoryIcon'
-import { MerchantAvatar } from '../components/MerchantAvatar'
 import { formatDayHeading, formatMoney, formatMonth, monthRange } from '../format'
+import { merchantName } from '../merchant'
 
 const ALL_TIME = 'all'
 
@@ -179,8 +179,8 @@ export function TransactionsPage() {
   if (months !== null && months.length === 0) {
     return (
       <div className="max-w-xl">
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Transactions</h1>
-        <p className="mt-4 text-zinc-600">
+        <h1 className="text-3xl font-bold text-stone-950">Transactions</h1>
+        <p className="mt-4 text-stone-600">
           No transactions yet.{' '}
           <Link to="/import" className="font-medium text-accent hover:underline">
             Upload your first statement
@@ -193,16 +193,33 @@ export function TransactionsPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Transactions</h1>
+      <div>
+        <h1 className="text-3xl font-bold text-stone-950">Transactions</h1>
+        {/* Totals over every matching transaction (all pages), from the backend, as one sentence. */}
+        {data && (
+          <p className="mt-1 text-stone-600">
+            <strong className="font-semibold text-stone-950 tabular-nums">{data.totals.count}</strong>{' '}
+            {data.totals.count === 1 ? 'transaction' : 'transactions'} ·{' '}
+            <strong className="font-semibold text-stone-950 tabular-nums">{formatMoney(data.totals.spent)}</strong> spent
+            {data.totals.refunds > 0 && (
+              <>
+                {' '}
+                · <strong className="font-semibold text-stone-950 tabular-nums">{formatMoney(data.totals.refunds)}</strong>{' '}
+                back in refunds
+              </>
+            )}
+          </p>
+        )}
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3">
         <label className="block">
-          <span className="text-xs font-medium text-zinc-600">Account</span>
+          <span className="text-xs font-medium text-stone-600">Account</span>
           <select
             value={accountParam}
             onChange={(event) => updateParam('account', event.target.value)}
-            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
           >
             <option value="">All accounts</option>
             {accounts.map((account) => (
@@ -214,11 +231,11 @@ export function TransactionsPage() {
         </label>
 
         <label className="block">
-          <span className="text-xs font-medium text-zinc-600">Category</span>
+          <span className="text-xs font-medium text-stone-600">Category</span>
           <select
             value={categoryParam}
             onChange={(event) => updateParam('category', event.target.value)}
-            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
           >
             <option value="">All categories</option>
             <option value="uncategorized">Uncategorized</option>
@@ -231,11 +248,11 @@ export function TransactionsPage() {
         </label>
 
         <label className="block">
-          <span className="text-xs font-medium text-zinc-600">Month</span>
+          <span className="text-xs font-medium text-stone-600">Month</span>
           <select
             value={monthParam}
             onChange={(event) => updateParam('month', event.target.value)}
-            className="mt-1 block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
           >
             <option value={ALL_TIME}>All time</option>
             {months?.map((month) => (
@@ -248,7 +265,7 @@ export function TransactionsPage() {
 
         <form onSubmit={handleSearch} className="flex items-end gap-2">
           <label className="block">
-            <span className="text-xs font-medium text-zinc-600">Merchant</span>
+            <span className="text-xs font-medium text-stone-600">Merchant</span>
             {/* Searches the Description column only; category filtering comes in Stage 2. */}
             <input
               type="search"
@@ -256,10 +273,10 @@ export function TransactionsPage() {
               onChange={(event) => setSearchText(event.target.value)}
               placeholder="Search by merchant name"
               maxLength={100}
-              className="mt-1 block w-56 rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+              className="mt-1 block w-56 rounded-lg border border-stone-300 px-3 py-2 text-sm"
             />
           </label>
-          <button type="submit" className="rounded-lg bg-zinc-950 px-3 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-zinc-800">
+          <button type="submit" className="rounded-lg bg-stone-950 px-3 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-800">
             Search
           </button>
           {qParam && (
@@ -269,7 +286,7 @@ export function TransactionsPage() {
                 setSearchText('')
                 updateParam('q', '')
               }}
-              className="px-2 py-2 text-sm text-zinc-600 underline"
+              className="px-2 py-2 text-sm text-stone-600 underline"
             >
               Clear
             </button>
@@ -284,14 +301,14 @@ export function TransactionsPage() {
       )}
 
       {suggestion && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-200 bg-accent-soft px-4 py-3">
           <div className="flex items-center gap-3">
             <CategoryIcon name={suggestion.categoryName} />
             <div>
-              <p className="text-sm font-medium text-zinc-900">
+              <p className="text-sm font-medium text-stone-900">
                 Always put &ldquo;{suggestion.pattern}&rdquo; in {suggestion.categoryName}?
               </p>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-stone-600">
                 {suggestion.otherMatches > 0
                   ? `${suggestion.otherMatches} other transaction${suggestion.otherMatches === 1 ? '' : 's'} and future ones will move too.`
                   : 'Future transactions from this merchant will go there too.'}
@@ -302,14 +319,14 @@ export function TransactionsPage() {
             <button
               type="button"
               onClick={handleAlways}
-              className="rounded-lg bg-zinc-950 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-zinc-800"
+              className="rounded-lg bg-stone-950 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-800"
             >
               Yes, always
             </button>
             <button
               type="button"
               onClick={() => setSuggestion(null)}
-              className="rounded-lg px-3 py-1.5 text-sm text-zinc-700 transition-colors duration-150 hover:bg-indigo-100"
+              className="rounded-lg px-3 py-1.5 text-sm text-stone-700 transition-colors duration-150 hover:bg-white/60"
             >
               Just this one
             </button>
@@ -328,15 +345,8 @@ export function TransactionsPage() {
       )}
       {data && (
         <>
-          {/* Totals over all matching transactions, from the backend */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label="Spent" value={formatMoney(data.totals.spent)} />
-            <Stat label="Refunds" value={formatMoney(data.totals.refunds)} />
-            <Stat label="Net spending" value={formatMoney(data.totals.netSpending)} />
-            <Stat label="Transactions" value={String(data.totals.count)} />
-          </div>
           {data.totals.excludedCount > 0 && (
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-stone-500">
               {data.totals.excludedCount} transaction{data.totals.excludedCount === 1 ? '' : 's'} (like card payments)
               {data.totals.excludedCount === 1 ? ' is' : ' are'} in categories that don&apos;t count as spending, so{' '}
               {data.totals.excludedCount === 1 ? "it's" : "they're"} left out of these totals.
@@ -344,33 +354,37 @@ export function TransactionsPage() {
           )}
 
           {data.items.length === 0 ? (
-            <p className="rounded-xl border border-zinc-200 bg-white px-4 py-8 text-center text-zinc-500">
+            <p className="rounded-lg border border-stone-200 bg-white px-4 py-8 text-center text-stone-500">
               No transactions match these filters.
             </p>
           ) : (
             // Grouped by day, newest first (the backend already sorts by date).
-            <div className="card divide-y divide-zinc-100 overflow-hidden">
+            <div className="card divide-y divide-stone-100 overflow-hidden">
               {groupByDay(data.items).map(([day, items]) => (
                 <section key={day} aria-label={formatDayHeading(day)}>
-                  <h2 className="bg-zinc-50/80 px-4 py-2 text-xs font-medium text-zinc-500">{formatDayHeading(day)}</h2>
-                  <ul className="divide-y divide-zinc-100">
+                  <h2 className="flex items-baseline justify-between bg-stone-50/80 px-4 py-2 font-sans text-xs font-semibold tracking-normal text-stone-600">
+                    {formatDayHeading(day)}
+                  </h2>
+                  <ul className="divide-y divide-stone-100">
                     {items.map((t) => (
                       <li key={t.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 sm:flex-nowrap">
-                        <MerchantAvatar description={t.description} />
+                        <CategoryIcon name={t.categoryName} />
+                        {/* Readable name first, then the bank's own text (what rules and search match). */}
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-zinc-900">{t.description}</p>
-                          <p className="truncate text-xs text-zinc-500">{t.accountName}</p>
+                          <p className="truncate text-sm font-medium text-stone-900">{merchantName(t.description)}</p>
+                          <p className="truncate text-xs text-stone-500">
+                            {t.description} · {t.accountName}
+                          </p>
                         </div>
                         {/* The category is a quiet dropdown: looks like a label, changes on click. */}
-                        <div className="order-last flex w-full items-center gap-2 pl-12 sm:order-none sm:w-72 sm:pl-0">
-                          <CategoryIcon name={t.categoryName} size="sm" />
+                        <div className="order-last flex w-full items-center gap-2 pl-11 sm:order-none sm:w-64 sm:pl-0">
                           <select
                             value={t.categoryId === null ? '' : String(t.categoryId)}
                             onChange={(event) => handleCategoryChange(t, event.target.value)}
                             title={t.bankCategory ? `Bank's label: ${t.bankCategory}` : undefined}
                             aria-label={`Category for ${t.description}`}
-                            className={`min-h-9 min-w-0 flex-1 truncate rounded-md border border-transparent bg-transparent py-1.5 text-sm transition-colors duration-150 hover:border-zinc-300 ${
-                              t.categoryId === null ? 'italic text-zinc-500' : 'text-zinc-700'
+                            className={`min-h-9 min-w-0 flex-1 truncate rounded-md border border-transparent bg-transparent py-1.5 text-sm transition-colors duration-150 hover:border-stone-300 ${
+                              t.categoryId === null ? 'italic text-stone-500' : 'text-stone-700'
                             }`}
                           >
                             <option value="">Uncategorized</option>
@@ -387,7 +401,7 @@ export function TransactionsPage() {
                               onClick={() => handleCategoryChange(t, String(t.categoryId))}
                               title="Suggested automatically. Click to confirm, or pick another category."
                               aria-label={`Confirm suggested category ${t.categoryName} for ${t.description}`}
-                              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-medium text-indigo-700 transition-colors duration-150 hover:bg-indigo-100"
+                              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-stone-200 bg-accent-soft px-2 py-1 text-[11px] font-medium text-stone-800 transition-colors duration-150 hover:border-accent"
                             >
                               <Sparkles size={12} aria-hidden="true" />
                               Suggested
@@ -397,7 +411,7 @@ export function TransactionsPage() {
                         </div>
                         <span
                           className={`w-24 text-right text-sm font-medium tabular-nums ${
-                            t.amount < 0 ? 'text-zinc-900' : 'text-emerald-700'
+                            t.amount < 0 ? 'text-stone-900' : 'text-accent'
                           }`}
                         >
                           {formatMoney(t.amount, { signed: true })}
@@ -416,18 +430,18 @@ export function TransactionsPage() {
                 type="button"
                 disabled={pageParam <= 1}
                 onClick={() => updateParam('page', String(pageParam - 1))}
-                className="rounded-lg border border-zinc-300 px-3 py-1.5 hover:bg-zinc-100 disabled:opacity-40"
+                className="rounded-lg border border-stone-300 px-3 py-1.5 hover:bg-stone-100 disabled:opacity-40"
               >
                 ‹ Prev
               </button>
-              <span className="text-zinc-600">
+              <span className="text-stone-600">
                 Page {pageParam} of {data.totalPages}
               </span>
               <button
                 type="button"
                 disabled={pageParam >= data.totalPages}
                 onClick={() => updateParam('page', String(pageParam + 1))}
-                className="rounded-lg border border-zinc-300 px-3 py-1.5 hover:bg-zinc-100 disabled:opacity-40"
+                className="rounded-lg border border-stone-300 px-3 py-1.5 hover:bg-stone-100 disabled:opacity-40"
               >
                 Next ›
               </button>
@@ -446,13 +460,4 @@ function groupByDay(items: api.Transaction[]): [string, api.Transaction[]][] {
     groups.set(t.transactionDate, [...(groups.get(t.transactionDate) ?? []), t])
   }
   return [...groups.entries()]
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
-      <p className="kicker">{label}</p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-zinc-900">{value}</p>
-    </div>
-  )
 }

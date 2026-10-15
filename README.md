@@ -1,4 +1,4 @@
-# Budget Tracker
+# Spendr
 
 **A privacy-first budget tracker for students. No bank login, just upload your statements.**
 

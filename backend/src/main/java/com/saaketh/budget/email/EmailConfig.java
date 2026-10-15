@@ -23,7 +23,7 @@ public class EmailConfig {
 
     @Bean
     EmailSender emailSender(ObjectProvider<JavaMailSender> mailSender,
-            @Value("${app.mail.from:Budget Tracker <no-reply@localhost>}") String from,
+            @Value("${app.mail.from:Spendr <no-reply@localhost>}") String from,
             @Value("${app.mail.log-body:true}") boolean logBody,
             @Value("${app.mail.brevo-api-key:}") String brevoApiKey) {
         if (!brevoApiKey.isBlank()) {

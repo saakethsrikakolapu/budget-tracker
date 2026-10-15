@@ -17,7 +17,7 @@ export function SystemStatus() {
   }, [])
 
   return (
-    <p className="text-xs text-zinc-500">
+    <p className="text-xs text-stone-500">
       {state.kind === 'loading' && 'Checking system status…'}
       {state.kind === 'error' && <span className="text-red-600">Backend not reachable</span>}
       {state.kind === 'loaded' && (

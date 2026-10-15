@@ -45,7 +45,7 @@ export function ResetPasswordPage() {
   if (!token) {
     return (
       <AuthLayout title="Link missing">
-        <p className="text-zinc-700">This page needs the link from your reset email.</p>
+        <p className="text-stone-700">This page needs the link from your reset email.</p>
         <Link to="/forgot-password" className="text-sm font-medium text-accent hover:underline">
           Send a new link
         </Link>
@@ -82,7 +82,7 @@ export function ResetPasswordPage() {
           error={errors.confirm}
         />
         <SubmitButton busy={busy}>Save new password</SubmitButton>
-        <p className="text-center text-xs text-zinc-500">You&apos;ll be logged out everywhere and can log in with the new one.</p>
+        <p className="text-center text-xs text-stone-500">You&apos;ll be logged out everywhere and can log in with the new one.</p>
       </form>
     </AuthLayout>
   )

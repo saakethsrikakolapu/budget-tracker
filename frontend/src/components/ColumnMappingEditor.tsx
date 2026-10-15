@@ -38,11 +38,11 @@ export function ColumnMappingEditor({ columns, mapping, onChange }: Props) {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <ColumnSelect label="Date" columns={columns} value={mapping.dateColumn} onChange={(v) => set({ dateColumn: v! })} />
       <label className="block">
-        <span className="text-xs font-medium text-zinc-600">Date format</span>
+        <span className="text-xs font-medium text-stone-600">Date format</span>
         <select
           value={mapping.dateFormat}
           onChange={(event) => set({ dateFormat: event.target.value })}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+          className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
         >
           {Object.entries(DATE_FORMATS).map(([pattern, example]) => (
             <option key={pattern} value={pattern}>
@@ -67,8 +67,8 @@ export function ColumnMappingEditor({ columns, mapping, onChange }: Props) {
       />
 
       <fieldset className="sm:col-span-2">
-        <legend className="text-xs font-medium text-zinc-600">How amounts are shown</legend>
-        <div className="mt-1 flex flex-wrap gap-4 text-sm text-zinc-700">
+        <legend className="text-xs font-medium text-stone-600">How amounts are shown</legend>
+        <div className="mt-1 flex flex-wrap gap-4 text-sm text-stone-700">
           {(
             [
               ['SIGNED', 'One amount column (+/−)'],
@@ -96,7 +96,7 @@ export function ColumnMappingEditor({ columns, mapping, onChange }: Props) {
         <ColumnSelect label="Debit/Credit column" columns={columns} value={mapping.typeColumn} onChange={(v) => set({ typeColumn: v })} />
       )}
       {mapping.amountStyle === 'SIGNED' && (
-        <label className="flex items-center gap-2 self-end pb-2 text-sm text-zinc-700">
+        <label className="flex items-center gap-2 self-end pb-2 text-sm text-stone-700">
           <input
             type="checkbox"
             checked={mapping.positiveIsSpending}
@@ -124,11 +124,11 @@ function ColumnSelect({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-medium text-zinc-600">{label}</span>
+      <span className="text-xs font-medium text-stone-600">{label}</span>
       <select
         value={value === null ? '' : String(value)}
         onChange={(event) => onChange(event.target.value === '' ? null : Number(event.target.value))}
-        className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+        className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
       >
         {optional && <option value="">None</option>}
         {columns.map((column) => (

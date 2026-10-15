@@ -38,14 +38,13 @@ const PALETTE = {
   sky: { color: '#0284c7', chip: 'bg-sky-50 text-sky-700' },
   cyan: { color: '#0891b2', chip: 'bg-cyan-50 text-cyan-700' },
   violet: { color: '#7c3aed', chip: 'bg-violet-50 text-violet-700' },
-  indigo: { color: '#4f46e5', chip: 'bg-indigo-50 text-indigo-700' },
   amber: { color: '#d97706', chip: 'bg-amber-50 text-amber-700' },
   blue: { color: '#2563eb', chip: 'bg-blue-50 text-blue-700' },
   rose: { color: '#e11d48', chip: 'bg-rose-50 text-rose-700' },
   red: { color: '#dc2626', chip: 'bg-red-50 text-red-700' },
   green: { color: '#16a34a', chip: 'bg-green-50 text-green-700' },
   slate: { color: '#64748b', chip: 'bg-slate-100 text-slate-700' },
-  zinc: { color: '#71717a', chip: 'bg-zinc-100 text-zinc-600' },
+  stone: { color: '#78716c', chip: 'bg-stone-100 text-stone-600' },
   teal: { color: '#0d9488', chip: 'bg-teal-50 text-teal-700' },
   fuchsia: { color: '#c026d3', chip: 'bg-fuchsia-50 text-fuchsia-700' },
 }
@@ -58,20 +57,20 @@ const DEFAULTS: Record<string, CategoryStyle> = {
   transportation: { icon: Car, ...PALETTE.sky },
   travel: { icon: Plane, ...PALETTE.cyan },
   entertainment: { icon: Clapperboard, ...PALETTE.violet },
-  subscriptions: { icon: Repeat, ...PALETTE.indigo },
+  subscriptions: { icon: Repeat, ...PALETTE.teal },
   'bills & utilities': { icon: Zap, ...PALETTE.amber },
   education: { icon: GraduationCap, ...PALETTE.blue },
   'health & personal care': { icon: HeartPulse, ...PALETTE.rose },
   'fees & interest': { icon: Percent, ...PALETTE.red },
   income: { icon: Wallet, ...PALETTE.green },
   'payments & transfers': { icon: ArrowLeftRight, ...PALETTE.slate },
-  other: { icon: Shapes, ...PALETTE.zinc },
+  other: { icon: Shapes, ...PALETTE.stone },
 }
 
-const UNCATEGORIZED: CategoryStyle = { icon: CircleHelp, ...PALETTE.zinc }
+const UNCATEGORIZED: CategoryStyle = { icon: CircleHelp, ...PALETTE.stone }
 
 /** Colors for categories the user created, picked by name so each keeps the same color. */
-const CUSTOM_COLORS = [PALETTE.teal, PALETTE.fuchsia, PALETTE.sky, PALETTE.orange, PALETTE.violet, PALETTE.emerald]
+const CUSTOM_COLORS = [PALETTE.fuchsia, PALETTE.blue, PALETTE.sky, PALETTE.orange, PALETTE.violet, PALETTE.emerald]
 
 export function categoryStyle(name: string | null | undefined): CategoryStyle {
   if (!name || name === 'Uncategorized') return UNCATEGORIZED

@@ -1,48 +1,48 @@
 import { useEffect, type ReactNode } from 'react'
-import { Logo } from './Logo'
+import { Brand, Logo } from './Logo'
 
 /**
- * The logged-out screens (log in, sign up, forgot/reset password, verify email): the product pitch
- * on the left on wide screens, and the page's own content on the right.
+ * The logged-out screens (log in, sign up, forgot/reset password, verify email): the pitch on a
+ * green panel on wide screens, and the page's own content on the right. The panel uses fixed colors
+ * (not palette classes) so it looks the same in light and dark mode.
  */
 export function AuthLayout({ title, children }: { title: string; children: ReactNode }) {
   useEffect(() => {
-    document.title = `${title} · Budget Tracker`
+    document.title = `${title} · Spendr`
   }, [title])
 
   return (
-    <main className="grid min-h-screen lg:grid-cols-2">
-      {/* The pitch: only on wide screens, so phones go straight to the form. Fixed colors (not palette
-          classes) so it stays a dark panel in dark mode too instead of flipping light. */}
-      <section className="hidden flex-col justify-between bg-[#09090b] p-12 text-[#fafafa] lg:flex">
+    <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
+      <section className="hidden flex-col justify-between overflow-hidden bg-[#0f7a4f] p-12 text-white lg:flex">
         <div className="flex items-center gap-2">
-          <Logo inverted />
-          <span className="text-[15px] font-semibold tracking-tight">Budget Tracker</span>
+          <span className="rounded-lg bg-white/10 p-0.5">
+            <Logo />
+          </span>
+          <span className="font-display text-xl font-bold tracking-tight">spendr</span>
         </div>
         <div>
-          <h2 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">
-            Know where your money goes. No bank login.
+          <h2 className="max-w-lg font-display text-5xl font-bold leading-[1.05] tracking-tight">
+            No bank login.
+            <br />
+            Just your statement.
           </h2>
-          <ul className="mt-8 space-y-4 text-sm text-[#d4d4d8]">
-            {PITCH.map((line) => (
-              <li key={line} className="flex gap-3">
-                <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[#818cf8]" />
-                {line}
-              </li>
-            ))}
-          </ul>
+          <p className="mt-5 max-w-md text-lg text-[#ecf8f1]">
+            Drop in a CSV from any bank or card and see where your money went, what's left in your budget, and which
+            subscriptions you forgot about.
+          </p>
+          <ReceiptPreview />
         </div>
-        <p className="text-xs text-[#a1a1aa]">Built for students. Your statements, your data.</p>
+        <p className="text-sm text-[#ecf8f1]">Made for students. Your statements stay yours.</p>
       </section>
 
-      <div className="flex items-center justify-center bg-white p-6">
+      <div className="flex items-center justify-center bg-stone-50 p-6">
         <div className="w-full max-w-sm space-y-5">
           <div>
-            <div className="mb-6 flex items-center gap-2 lg:hidden">
-              <Logo />
-              <span className="font-semibold tracking-tight text-zinc-950">Budget Tracker</span>
+            <div className="mb-8 lg:hidden">
+              <Brand />
+              <p className="mt-2 text-sm text-stone-600">No bank login. Just your statement.</p>
             </div>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950">{title}</h1>
+            <h1 className="text-3xl font-bold text-stone-950">{title}</h1>
           </div>
           {children}
         </div>
@@ -51,12 +51,36 @@ export function AuthLayout({ title, children }: { title: string; children: React
   )
 }
 
-const PITCH = [
-  'Upload a CSV from any bank or card. Columns are figured out for you.',
-  'Transactions are categorized automatically; budgets show what is left.',
-  'Subscriptions are found on their own, including ones you forgot.',
-  'Delete your account and every byte of data whenever you want.',
-]
+/** A made-up statement slip: what Spendr does, shown rather than told. Decorative. */
+function ReceiptPreview() {
+  const lines = [
+    ['Chipotle', 'Food & Dining', '$11.85'],
+    ['Spotify', 'Subscription', '$5.99'],
+    ['Harris Teeter', 'Groceries', '$42.10'],
+    ['Uber', 'Transportation', '$14.62'],
+  ]
+  return (
+    <div
+      aria-hidden="true"
+      className="mt-10 w-80 -rotate-2 rounded-t-md bg-[#fbfaf6] px-5 pb-6 pt-4 text-[#1c1917] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] [clip-path:polygon(0_0,100%_0,100%_100%,95%_97%,90%_100%,85%_97%,80%_100%,75%_97%,70%_100%,65%_97%,60%_100%,55%_97%,50%_100%,45%_97%,40%_100%,35%_97%,30%_100%,25%_97%,20%_100%,15%_97%,10%_100%,5%_97%,0_100%)]"
+    >
+      <p className="font-display text-sm font-bold">October so far</p>
+      <ul className="mt-3 space-y-2 text-sm">
+        {lines.map(([merchant, category, amount]) => (
+          <li key={merchant} className="flex items-baseline gap-2">
+            <span className="font-medium">{merchant}</span>
+            <span className="flex-1 truncate text-xs text-[#6b655d]">{category}</span>
+            <span className="tabular-nums">{amount}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 flex items-baseline justify-between border-t border-dashed border-[#d6d3d1] pt-3">
+        <span className="text-sm">Left in budget</span>
+        <span className="font-display text-lg font-bold text-[#0f7a4f] tabular-nums">$186.44</span>
+      </div>
+    </div>
+  )
+}
 
 type FieldProps = {
   label: string
@@ -72,21 +96,21 @@ type FieldProps = {
 export function Field({ label, type, autoComplete, value, onChange, error, hint }: FieldProps) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-zinc-700">{label}</span>
+      <span className="text-sm font-medium text-stone-700">{label}</span>
       <input
         type={type}
         autoComplete={autoComplete}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={error ? true : undefined}
-        className={`mt-1.5 w-full rounded-lg border px-3 py-2.5 outline-none transition-colors duration-150 focus:border-accent focus:ring-2 focus:ring-accent-soft ${
-          error ? 'border-red-500' : 'border-zinc-300'
+        className={`mt-1.5 w-full rounded-lg border bg-white px-3 py-2.5 outline-none transition-colors duration-150 focus:border-accent focus:ring-2 focus:ring-accent-soft ${
+          error ? 'border-red-500' : 'border-stone-300'
         }`}
       />
       {error ? (
         <span className="mt-1 block text-sm text-red-600">{error}</span>
       ) : (
-        hint && <span className="mt-1 block text-xs text-zinc-500">{hint}</span>
+        hint && <span className="mt-1 block text-xs text-stone-500">{hint}</span>
       )}
     </label>
   )
@@ -98,7 +122,7 @@ export function SubmitButton({ busy, children }: { busy: boolean; children: Reac
     <button
       type="submit"
       disabled={busy}
-      className="w-full rounded-lg bg-zinc-950 py-2.5 font-medium text-white transition-colors duration-150 hover:bg-zinc-800 disabled:opacity-50"
+      className="w-full rounded-lg bg-accent py-2.5 text-accent-ink font-semibold transition-colors duration-150 hover:bg-accent-hover disabled:opacity-50"
     >
       {busy ? 'Please wait…' : children}
     </button>

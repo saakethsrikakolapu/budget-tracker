@@ -33,10 +33,10 @@ export function VerifyEmailPage() {
           <span className="grid size-12 place-items-center rounded-full bg-emerald-50 text-emerald-700">
             <CircleCheck size={22} aria-hidden="true" />
           </span>
-          <p className="text-zinc-700">Thanks! If you ever forget your password, you can reset it by email.</p>
+          <p className="text-stone-700">Thanks! If you ever forget your password, you can reset it by email.</p>
           <Link
             to={user ? '/' : '/login'}
-            className="inline-block rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-zinc-800"
+            className="inline-block rounded-lg bg-stone-950 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-800"
           >
             {user ? 'Go to dashboard' : 'Log in'}
           </Link>
@@ -47,7 +47,7 @@ export function VerifyEmailPage() {
           <span className="grid size-12 place-items-center rounded-full bg-amber-50 text-amber-700">
             <TriangleAlert size={22} aria-hidden="true" />
           </span>
-          <p className="text-zinc-700">
+          <p className="text-stone-700">
             This link has expired or was already used. {user ? 'Send a new one from the banner at the top of the app.' : 'Log in to send a new one.'}
           </p>
           <Link to={user ? '/' : '/login'} className="text-sm font-medium text-accent hover:underline">

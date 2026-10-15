@@ -38,17 +38,17 @@ export function SubscriptionsPage() {
   }
 
   if (overview === null) {
-    return error ? <ErrorMessage text={error} /> : <p className="text-zinc-500">Loading…</p>
+    return error ? <ErrorMessage text={error} /> : <div className="skeleton h-40 max-w-3xl" aria-label="Loading subscriptions" />
   }
 
   const active = overview.charges.filter((c) => c.active)
   const stopped = overview.charges.filter((c) => !c.active)
 
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Subscriptions</h1>
-        <p className="mt-1 text-sm text-zinc-600">
+        <h1 className="text-3xl font-bold text-stone-950">Subscriptions</h1>
+        <p className="mt-1 text-sm text-stone-600">
           Found automatically: charges from the same place, for about the same amount, on a regular schedule.
         </p>
       </div>
@@ -56,7 +56,7 @@ export function SubscriptionsPage() {
       {error && <ErrorMessage text={error} />}
 
       {overview.asOf === null ? (
-        <p className="text-zinc-600">
+        <p className="text-stone-600">
           <Link to="/import" className="font-medium text-accent hover:underline">
             Upload a statement
           </Link>{' '}
@@ -64,16 +64,12 @@ export function SubscriptionsPage() {
         </p>
       ) : (
         <>
-          <div className="rounded-xl border border-zinc-200 bg-white px-5 py-4">
-            <p className="kicker">Subscriptions cost you</p>
-            <p className="mt-1 text-3xl font-semibold tabular-nums text-zinc-900">
-              {formatMoney(overview.activeMonthlyTotal)}
-              <span className="text-base font-normal text-zinc-500"> / month</span>
-            </p>
-            <p className="mt-1 text-sm text-zinc-500">
-              {active.length} active · about {formatMoney(overview.activeMonthlyTotal * 12)} a year
-            </p>
-          </div>
+          {/* The yearly number is the eye-opener, so it gets the color. */}
+          <p className="font-display text-2xl font-semibold leading-snug tracking-tight text-stone-950">
+            {active.length} {active.length === 1 ? 'subscription costs' : 'subscriptions cost'} you{' '}
+            <span className="tabular-nums">{formatMoney(overview.activeMonthlyTotal)}</span> a month. That&apos;s about{' '}
+            <span className="text-accent tabular-nums">{formatMoney(overview.activeMonthlyTotal * 12)}</span> a year.
+          </p>
 
           <ChargeList
             title="Active"
@@ -90,17 +86,17 @@ export function SubscriptionsPage() {
             />
           )}
           {overview.hidden.length > 0 && (
-            <section className="rounded-xl border border-zinc-200 bg-white p-5">
-              <h2 className="font-semibold text-zinc-900">Not subscriptions</h2>
-              <p className="mt-1 text-sm text-zinc-500">You hid these. They don't count in the total.</p>
-              <ul className="mt-3 divide-y divide-zinc-100">
+            <section className="rounded-lg border border-stone-200 bg-white p-5">
+              <h2 className="text-lg font-bold text-stone-950">Not subscriptions</h2>
+              <p className="mt-1 text-sm text-stone-500">You hid these. They don't count in the total.</p>
+              <ul className="mt-3 divide-y divide-stone-100">
                 {overview.hidden.map((c) => (
                   <li key={c.merchantKey} className="flex items-center justify-between py-2 text-sm">
-                    <span className="text-zinc-700">{c.name}</span>
+                    <span className="text-stone-700">{c.name}</span>
                     <button
                       type="button"
                       onClick={() => change(() => api.unhideRecurring(c.merchantKey))}
-                      className="text-zinc-600 underline hover:text-zinc-900"
+                      className="text-stone-600 underline hover:text-stone-900"
                     >
                       Show again
                     </button>
@@ -123,20 +119,20 @@ function ChargeList(props: {
   onHide: (charge: api.RecurringCharge) => void
 }) {
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-5">
-      <h2 className="font-semibold text-zinc-900">{props.title}</h2>
-      {props.note && <p className="mt-1 text-sm text-zinc-500">{props.note}</p>}
+    <section className="rounded-lg border border-stone-200 bg-white p-5">
+      <h2 className="text-lg font-bold text-stone-950">{props.title}</h2>
+      {props.note && <p className="mt-1 text-sm text-stone-500">{props.note}</p>}
       {props.charges.length === 0 ? (
-        <p className="mt-2 text-sm text-zinc-500">{props.empty}</p>
+        <p className="mt-2 text-sm text-stone-500">{props.empty}</p>
       ) : (
-        <ul className="mt-2 divide-y divide-zinc-100">
+        <ul className="mt-2 divide-y divide-stone-100">
           {props.charges.map((c) => (
             <li key={c.merchantKey} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="flex min-w-0 items-center gap-3">
                 <MerchantAvatar description={c.description} />
                 <div className="min-w-0">
-                  <p className="font-medium text-zinc-900">{c.name}</p>
-                  <p className="text-sm text-zinc-500">
+                  <p className="font-medium text-stone-900">{c.name}</p>
+                  <p className="text-sm text-stone-500">
                     {formatCadence(c.cadence)}
                     {c.categoryName && ` · ${c.categoryName}`}
                     {' · '}
@@ -146,16 +142,16 @@ function ChargeList(props: {
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="tabular-nums text-zinc-900">{formatMoney(c.amount)}</p>
+                  <p className="font-semibold tabular-nums text-stone-950">{formatMoney(c.amount)}</p>
                   {c.cadence !== 'MONTHLY' && (
-                    <p className="text-xs tabular-nums text-zinc-500">≈ {formatMoney(c.monthlyCost)}/mo</p>
+                    <p className="text-xs tabular-nums text-stone-500">≈ {formatMoney(c.monthlyCost)}/mo</p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => props.onHide(c)}
                   title={`Hide ${c.name}: it isn't a subscription`}
-                  className="min-h-9 rounded-lg border border-zinc-300 px-3 py-1.5 text-xs text-zinc-700 transition-colors duration-150 hover:bg-zinc-100"
+                  className="min-h-9 rounded-lg border border-stone-300 px-3 py-1.5 text-xs text-stone-700 transition-colors duration-150 hover:bg-stone-100"
                 >
                   Not a subscription
                 </button>

@@ -1,22 +1,30 @@
 @import "tailwindcss";
-/* Inter, bundled with the app (no request to Google Fonts). Variable font: one file, every weight. */
-@import "@fontsource-variable/inter";
+/* Fonts bundled with the app (no request to Google Fonts). Variable fonts: one file, every weight.
+   Bricolage Grotesque for headings and big numbers (the Spendr personality), IBM Plex Sans for text. */
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/ibm-plex-sans";
 @import "./theme-dark.css";
 
 /* dark: utilities apply when <html> has the "dark" class (set by src/theme.ts). */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Design system: Swiss minimal (ui-ux-pro-max "Minimalism & Swiss Style" + "Minimal Swiss" type).
- * Monochrome zinc neutrals, one accent (indigo) for data, links and focus; hairline borders instead
- * of shadows; tight headings; numbers in tabular figures so columns of money line up.
+ * Spendr design system: "a clean bank statement". Warm paper neutrals (Tailwind's stone, with a
+ * paper-colored page), one green accent for money, links, focus and the main buttons, hairline
+ * rules instead of shadows, and numbers in tabular figures so columns of money line up.
  */
 @theme {
-  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "IBM Plex Sans Variable", ui-sans-serif, system-ui, sans-serif;
 
-  --color-accent: #4f46e5; /* indigo-600: 6.3:1 on white */
-  --color-accent-soft: #e0e7ff; /* indigo-100 */
+  --color-stone-50: #f6f4ee; /* the page: warm paper */
+  --color-stone-500: #6b655d; /* muted text: darker than stock stone-500 so it's 4.5:1 on the paper too */
+
+  --color-accent: #0f7a4f; /* Spendr green: 5.4:1 on white, 4.9:1 on the paper */
+  --color-accent-hover: #0b6340;
+  --color-accent-soft: #dcf1e5;
+  --color-accent-ink: #ffffff; /* text on accent fills */
 }
 
 @layer base {
@@ -26,19 +34,18 @@
   }
 
   body {
-    @apply bg-zinc-50 text-zinc-900;
-    font-feature-settings: "cv11", "ss01"; /* Inter's straighter 1 and a; ignored by other fonts */
+    @apply bg-stone-50 text-stone-900;
   }
 
-  /* Placeholder text: zinc-500 is 4.8:1 on white (the browser default is too faint). */
+  /* Placeholder text: stone-500 is 4.8:1 on white (the browser default is too faint). */
   ::placeholder {
-    @apply text-zinc-500 opacity-100;
+    @apply text-stone-500 opacity-100;
   }
 
   h1,
   h2,
   h3 {
-    @apply tracking-tight;
+    @apply font-display tracking-tight;
   }
 
   /* Visible keyboard focus everywhere, in the accent color (never removed, only restyled). */
@@ -66,16 +73,11 @@
 @layer components {
   /* Placeholder shape shown while data loads (instead of "Loading…"). */
   .skeleton {
-    @apply animate-pulse rounded-md bg-zinc-200/70;
+    @apply animate-pulse rounded-md bg-stone-200/70;
   }
 
   /* The one card style: white, hairline border, no shadow. */
   .card {
-    @apply rounded-xl border border-zinc-200 bg-white;
-  }
-
-  /* Small uppercase label above a number or section ("NET SPENDING"). */
-  .kicker {
-    @apply text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-500;
+    @apply rounded-lg border border-stone-200 bg-white;
   }
 }
