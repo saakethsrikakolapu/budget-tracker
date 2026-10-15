@@ -44,10 +44,6 @@ No statement handy? Try the fake sample [`samples/subscriptions-6-months.csv`](s
   confirm, or choose a different category.
 - **Light and dark mode** follow your device; switch in the header.
 
-| Dashboard | On a phone |
-|---|---|
-| ![Dashboard](docs/screenshots/dashboard.png) | <img src="docs/screenshots/dashboard-phone.png" alt="Dashboard on a phone" width="260"> |
-
 ## For developers
 
 Java 25 and Spring Boot backend, React and TypeScript frontend, PostgreSQL, and a category model trained
