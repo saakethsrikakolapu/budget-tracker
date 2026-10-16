@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type DragEvent } from 'react'
 import { Link } from 'react-router'
 import * as api from '../api'
 import { ColumnMappingEditor } from '../components/ColumnMappingEditor'
+import { CsvHelp } from '../components/CsvHelp'
 import { ImportHistory } from '../components/ImportHistory'
 import { formatDate, formatMoney, formatShortDate } from '../format'
 import { startingMapping } from '../mapping'
@@ -206,32 +207,35 @@ export function ImportPage() {
           />
 
           {!file ? (
-            // The whole box is the file picker: click it or drop a file on it.
-            <label
-              onDragOver={(event) => {
-                event.preventDefault()
-                setDragging(true)
-              }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={handleDrop}
-              className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-12 text-center transition-colors duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
-                dragging ? 'border-accent bg-accent-soft/40' : 'border-stone-300 hover:border-stone-400 hover:bg-stone-50'
-              }`}
-            >
-              <span className="grid size-12 place-items-center rounded-full bg-accent-soft text-accent">
-                <FileUp size={22} aria-hidden="true" />
-              </span>
-              <span className="mt-4 font-medium text-stone-900">
-                Drop your CSV here, or <span className="text-accent underline">browse</span>
-              </span>
-              <span className="mt-1 text-xs text-stone-500">Any bank or card · up to 2 MB</span>
-              <input
-                type="file"
-                accept=".csv,text/csv"
-                onChange={(event) => handleFileChosen(event.target.files?.[0] ?? null)}
-                className="sr-only"
-              />
-            </label>
+            <>
+              {/* The whole box is the file picker: click it or drop a file on it. */}
+              <label
+                onDragOver={(event) => {
+                  event.preventDefault()
+                  setDragging(true)
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={handleDrop}
+                className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-12 text-center transition-colors duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
+                  dragging ? 'border-accent bg-accent-soft/40' : 'border-stone-300 hover:border-stone-400 hover:bg-stone-50'
+                }`}
+              >
+                <span className="grid size-12 place-items-center rounded-full bg-accent-soft text-accent">
+                  <FileUp size={22} aria-hidden="true" />
+                </span>
+                <span className="mt-4 font-medium text-stone-900">
+                  Drop your CSV here, or <span className="text-accent underline">browse</span>
+                </span>
+                <span className="mt-1 text-xs text-stone-500">Any bank or card · up to 2 MB</span>
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={(event) => handleFileChosen(event.target.files?.[0] ?? null)}
+                  className="sr-only"
+                />
+              </label>
+              <CsvHelp />
+            </>
           ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-3 rounded-lg bg-stone-50 px-4 py-3">
