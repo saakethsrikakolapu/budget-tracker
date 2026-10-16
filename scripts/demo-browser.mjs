@@ -49,7 +49,7 @@ export async function api(path, { method = 'GET', json, form } = {}) {
  * With importSample, also imports the fake 6-month statement and sets a few budgets.
  * @returns the password, needed to delete the account afterwards
  */
-export async function createDemoAccount({ importSample = true } = {}) {
+export async function createDemoAccount({ importSample = true, useBudget = true } = {}) {
   const email = `demo-${Date.now()}@example.test`
   const password = crypto.randomUUID()
   await api('/api/auth/me') // sets the XSRF-TOKEN cookie
@@ -64,17 +64,14 @@ export async function createDemoAccount({ importSample = true } = {}) {
     form.append('file', new Blob([readFileSync(SAMPLE_CSV)], { type: 'text/csv' }), 'chase-freedom-statement.csv')
     await api('/api/imports', { method: 'POST', form })
   }
-  await setBudgets()
+  if (importSample && useBudget) await useSuggestedBudget()
   return password
 }
 
-export async function setBudgets() {
-  const categories = await api('/api/categories')
-  const limits = { Groceries: '300', 'Food & Dining': '120', Entertainment: '40', 'Bills & Utilities': '90' }
-  for (const [name, limit] of Object.entries(limits)) {
-    const category = categories.find((c) => c.name === name)
-    await api(`/api/budgets/${category.id}`, { method: 'PUT', json: { monthlyLimit: limit } })
-  }
+/** "Use this budget" for the latest month, like a person clicking it on the Budget page. */
+export async function useSuggestedBudget() {
+  const [latest] = await api('/api/transactions/months')
+  await api('/api/budgets/plan', { method: 'POST', json: { month: latest } })
 }
 
 export async function deleteDemoAccount(password) {

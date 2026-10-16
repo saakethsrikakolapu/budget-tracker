@@ -12,7 +12,8 @@
   The app figures out the columns on its own.
 - **See where your money goes.** Transactions are sorted into categories automatically, with a dashboard
   of your spending by category and by month.
-- **Set monthly budgets** and see how much is left in each category.
+- **Get a budget without typing one in.** Spendr suggests one from your own statements (what comes in,
+  or what you usually spend) and saves it in one click. It also tells you when something is higher than usual.
 - **Find your subscriptions,** including ones you forgot, with what they cost per month and when the
   next charge is due.
 - **Fix anything in one click.** Change a category and the app offers to do the same for that merchant
@@ -25,7 +26,7 @@
    *Activity*, or *Download transactions*; choose CSV). A few months of history works best.
 3. **Upload it.** Check the one-line summary and click *Import*. Uploading an overlapping statement
    later is fine: transactions already imported are skipped.
-4. **Look over anything Uncategorized** and pick a category. Set a budget or two if you like.
+4. **Look over anything Uncategorized** and pick a category, then open *Budget* and click *Use this budget*.
 
 No statement handy? Try the fake sample [`samples/subscriptions-6-months.csv`](samples/subscriptions-6-months.csv).
 

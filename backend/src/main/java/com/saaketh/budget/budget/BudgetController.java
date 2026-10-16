@@ -1,6 +1,7 @@
 package com.saaketh.budget.budget;
 
 import com.saaketh.budget.auth.AuthenticatedUser;
+import com.saaketh.budget.budget.BudgetPlanService.BudgetPlan;
 import com.saaketh.budget.budget.BudgetService.BudgetOverview;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
@@ -13,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,10 +34,34 @@ public class BudgetController {
             @Digits(integer = 10, fraction = 2, message = "Use at most 2 decimal places") BigDecimal monthlyLimit) {
     }
 
-    private final BudgetService budgetService;
+    /** "Use this budget" for a month, optionally around the person's own monthly total. */
+    public record ApplyPlanRequest(@NotNull(message = "Choose a month") String month, BigDecimal target) {
+    }
 
-    public BudgetController(BudgetService budgetService) {
+    private final BudgetService budgetService;
+    private final BudgetPlanService budgetPlanService;
+
+    public BudgetController(BudgetService budgetService, BudgetPlanService budgetPlanService) {
         this.budgetService = budgetService;
+        this.budgetPlanService = budgetPlanService;
+    }
+
+    /**
+     * GET /api/budgets/plan?month=2026-10 (&target=600): a budget suggested from your own history,
+     * and how this month compares with usual. Nothing is saved.
+     */
+    @GetMapping("/plan")
+    public BudgetPlan plan(@AuthenticationPrincipal AuthenticatedUser user, @RequestParam String month,
+            @RequestParam(required = false) BigDecimal target) {
+        return budgetPlanService.plan(user.getId(), month, target);
+    }
+
+    /** Save the suggested budget (only categories without a budget yet), then return the overview. */
+    @PostMapping("/plan")
+    public BudgetOverview applyPlan(@AuthenticationPrincipal AuthenticatedUser user,
+            @Valid @RequestBody ApplyPlanRequest request) {
+        budgetPlanService.apply(user.getId(), request.month(), request.target());
+        return budgetService.overview(user.getId(), request.month());
     }
 
     /** GET /api/budgets?month=2026-09: every budget with what's been spent that month. */

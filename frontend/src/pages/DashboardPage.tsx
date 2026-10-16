@@ -37,6 +37,7 @@ export function DashboardPage() {
   const [months, setMonths] = useState<string[] | null>(null)
   const [dashboard, setDashboard] = useState<api.Dashboard | null>(null)
   const [budgets, setBudgets] = useState<api.BudgetOverview | null>(null)
+  const [plan, setPlan] = useState<api.BudgetPlan | null>(null)
   const [recurring, setRecurring] = useState<api.RecurringOverview | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -65,6 +66,14 @@ export function DashboardPage() {
       .catch(() => {
         if (!ignore) setError('Could not load the dashboard.')
       })
+    // "Higher than usual" and the budget suggestion are extras: if they fail, they just don't show.
+    api.fetchBudgetPlan(month)
+      .then((p) => {
+        if (!ignore) setPlan(p)
+      })
+      .catch(() => {
+        if (!ignore) setPlan(null)
+      })
     return () => {
       ignore = true
     }
@@ -81,7 +90,7 @@ export function DashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         {dashboard ? (
-          <Headline dashboard={dashboard} seeAllLink={transactionsLink()} />
+          <Headline dashboard={dashboard} plan={plan} seeAllLink={transactionsLink()} />
         ) : (
           <h1 className="text-4xl font-bold text-stone-950">{month ? formatMonth(month) : 'Dashboard'}</h1>
         )}
@@ -127,7 +136,7 @@ export function DashboardPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {budgets && <BudgetList overview={budgets} />}
+            {budgets && <BudgetList overview={budgets} plan={plan} />}
             {recurring && <UpcomingCharges overview={recurring} />}
           </div>
         </div>
@@ -140,7 +149,15 @@ export function DashboardPage() {
  * The month in one sentence instead of a label, a number and a badge:
  * "You've spent $143.07 in October." and how that compares with the month before.
  */
-function Headline({ dashboard, seeAllLink }: { dashboard: api.Dashboard; seeAllLink: string }) {
+function Headline({
+  dashboard,
+  plan,
+  seeAllLink,
+}: {
+  dashboard: api.Dashboard
+  plan: api.BudgetPlan | null
+  seeAllLink: string
+}) {
   const net = dashboard.totals.netSpending
   const shown = useCountUp(Math.abs(net))
   const monthName = formatMonth(dashboard.month).split(' ')[0]
@@ -171,7 +188,30 @@ function Headline({ dashboard, seeAllLink }: { dashboard: api.Dashboard; seeAllL
           See transactions →
         </Link>
       </p>
+      {plan && <HigherThanUsual plan={plan} />}
     </div>
+  )
+}
+
+/** "Food & Dining is $60 higher than usual so far." The two biggest jumps, compared by day of month. */
+function HigherThanUsual({ plan }: { plan: api.BudgetPlan }) {
+  const higher = plan.lines
+    .filter((l) => l.pace === 'HIGHER')
+    .sort((a, b) => b.spent - b.usualSoFar - (a.spent - a.usualSoFar))
+    .slice(0, 2)
+  if (higher.length === 0) return null
+  const soFar = plan.throughDay < 28 ? ' so far' : ''
+  return (
+    <p className="mt-2 text-stone-600">
+      {higher.map((l, i) => (
+        <span key={l.categoryName}>
+          {i > 0 && ' '}
+          <strong className="font-semibold text-stone-950">{l.categoryName}</strong> is{' '}
+          <strong className="font-semibold text-amber-700 tabular-nums">{formatMoney(l.spent - l.usualSoFar)} higher</strong>{' '}
+          than usual{soFar}.
+        </span>
+      ))}
+    </p>
   )
 }
 
@@ -344,26 +384,37 @@ function dueLabel(isoDate: string): string {
 }
 
 /** Each budget as one line: "$82 of $150" and a thin bar. Red only when over. */
-function BudgetList({ overview }: { overview: api.BudgetOverview }) {
+function BudgetList({ overview, plan }: { overview: api.BudgetOverview; plan: api.BudgetPlan | null }) {
   const top = overview.budgets.slice(0, 5) // already sorted: most used first
   return (
     <section className="card h-full p-6">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-bold text-stone-950">Budgets</h2>
+        <h2 className="text-lg font-bold text-stone-950">Budget</h2>
         <Link to={`/budgets?month=${overview.month}`} className="text-sm font-medium text-accent hover:underline">
-          Manage budgets
+          {top.length === 0 ? 'Set up' : 'See budget'}
         </Link>
       </div>
       {top.length === 0 ? (
-        <div className="mt-4 flex items-center gap-3 rounded-md bg-stone-50 p-4">
-          <PiggyBank size={20} className="shrink-0 text-stone-500" aria-hidden="true" />
-          <p className="text-sm text-stone-600">
-            No budgets yet.{' '}
-            <Link to="/budgets" className="font-medium text-accent hover:underline">
-              Set a monthly limit
-            </Link>{' '}
-            for a category to see how much is left.
-          </p>
+        <div className="mt-4 flex items-start gap-3 rounded-md bg-stone-50 p-4">
+          <PiggyBank size={20} className="mt-0.5 shrink-0 text-stone-500" aria-hidden="true" />
+          <div className="text-sm text-stone-600">
+            {plan?.target ? (
+              <p>
+                There&apos;s a budget ready for you, built from your statements:{' '}
+                <strong className="tabular-nums text-stone-950">{formatMoney(plan.suggestedTotal)}</strong> a month.
+              </p>
+            ) : (
+              <p>Once a full month of statements is uploaded, a budget is suggested for you.</p>
+            )}
+            {plan?.target && (
+              <Link
+                to={`/budgets?month=${overview.month}`}
+                className="mt-3 inline-block rounded-lg bg-accent px-3 py-1.5 font-semibold text-accent-ink transition-colors duration-150 hover:bg-accent-hover"
+              >
+                See my budget
+              </Link>
+            )}
+          </div>
         </div>
       ) : (
         <ul className="mt-4 space-y-4">

@@ -11,7 +11,7 @@ import { ThemeToggle } from './ThemeToggle'
 const TITLES: Record<string, string> = {
   '/': 'Dashboard',
   '/transactions': 'Transactions',
-  '/budgets': 'Budgets',
+  '/budgets': 'Budget',
   '/subscriptions': 'Subscriptions',
   '/import': 'Upload a statement',
   '/account': 'Account',
@@ -20,7 +20,7 @@ const TITLES: Record<string, string> = {
 const NAV = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/transactions', label: 'Transactions' },
-  { to: '/budgets', label: 'Budgets' },
+  { to: '/budgets', label: 'Budget' },
   { to: '/subscriptions', label: 'Subscriptions' },
 ]
 

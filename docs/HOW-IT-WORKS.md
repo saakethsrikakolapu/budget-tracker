@@ -62,6 +62,23 @@ is synthetic and its labels come from the same generator the model learns from, 
 the model handles the patterns it was built for; real users' corrections are the next training data.
 Retrain with `cd ml && python -m budget_ml.train` (details in [`ml/README.md`](../ml/README.md)).
 
+## Suggested budget
+
+Nobody has to type in a budget. [`BudgetPlanner.java`](../backend/src/main/java/com/saaketh/budget/budget/BudgetPlanner.java)
+builds one from the person's own history:
+
+- **Usual** spending per category is the median of the last 6 full months (statements start mid-month,
+  so partial months are skipped). A month with nothing in a category counts as $0, and one big purchase
+  doesn't move the median.
+- **The total** is what usually comes in (paychecks, plus Zelle/Venmo/Cash App from family) when a
+  checking account shows it, otherwise what usually goes out (a credit card alone shows no income).
+  The person can replace it with their own number.
+- **The split:** detected bills and subscriptions keep their full cost; the rest is shared in the
+  same proportions as usual spending, trimmed equally if usual spending is more than the total, never
+  scaled up (the difference is savings).
+- **Higher than usual** compares this month so far with what had usually been spent by the same day
+  of the month (so rent on the 1st isn't a spike), and needs both +25% and +$20 to flag anything.
+
 ## Subscription and bill detection
 
 [`RecurringDetector.java`](../backend/src/main/java/com/saaketh/budget/recurring/RecurringDetector.java)

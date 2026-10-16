@@ -416,6 +416,59 @@ export function deleteBudget(categoryId: number): Promise<void> {
   return apiFetch<void>(`/api/budgets/${categoryId}`, { method: 'DELETE' })
 }
 
+export type Pace = 'HIGHER' | 'NORMAL' | 'LOWER' | 'UNKNOWN'
+
+/** One category in the suggested budget (mirrors BudgetPlanService.PlanLine). */
+export type PlanLine = {
+  /** null = Uncategorized: part of the picture, but it can't hold a budget. */
+  categoryId: number | null
+  categoryName: string
+  /** Median monthly spending over the last few full months. */
+  usual: number
+  /** The part of it that's regular bills and subscriptions. */
+  fixed: number
+  /** Suggested monthly budget, whole dollars. */
+  suggested: number
+  /** This month so far (through throughDay). */
+  spent: number
+  /** What had usually been spent by that day of the month. */
+  usualSoFar: number
+  pace: Pace
+  /** Already has a budget the person set; using the plan won't change it. */
+  hasBudget: boolean
+}
+
+/** A budget suggested from the person's own history (mirrors BudgetPlanService.BudgetPlan). */
+export type BudgetPlan = {
+  month: string
+  /** Full months "usual" is based on; 0 = upload more statements first. */
+  fullMonths: number
+  /** Latest day of this month with data; 0 = none yet. */
+  throughDay: number
+  /** Usual money in per month; null when the statements show none (e.g. a credit card only). */
+  monthlyIncome: number | null
+  target: number | null
+  basis: 'INCOME' | 'USUAL' | 'CUSTOM' | null
+  suggestedTotal: number
+  usualTotal: number
+  spent: number
+  usualSoFar: number
+  pace: Pace
+  lines: PlanLine[]
+}
+
+/** The suggestion for a month; pass target to build it around your own monthly total. Saves nothing. */
+export function fetchBudgetPlan(month: string, target?: string): Promise<BudgetPlan> {
+  const params = new URLSearchParams({ month })
+  if (target) params.set('target', target)
+  return apiFetch<BudgetPlan>(`/api/budgets/plan?${params}`)
+}
+
+/** "Use this budget": saves the suggestion (budgets you already set stay as they are). */
+export function applyBudgetPlan(month: string, target?: string): Promise<BudgetOverview> {
+  return apiFetch<BudgetOverview>('/api/budgets/plan', { method: 'POST', body: target ? { month, target } : { month } })
+}
+
 export function fetchTransactions(filter: TransactionFilter): Promise<TransactionPage> {
   // URLSearchParams encodes values safely (spaces, &, %, ...), so search text can't break the URL.
   const params = new URLSearchParams()
