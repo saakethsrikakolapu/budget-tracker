@@ -2,7 +2,7 @@
 
 **A privacy-first budget tracker for students. No bank login, just upload your statements.**
 
-👉 **[www.8022029.xyz](https://www.8022029.xyz)** (free to use; the first visit can take about a minute while the server wakes up)
+👉 **[www.8022029.xyz](https://www.8022029.xyz)**
 
 ![Demo: upload a statement, then the dashboard, transactions, subscriptions, and dark mode](docs/demo.png)
 
