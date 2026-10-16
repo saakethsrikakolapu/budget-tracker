@@ -103,6 +103,11 @@ apart can look yearly; merchants whose reference codes are all letters may not g
   expire (30 minutes / 24 hours) and work once; a reset logs out every device.
 - Uploaded files are never stored; every query is scoped to the logged-in user. Deleting an account
   removes all its data (every table cascades from the user) and logs out every device.
+- Changing the password asks for the current one and logs out every other device. "Download my data"
+  exports every transaction as CSV, with spreadsheet formulas neutralized (CSV injection).
+- The optional monthly upload reminder (off by default) goes only to confirmed addresses, at most once a
+  month, and only if last month's statement isn't uploaded yet
+  ([`UploadReminderService.java`](../backend/src/main/java/com/saaketh/budget/reminder/UploadReminderService.java)).
 - Every page passes an [axe-core](https://github.com/dequelabs/axe-core) audit (WCAG 2.2 AA + best
   practices) in light and dark mode.
 

@@ -95,6 +95,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
             ORDER BY t.userId""")
     List<Transaction> findUncategorizedSpending();
 
+    /** Every transaction for "Download my data", newest first. */
+    @Query("SELECT t FROM Transaction t WHERE t.userId = :userId ORDER BY t.transactionDate DESC, t.id DESC")
+    List<Transaction> findAllForExport(@Param("userId") Long userId);
+
     List<Transaction> findByImportBatchIdOrderByIdAsc(Long importBatchId);
 
     long countByImportBatchId(Long importBatchId);

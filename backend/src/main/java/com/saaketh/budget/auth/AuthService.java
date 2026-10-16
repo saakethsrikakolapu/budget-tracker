@@ -2,6 +2,7 @@ package com.saaketh.budget.auth;
 
 import com.saaketh.budget.auth.AuthDtos.RegisterRequest;
 import com.saaketh.budget.category.CategoryService;
+import com.saaketh.budget.common.NotFoundException;
 import com.saaketh.budget.user.User;
 import com.saaketh.budget.user.UserRepository;
 import java.nio.charset.StandardCharsets;
@@ -65,6 +66,25 @@ public class AuthService {
             throw new InvalidPasswordException("Wrong password");
         }
         userRepository.delete(user);
+    }
+
+    /** @throws InvalidPasswordException if the current password is wrong */
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        if (newPassword.getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
+            throw new InvalidPasswordException("Password is too long");
+        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Account not found"));
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new InvalidPasswordException("Your current password is wrong");
+        }
+        user.changePasswordHash(passwordEncoder.encode(newPassword));
+    }
+
+    @Transactional
+    public void setUploadReminders(Long userId, boolean enabled) {
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Account not found"))
+                .setUploadReminders(enabled);
     }
 
     /** "  Saaketh@Gmail.com " and "saaketh@gmail.com" are the same account. */

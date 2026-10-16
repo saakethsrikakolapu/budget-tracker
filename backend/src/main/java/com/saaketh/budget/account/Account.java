@@ -51,4 +51,8 @@ public class Account {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    void rename(String name) {
+        this.name = name;
+    }
 }

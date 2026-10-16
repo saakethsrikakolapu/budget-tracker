@@ -124,6 +124,28 @@ class SessionPersistenceIntegrationTest {
         assertThat(sessionsFor(email)).isZero();
     }
 
+    @Test
+    void changingThePasswordKeepsThisDeviceAndLogsOutTheOthers() throws Exception {
+        String email = "user-" + UUID.randomUUID() + "@example.com";
+        String body = """
+                {"email": "%s", "password": "correct-horse-battery"}""".formatted(email);
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body).with(browserCsrf()))
+                .andExpect(status().isCreated());
+        Cookie laptop = login(body);
+        Cookie phone = login(body);
+        assertThat(sessionsFor(email)).isEqualTo(2);
+
+        mockMvc.perform(post("/api/auth/change-password").cookie(laptop).with(browserCsrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\": \"correct-horse-battery\", \"newPassword\": \"brand-new-password\"}"))
+                .andExpect(status().isNoContent());
+
+        // The laptop that changed it stays logged in; the phone has to log in with the new one.
+        mockMvc.perform(get("/api/auth/me").cookie(laptop)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/auth/me").cookie(phone)).andExpect(status().isUnauthorized());
+        assertThat(sessionsFor(email)).isEqualTo(1);
+    }
+
     private Cookie login(String body) throws Exception {
         return mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(body).with(browserCsrf()))
                 .andExpect(status().isOk())

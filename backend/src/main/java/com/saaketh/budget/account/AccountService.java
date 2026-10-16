@@ -34,6 +34,30 @@ public class AccountService {
         }
     }
 
+    @Transactional
+    public Account rename(Long userId, Long accountId, String name) {
+        Account account = getOwned(userId, accountId);
+        String trimmed = name.trim();
+        if (!trimmed.equals(account.getName()) && accountRepository.existsByUserIdAndName(userId, trimmed)) {
+            throw new AccountNameTakenException();
+        }
+        account.rename(trimmed);
+        try {
+            return accountRepository.saveAndFlush(account);
+        } catch (DataIntegrityViolationException e) {
+            throw new AccountNameTakenException();
+        }
+    }
+
+    /**
+     * Removes the account and everything uploaded to it: its uploads and transactions go with it
+     * (ON DELETE CASCADE in the database). Budgets and categories stay; they belong to the person.
+     */
+    @Transactional
+    public void delete(Long userId, Long accountId) {
+        accountRepository.delete(getOwned(userId, accountId));
+    }
+
     /**
      * Loads an account only if it belongs to this user. Someone else's account looks exactly like a
      * missing one (404), so ids can't be probed to discover other users' data.

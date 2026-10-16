@@ -30,6 +30,14 @@ public class User {
     @Column(name = "email_verified_at")
     private Instant emailVerifiedAt;
 
+    /** Opted in to the monthly "time to upload your statement" email. */
+    @Column(name = "upload_reminders", nullable = false)
+    private boolean uploadReminders;
+
+    /** The month ("2026-10") the last reminder went out, so it's never sent twice in a month. */
+    @Column(name = "last_reminder_month", length = 7)
+    private String lastReminderMonth;
+
     /** Required by JPA, which creates objects by reflection when loading rows. */
     protected User() {
     }
@@ -65,6 +73,22 @@ public class User {
         if (emailVerifiedAt == null) {
             emailVerifiedAt = Instant.now();
         }
+    }
+
+    public boolean isUploadReminders() {
+        return uploadReminders;
+    }
+
+    public void setUploadReminders(boolean uploadReminders) {
+        this.uploadReminders = uploadReminders;
+    }
+
+    public String getLastReminderMonth() {
+        return lastReminderMonth;
+    }
+
+    public void setLastReminderMonth(String lastReminderMonth) {
+        this.lastReminderMonth = lastReminderMonth;
     }
 
     /** @param passwordHash already encoded (BCrypt), never the plain password */

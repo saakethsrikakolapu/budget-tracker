@@ -1,4 +1,4 @@
-import { CalendarClock, PiggyBank, Tags, Upload } from 'lucide-react'
+import { CalendarClock, History, PiggyBank, Tags, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
@@ -117,6 +117,8 @@ export function DashboardPage() {
           {error}
         </p>
       )}
+
+      {dashboard?.latestTransactionDate && <StaleData latest={dashboard.latestTransactionDate} />}
 
       {!dashboard && !error && <DashboardSkeleton />}
 
@@ -381,6 +383,33 @@ function dueLabel(isoDate: string): string {
   if (days === 1) return 'due tomorrow'
   if (days > 1 && days <= 14) return `due in ${days} days`
   return days < 0 ? `was due ${formatShortDate(isoDate)}` : `due ${formatShortDate(isoDate)}`
+}
+
+/**
+ * There's no bank connection, so the app only knows what's been uploaded. Once the newest
+ * transaction is more than {@link STALE_AFTER_DAYS} days old, say so and offer the upload.
+ */
+const STALE_AFTER_DAYS = 10
+
+function StaleData({ latest }: { latest: string }) {
+  if (daysFromToday(latest) > -STALE_AFTER_DAYS) return null
+  const thisMonth = formatMonth(currentMonth()).split(' ')[0]
+  const newMonth = latest.slice(0, 7) < currentMonth()
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-stone-200 bg-white px-4 py-3">
+      <History size={18} className="shrink-0 text-stone-500" aria-hidden="true" />
+      <p className="flex-1 text-sm text-stone-700">
+        Your statements end <strong className="text-stone-950">{formatShortDate(latest)}</strong>.{' '}
+        {newMonth ? `Upload a newer one to see ${thisMonth} so far.` : 'Upload a newer one to catch up.'}
+      </p>
+      <Link
+        to="/import"
+        className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-900 transition-colors duration-150 hover:bg-stone-100"
+      >
+        Upload statement
+      </Link>
+    </div>
+  )
 }
 
 /** Each budget as one line: "$82 of $150" and a thin bar. Red only when over. */

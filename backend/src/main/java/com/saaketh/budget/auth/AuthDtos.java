@@ -2,6 +2,7 @@ package com.saaketh.budget.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /** Request and response bodies for /api/auth endpoints. */
@@ -55,7 +56,18 @@ public final class AuthDtos {
     public record VerifyEmailRequest(@NotBlank @Size(max = 100) String token) {
     }
 
+    /** Change the password while logged in: the current one first, in case someone else is at the keyboard. */
+    public record ChangePasswordRequest(
+            @NotBlank(message = "Enter your current password") @Size(max = 72) String currentPassword,
+            @NotBlank(message = "Password is required")
+            @Size(min = 8, max = 72, message = "Password must be 8 to 72 characters") String newPassword) {
+    }
+
+    /** Turn the monthly "time to upload your statement" email on or off. */
+    public record RemindersRequest(@NotNull(message = "Choose on or off") Boolean enabled) {
+    }
+
     /** What the frontend gets back about a user. Never includes the password hash. */
-    public record UserResponse(Long id, String email, boolean emailVerified) {
+    public record UserResponse(Long id, String email, boolean emailVerified, boolean uploadReminders) {
     }
 }

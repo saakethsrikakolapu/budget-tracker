@@ -9,6 +9,7 @@ import com.saaketh.budget.transaction.TransactionQueryService.Totals;
 import com.saaketh.budget.transaction.TransactionRepository;
 import com.saaketh.budget.transaction.TransactionRepository.CategoryTotal;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -34,9 +35,11 @@ public class DashboardService {
     /**
      * @param spendingByCategory biggest first; only categories with net spending above zero
      * @param monthlyTrend the selected month and the {@value #TREND_MONTHS}-1 before it, oldest first
+     * @param latestTransactionDate the newest transaction in any account (null with none): how up to date
+     *     the statements are
      */
     public record Dashboard(String month, Totals totals, List<CategorySpending> spendingByCategory,
-            List<MonthSpending> monthlyTrend) {
+            List<MonthSpending> monthlyTrend, LocalDate latestTransactionDate) {
     }
 
     private final TransactionRepository transactionRepository;
@@ -73,7 +76,9 @@ public class DashboardService {
             trend.add(new MonthSpending(m.toString(), net.setScale(2)));
         }
 
-        return new Dashboard(selected.toString(), totals, byCategory, trend);
+        // How fresh the data is: there's no bank connection, so it's as new as the last upload.
+        LocalDate latest = transactionRepository.findLatestDate(userId).orElse(null);
+        return new Dashboard(selected.toString(), totals, byCategory, trend, latest);
     }
 
     /** Net spending per category for one month, leaving out categories that don't count as spending. */

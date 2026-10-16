@@ -34,7 +34,8 @@ No statement handy? Try the fake sample [`samples/subscriptions-6-months.csv`](s
 
 - The app **never connects to your bank**. It only sees the files you choose to upload.
 - Uploaded files are read once and **not stored**; only the transactions are saved, visible only to you.
-- You can **undo any upload** or **delete your account and all its data** at any time (Account page).
+- You can **undo any upload**, **download all your data**, or **delete your account and all its data** at
+  any time (Account page).
 
 ## Good to know
 

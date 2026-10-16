@@ -1,5 +1,6 @@
 package com.saaketh.budget.user;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,4 +13,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    /** Who gets the monthly upload reminder: opted in, and the address is confirmed as theirs. */
+    List<User> findByUploadRemindersTrueAndEmailVerifiedAtIsNotNull();
 }

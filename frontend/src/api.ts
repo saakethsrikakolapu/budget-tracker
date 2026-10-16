@@ -12,6 +12,8 @@ export type User = {
   email: string
   /** False until the user clicks the link in the verification email (or resets their password). */
   emailVerified: boolean
+  /** Opted in to the monthly "time to upload your statement" email. */
+  uploadReminders: boolean
 }
 
 /** Mirrors AccountController.AccountResponse. */
@@ -75,6 +77,8 @@ export type Dashboard = {
   spendingByCategory: { categoryId: number | null; categoryName: string; amount: number }[]
   /** Six months ending with the selected one, oldest first. */
   monthlyTrend: { month: string; netSpending: number }[]
+  /** Newest transaction in any account ("2026-09-28"): how up to date the statements are. */
+  latestTransactionDate: string | null
 }
 
 /** Mirrors ImportService.ImportResult. importBatchId is null when every row was already imported. */
@@ -277,6 +281,11 @@ export function verifyEmail(token: string): Promise<void> {
   return apiFetch<void>('/api/auth/verify-email', { method: 'POST', body: { token } })
 }
 
+/** Monthly "time to upload your statement" email on or off. Returns the updated user. */
+export function setUploadReminders(enabled: boolean): Promise<User> {
+  return apiFetch<User>('/api/auth/reminders', { method: 'PUT', body: { enabled } })
+}
+
 export function resendVerification(): Promise<void> {
   return apiFetch<void>('/api/auth/resend-verification', { method: 'POST' })
 }
@@ -293,6 +302,23 @@ export function fetchAccounts(): Promise<Account[]> {
 export function createAccount(name: string): Promise<Account> {
   return apiFetch<Account>('/api/accounts', { method: 'POST', body: { name } })
 }
+
+export function renameAccount(id: number, name: string): Promise<Account> {
+  return apiFetch<Account>(`/api/accounts/${id}`, { method: 'PUT', body: { name } })
+}
+
+/** Removes the bank account and every transaction uploaded to it. */
+export function removeAccount(id: number): Promise<void> {
+  return apiFetch<void>(`/api/accounts/${id}`, { method: 'DELETE' })
+}
+
+/** New password while logged in; other devices are logged out, this one stays. */
+export function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  return apiFetch<void>('/api/auth/change-password', { method: 'POST', body: { currentPassword, newPassword } })
+}
+
+/** "Download my data": every transaction as a CSV (a plain link, so the browser saves the file). */
+export const EXPORT_URL = '/api/transactions/export'
 
 /**
  * Which column holds what (0-based positions). Mirrors the backend's ColumnMapping.

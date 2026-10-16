@@ -1,9 +1,11 @@
 package com.saaketh.budget.auth;
 
+import com.saaketh.budget.auth.AuthDtos.ChangePasswordRequest;
 import com.saaketh.budget.auth.AuthDtos.DeleteAccountRequest;
 import com.saaketh.budget.auth.AuthDtos.ForgotPasswordRequest;
 import com.saaketh.budget.auth.AuthDtos.LoginRequest;
 import com.saaketh.budget.auth.AuthDtos.RegisterRequest;
+import com.saaketh.budget.auth.AuthDtos.RemindersRequest;
 import com.saaketh.budget.auth.AuthDtos.ResetPasswordRequest;
 import com.saaketh.budget.auth.AuthDtos.UserResponse;
 import com.saaketh.budget.auth.AuthDtos.VerifyEmailRequest;
@@ -29,6 +31,7 @@ import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -145,6 +148,32 @@ public class AuthController {
         accountEmailService.verifyEmail(request.token());
     }
 
+    /**
+     * New password while logged in. This browser stays logged in; every other device is logged
+     * out, in case the password changed because someone else knew it.
+     */
+    @PostMapping("/change-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changePassword(@AuthenticationPrincipal AuthenticatedUser user,
+            @Valid @RequestBody ChangePasswordRequest request, HttpServletRequest httpRequest) {
+        authService.changePassword(user.getId(), request.currentPassword(), request.newPassword());
+        HttpSession current = httpRequest.getSession(false);
+        String keep = current == null ? null : current.getId();
+        sessionRepository.ifAvailable(repository -> repository.findByPrincipalName(user.getUsername())
+                .keySet()
+                .stream()
+                .filter(id -> !id.equals(keep))
+                .forEach(repository::deleteById));
+    }
+
+    /** Monthly upload reminder on or off (Account page). Returns the updated user. */
+    @PutMapping("/reminders")
+    public UserResponse setReminders(@AuthenticationPrincipal AuthenticatedUser user,
+            @Valid @RequestBody RemindersRequest request) {
+        authService.setUploadReminders(user.getId(), request.enabled());
+        return response(user.getId());
+    }
+
     /** "Resend the email". Repeats within a minute are ignored. */
     @PostMapping("/resend-verification")
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -171,7 +200,7 @@ public class AuthController {
     /** Fresh from the database: the session's copy doesn't know about a later email verification. */
     private UserResponse response(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Account not found"));
-        return new UserResponse(user.getId(), user.getEmail(), user.isEmailVerified());
+        return new UserResponse(user.getId(), user.getEmail(), user.isEmailVerified(), user.isUploadReminders());
     }
 
     /** Who is logged in. Requires login, so anonymous requests get 401 before reaching here. */
