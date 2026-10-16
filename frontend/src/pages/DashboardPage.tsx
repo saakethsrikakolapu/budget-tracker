@@ -463,7 +463,7 @@ function Welcome() {
   const steps = [
     { icon: Upload, title: 'Upload a statement', text: 'Export a CSV from any bank or card. Columns are figured out for you.' },
     { icon: Tags, title: 'Check the categories', text: 'Most transactions are sorted automatically. Fix any in one click.' },
-    { icon: PiggyBank, title: 'Set a budget', text: 'Pick a monthly limit for a category and watch what is left.' },
+    { icon: PiggyBank, title: 'Use your budget', text: 'One is suggested from your own statements. Accept it in one click.' },
   ]
   return (
     <div className="mx-auto max-w-3xl py-8 text-center">

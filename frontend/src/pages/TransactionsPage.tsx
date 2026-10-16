@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { Check, Sparkles } from 'lucide-react'
+import { Check, SlidersHorizontal, Sparkles } from 'lucide-react'
 import * as api from '../api'
 import { CategoryIcon } from '../components/CategoryIcon'
 import { formatDayHeading, formatMoney, formatMonth, monthRange } from '../format'
@@ -42,6 +42,8 @@ export function TransactionsPage() {
   const monthParam = searchParams.get('month') ?? months?.[0] ?? ALL_TIME
 
   const [searchText, setSearchText] = useState(qParam)
+  /** Phones only: the account/category/month dropdowns stay folded away until asked for. */
+  const [showFilters, setShowFilters] = useState(false)
   // Keep the box in sync when the URL changes some other way (e.g. the back button).
   const [syncedQ, setSyncedQ] = useState(qParam)
   if (syncedQ !== qParam) {
@@ -176,6 +178,8 @@ export function TransactionsPage() {
     updateParam('q', searchText.trim())
   }
 
+  const activeFilters = [accountParam, categoryParam, searchParams.get('month')].filter(Boolean).length
+
   if (months !== null && months.length === 0) {
     return (
       <div className="max-w-xl">
@@ -214,12 +218,12 @@ export function TransactionsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3">
-        <label className="block">
+        <label className={`${showFilters ? 'block' : 'hidden'} w-full sm:block sm:w-auto`}>
           <span className="text-xs font-medium text-stone-600">Account</span>
           <select
             value={accountParam}
             onChange={(event) => updateParam('account', event.target.value)}
-            className="mt-1 block rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm sm:w-auto"
           >
             <option value="">All accounts</option>
             {accounts.map((account) => (
@@ -230,12 +234,12 @@ export function TransactionsPage() {
           </select>
         </label>
 
-        <label className="block">
+        <label className={`${showFilters ? 'block' : 'hidden'} w-full sm:block sm:w-auto`}>
           <span className="text-xs font-medium text-stone-600">Category</span>
           <select
             value={categoryParam}
             onChange={(event) => updateParam('category', event.target.value)}
-            className="mt-1 block rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm sm:w-auto"
           >
             <option value="">All categories</option>
             <option value="uncategorized">Uncategorized</option>
@@ -247,12 +251,12 @@ export function TransactionsPage() {
           </select>
         </label>
 
-        <label className="block">
+        <label className={`${showFilters ? 'block' : 'hidden'} w-full sm:block sm:w-auto`}>
           <span className="text-xs font-medium text-stone-600">Month</span>
           <select
             value={monthParam}
             onChange={(event) => updateParam('month', event.target.value)}
-            className="mt-1 block rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm sm:w-auto"
           >
             <option value={ALL_TIME}>All time</option>
             {months?.map((month) => (
@@ -263,21 +267,30 @@ export function TransactionsPage() {
           </select>
         </label>
 
-        <form onSubmit={handleSearch} className="flex items-end gap-2">
-          <label className="block">
+        <form onSubmit={handleSearch} className="order-first flex w-full items-end gap-2 sm:order-none sm:w-auto">
+          <label className="block min-w-0 flex-1 sm:flex-none">
             <span className="text-xs font-medium text-stone-600">Merchant</span>
-            {/* Searches the Description column only; category filtering comes in Stage 2. */}
+            {/* Searches the bank's description text. */}
             <input
               type="search"
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
-              placeholder="Search by merchant name"
+              placeholder="Search merchants"
               maxLength={100}
-              className="mt-1 block w-56 rounded-lg border border-stone-300 px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm sm:w-56"
             />
           </label>
           <button type="submit" className="rounded-lg bg-stone-950 px-3 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-800">
             Search
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowFilters((shown) => !shown)}
+            aria-expanded={showFilters}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-800 sm:hidden"
+          >
+            <SlidersHorizontal size={16} aria-hidden="true" />
+            Filters{activeFilters > 0 && ` (${activeFilters})`}
           </button>
           {qParam && (
             <button

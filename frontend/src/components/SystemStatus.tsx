@@ -1,35 +1,27 @@
 import { useEffect, useState } from 'react'
-import { fetchHealth, type HealthResponse } from '../api'
+import { fetchHealth } from '../api'
 
-type HealthState =
-  | { kind: 'loading' }
-  | { kind: 'loaded'; health: HealthResponse }
-  | { kind: 'error' }
-
-/** One-line backend/database status, from GET /api/health. */
+/**
+ * Stays out of the way while everything works. If the backend can't be reached, or it answers but
+ * its database is down (GET /api/health), a banner says so instead of pages just failing.
+ */
 export function SystemStatus() {
-  const [state, setState] = useState<HealthState>({ kind: 'loading' })
+  const [problem, setProblem] = useState<'server' | 'database' | null>(null)
 
   useEffect(() => {
     fetchHealth()
-      .then((health) => setState({ kind: 'loaded', health }))
-      .catch(() => setState({ kind: 'error' }))
+      .then((health) => setProblem(health.database === 'UP' ? null : 'database'))
+      .catch(() => setProblem('server'))
   }, [])
 
+  if (problem === null) return null
   return (
-    <p className="text-xs text-stone-500">
-      {state.kind === 'loading' && 'Checking system status…'}
-      {state.kind === 'error' && <span className="text-red-600">Backend not reachable</span>}
-      {state.kind === 'loaded' && (
-        <>
-          {/* Any answer at all means the backend is running, even if it reports DOWN overall. */}
-          Backend <Dot up /> · Database <Dot up={state.health.database === 'UP'} />
-        </>
-      )}
-    </p>
+    <div role="alert" className="border-b border-red-200 bg-red-50">
+      <p className="mx-auto max-w-6xl px-4 py-2.5 text-sm text-red-800 sm:px-6">
+        {problem === 'server'
+          ? "Spendr can't reach its server right now. Your data is safe; try again in a minute."
+          : 'Spendr is having trouble with its database right now. Your data is safe; try again in a minute.'}
+      </p>
+    </div>
   )
-}
-
-function Dot({ up }: { up: boolean }) {
-  return <span className={up ? 'text-green-600' : 'text-red-600'}>{up ? 'UP' : 'DOWN'}</span>
 }

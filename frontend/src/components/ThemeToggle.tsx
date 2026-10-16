@@ -1,15 +1,15 @@
-import { Monitor, Moon, Sun } from 'lucide-react'
+import { Moon, Sun, SunMoon } from 'lucide-react'
 import { setPreference, usePreference, type ThemePreference } from '../theme'
 
 const NEXT: Record<ThemePreference, ThemePreference> = { system: 'light', light: 'dark', dark: 'system' }
-const LABEL: Record<ThemePreference, string> = { system: 'System', light: 'Light', dark: 'Dark' }
-const ICON = { system: Monitor, light: Sun, dark: Moon }
+const LABEL: Record<ThemePreference, string> = { system: 'same as your device', light: 'light', dark: 'dark' }
+const ICON = { system: SunMoon, light: Sun, dark: Moon }
 
-/** One button that cycles System → Light → Dark. The label says the current mode and what's next. */
+/** One button that cycles device → light → dark. The label says the current mode and what's next. */
 export function ThemeToggle() {
   const preference = usePreference()
   const Icon = ICON[preference]
-  const label = `Theme: ${LABEL[preference]}. Switch to ${LABEL[NEXT[preference]]}`
+  const label = `Light or dark mode: ${LABEL[preference]}. Click for ${LABEL[NEXT[preference]]}`
   return (
     <button
       type="button"

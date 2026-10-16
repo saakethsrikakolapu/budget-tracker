@@ -1,4 +1,4 @@
-import { LogOut, Mail, Upload, X } from 'lucide-react'
+import { LayoutDashboard, ListOrdered, LogOut, Mail, PiggyBank, Repeat, Upload, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import * as api from '../api'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
@@ -17,14 +17,18 @@ const TITLES: Record<string, string> = {
   '/account': 'Account',
 }
 
+// Icons only show in the phone tab bar, where the labels are small.
 const NAV = [
-  { to: '/', label: 'Dashboard', end: true },
-  { to: '/transactions', label: 'Transactions' },
-  { to: '/budgets', label: 'Budget' },
-  { to: '/subscriptions', label: 'Subscriptions' },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/transactions', label: 'Transactions', icon: ListOrdered },
+  { to: '/budgets', label: 'Budget', icon: PiggyBank },
+  { to: '/subscriptions', label: 'Subscriptions', icon: Repeat },
 ]
 
-/** Header + footer around every logged-in page. The current page renders at <Outlet />. */
+/**
+ * Header around every logged-in page (plus a tab bar at the bottom on phones). The current page
+ * renders at <Outlet />.
+ */
 export function AppLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -58,16 +62,13 @@ export function AppLayout() {
         Skip to content
       </a>
       <header className="sticky top-0 z-10 border-b border-stone-200 bg-stone-50/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 px-6">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-x-6 px-4 sm:px-6">
           <NavLink to="/" className="py-3" aria-label="Spendr home">
             <Brand />
           </NavLink>
 
-          {/* Phones: its own full-width row under the logo (scrolls sideways if needed). Wider: inline. */}
-          <nav
-            aria-label="Main"
-            className="-mb-px order-last flex w-full gap-5 overflow-x-auto [scrollbar-width:none] md:order-none md:w-auto md:flex-1 [&::-webkit-scrollbar]:hidden"
-          >
+          {/* Wide screens: inline in the header. Phones use the tab bar at the bottom instead. */}
+          <nav aria-label="Main" className="-mb-px hidden flex-1 gap-5 md:flex">
             {NAV.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
                 {item.label}
@@ -75,14 +76,14 @@ export function AppLayout() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <ThemeToggle />
             <NavLink
               to="/import"
-              className="hidden items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm text-accent-ink font-semibold transition-colors duration-150 hover:bg-accent-hover md:inline-flex"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-accent-ink transition-colors duration-150 hover:bg-accent-hover"
             >
               <Upload size={16} aria-hidden="true" />
-              Upload statement
+              Upload<span className="hidden md:inline"> statement</span>
             </NavLink>
             <NavLink
               to="/account"
@@ -105,21 +106,40 @@ export function AppLayout() {
         </div>
       </header>
 
+      {/* Says something only when the server or its database is down. */}
+      <SystemStatus />
       {user && !user.emailVerified && <VerifyBanner />}
 
-      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-6xl flex-1 px-6 py-8 outline-none">
-        {/* Upload is a button on wide screens; on small ones it lives here, at the top of every page. */}
-        <NavLink to="/import" className="mb-6 block text-sm font-medium text-accent underline md:hidden">
-          Upload statement
-        </NavLink>
+      {/* Extra bottom padding on phones so the tab bar never covers the end of the page. */}
+      <main
+        id="main"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-6xl flex-1 px-4 pt-8 pb-24 outline-none sm:px-6 md:pb-12"
+      >
         <Outlet />
       </main>
 
-      <footer className="border-t border-stone-200">
-        <div className="mx-auto max-w-6xl px-6 py-3">
-          <SystemStatus />
-        </div>
-      </footer>
+      {/* Phones: the pages as a tab bar at the bottom, where thumbs reach. */}
+      <nav
+        aria-label="Main"
+        className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-4 border-t border-stone-200 bg-stone-50/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      >
+        {NAV.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 py-2.5 text-[11px] transition-colors duration-150 ${
+                isActive ? 'font-semibold text-accent' : 'text-stone-600'
+              }`
+            }
+          >
+            <item.icon size={20} aria-hidden="true" />
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
     </div>
   )
 }
