@@ -34,7 +34,7 @@ jobs:
       - run: ./mvnw -B verify
 
   frontend:
-    name: Frontend (lint + type-check + build)
+    name: Frontend (lint + type-check + unit tests + build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -50,7 +50,79 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
+      # Vitest + React Testing Library: functions and components, with the API faked.
+      - run: npm test
       - run: npm run build
+
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    # A throwaway database just for this run; the password never leaves CI.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: budget
+          POSTGRES_USER: budget
+          POSTGRES_PASSWORD: e2e-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U budget -d budget"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_NAME: budget
+      DB_USERNAME: budget
+      DB_PASSWORD: e2e-only
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # The real backend, as deployed: Flyway creates the schema on startup.
+      - name: Start the backend
+        working-directory: backend
+        run: |
+          ./mvnw -B -q package -DskipTests
+          nohup java -jar target/*.jar > ../backend.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf localhost:8080/api/health && exit 0; sleep 2; done
+          cat ../backend.log
+          exit 1
+
+      - name: Install the frontend and Chromium
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      # Playwright starts the frontend (Vite, proxying /api to the backend) and drives a real
+      # browser through sign-up, upload, dashboard, and budget, at desktop and phone sizes.
+      - name: Run the browser tests
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Keep screenshots, traces and the backend log if something failed
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-results
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+            backend.log
+          retention-days: 7
 
   ml:
     name: ML (tests)

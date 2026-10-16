@@ -113,10 +113,15 @@ apart can look yearly; merchants whose reference codes are all letters may not g
 
 ## Testing
 
-- 220 backend tests (JUnit 5, Spring Boot tests against a real Postgres via Testcontainers):
+- 247 backend tests (JUnit 5, Spring Boot tests against a real Postgres via Testcontainers):
   `cd backend && ./mvnw test`
+- Frontend unit and component tests (Vitest + React Testing Library, API faked; they find elements
+  by role and label like a screen reader would): `cd frontend && npm test`
+- End-to-end tests (Playwright): a real Chromium signs up, uploads a statement, checks the dashboard,
+  uses the suggested budget and deletes the account, at desktop and phone sizes, against the real
+  backend and Postgres: `cd frontend && npm run test:e2e` (with the backend running)
 - 14 Python tests for the model: `cd ml && python -m pytest`
-- GitHub Actions runs the backend tests, frontend lint and build, and the Python tests on every push.
+- GitHub Actions runs all of it on every push; a failed browser test keeps its screenshot and trace.
 - `node scripts/record-demo.mjs` regenerates the README demo animation from a running app, using a
   throwaway demo account.
 
