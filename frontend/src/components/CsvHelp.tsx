@@ -97,7 +97,7 @@ export function CsvHelp() {
                 aria-pressed={bank === b.name}
                 className={`rounded-full border px-3 py-1.5 transition-colors duration-150 ${
                   bank === b.name
-                    ? 'border-accent bg-accent text-accent-ink'
+                    ? 'border-button bg-button text-button-ink'
                     : 'border-stone-300 bg-white text-stone-800 hover:border-stone-400'
                 }`}
               >

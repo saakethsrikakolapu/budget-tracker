@@ -23,14 +23,14 @@ import { useIsDark } from '../theme'
 function palette(dark: boolean) {
   return dark
     ? {
-        strip: ['#8fc7a3', '#72a888', '#588a6f', '#456f5a', '#365a49'],
-        rest: '#2b473c',
+        strip: ['#6fae88', '#5a9475', '#4a7d62', '#3d6852', '#335745'],
+        rest: '#2a3530',
         bar: '#8fc7a3',
-        barMuted: '#2e4a3e',
-        axis: '#a3b8aa',
-        label: '#eef3ec',
-        hover: '#1e3830',
-        tooltip: { background: '#172c25', border: '1px solid #284439', color: '#eef3ec' },
+        barMuted: '#34433c',
+        axis: '#a9b4ac',
+        label: '#eef1ea',
+        hover: '#232e29',
+        tooltip: { background: '#1b2420', border: '1px solid #2b3631', color: '#eef1ea' },
       }
     : {
         strip: ['#2f6b4f', '#4c8467', '#729f86', '#9bbaa7', '#c2d4c6'],
@@ -483,7 +483,7 @@ function BudgetList({ overview, plan }: { overview: api.BudgetOverview; plan: ap
             {plan?.target && (
               <Link
                 to={`/budgets?month=${overview.month}`}
-                className="mt-3 inline-block rounded-md bg-accent px-3 py-1.5 font-semibold text-accent-ink transition-colors duration-150 hover:bg-accent-hover"
+                className="mt-3 inline-block rounded-md bg-button px-3 py-1.5 font-semibold text-button-ink transition-colors duration-150 hover:bg-button-hover"
               >
                 See my budget
               </Link>
@@ -562,7 +562,7 @@ function Welcome() {
       </ol>
       <Link
         to="/import"
-        className="mt-10 inline-flex items-center gap-2 rounded-md bg-accent px-5 py-3 font-semibold text-accent-ink transition-colors duration-150 hover:bg-accent-hover"
+        className="mt-10 inline-flex items-center gap-2 rounded-md bg-button px-5 py-3 font-semibold text-button-ink transition-colors duration-150 hover:bg-button-hover"
       >
         <Upload size={18} aria-hidden="true" />
         Upload your first statement

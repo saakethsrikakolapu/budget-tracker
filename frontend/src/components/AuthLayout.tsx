@@ -122,7 +122,7 @@ export function SubmitButton({ busy, children }: { busy: boolean; children: Reac
     <button
       type="submit"
       disabled={busy}
-      className="w-full rounded-lg bg-accent py-2.5 text-accent-ink font-semibold transition-colors duration-150 hover:bg-accent-hover disabled:opacity-50"
+      className="w-full rounded-lg bg-button py-2.5 text-button-ink font-semibold transition-colors duration-150 hover:bg-button-hover disabled:opacity-50"
     >
       {busy ? 'Please wait…' : children}
     </button>

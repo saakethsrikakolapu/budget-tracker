@@ -80,7 +80,7 @@ export function AppLayout() {
             <ThemeToggle />
             <NavLink
               to="/import"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-accent-ink transition-colors duration-150 hover:bg-accent-hover"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-button px-3 py-2 text-sm font-semibold text-button-ink transition-colors duration-150 hover:bg-button-hover"
             >
               <Upload size={16} aria-hidden="true" />
               Upload<span className="hidden md:inline"> statement</span>

@@ -38,6 +38,11 @@
   --color-accent-soft: #d6e5d9;
   --color-accent-ink: #ffffff; /* text on accent fills */
 
+  /* Main buttons (in dark mode these become paper, so they get their own names). */
+  --color-button: #2f6b4f;
+  --color-button-hover: #245840;
+  --color-button-ink: #ffffff;
+
   /* Seal red: over budget, errors, destructive actions. */
   --color-red-50: #f7e7e4;
   --color-red-200: #e7c2bc;

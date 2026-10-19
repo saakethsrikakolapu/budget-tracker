@@ -282,7 +282,7 @@ export function ImportPage() {
                     type="button"
                     onClick={handleImport}
                     disabled={!canImport || submitting || previewing}
-                    className="rounded-lg bg-accent px-5 py-2.5 text-accent-ink font-semibold transition-colors duration-150 hover:bg-accent-hover disabled:opacity-40"
+                    className="rounded-lg bg-button px-5 py-2.5 text-button-ink font-semibold transition-colors duration-150 hover:bg-button-hover disabled:opacity-40"
                   >
                     {submitting ? 'Importing…' : canImport ? `Import ${plural(newCount, 'transaction')}` : 'Import'}
                   </button>

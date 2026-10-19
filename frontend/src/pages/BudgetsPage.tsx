@@ -236,7 +236,7 @@ function Suggestion({
       <button
         type="button"
         onClick={onUse}
-        className="rounded-lg bg-accent px-5 py-3 font-semibold text-accent-ink transition-colors duration-150 hover:bg-accent-hover"
+        className="rounded-lg bg-button px-5 py-3 font-semibold text-button-ink transition-colors duration-150 hover:bg-button-hover"
       >
         Use this budget
       </button>
