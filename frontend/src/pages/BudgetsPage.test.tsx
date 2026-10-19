@@ -71,7 +71,7 @@ describe('BudgetsPage', () => {
     expect(await screen.findByText(/you usually spend about/i)).toHaveTextContent('$250.00')
     const list = screen.getAllByRole('list')[0]
     expect(within(list).getByText('Groceries')).toBeInTheDocument()
-    expect(within(list).getByText('Regular charges · usually $64.91')).toBeInTheDocument() // the phone bill
+    expect(within(list).getByText('Regular charge, usually $64.91')).toBeInTheDocument() // the phone bill
 
     // After saving, the page reloads and shows the budget being tracked.
     fetchBudgets.mockResolvedValue({

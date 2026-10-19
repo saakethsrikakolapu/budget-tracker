@@ -9,22 +9,53 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Spendr design system: "a clean bank statement". Warm paper neutrals (Tailwind's stone, with a
- * paper-colored page), one green accent for money, links, focus and the main buttons, hairline
- * rules instead of shadows, and numbers in tabular figures so columns of money line up.
+ * Spendr design system: a dollar bill and a highlighter. Neutrals are banknote sage (paper) and
+ * greenback ink (text) instead of grey and black; seal green is the one action color; seal red means
+ * over budget; a yellow highlighter marks the few things that need a look. Color always means
+ * something: categories stay quiet. Thin rules and space separate sections; numbers use tabular
+ * figures so money lines up.
  */
 @theme {
   --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: "Bricolage Grotesque Variable", "IBM Plex Sans Variable", ui-sans-serif, system-ui, sans-serif;
 
-  --color-stone-50: #f6f4ee; /* the page: warm paper */
-  --color-stone-500: #6b655d; /* muted text: darker than stock stone-500 so it's 4.5:1 on the paper too */
+  /* Neutrals, kept under Tailwind's "stone" names: banknote paper to greenback ink. */
+  --color-stone-50: #eef1ea; /* banknote paper: the page */
+  --color-stone-100: #e3e9e0;
+  --color-stone-200: #d3dcd0; /* rules and borders */
+  --color-stone-300: #b9c5b6;
+  --color-stone-400: #8e9c8c;
+  --color-stone-500: #5b6b60; /* muted text: 4.9:1 on the paper, 5.6:1 on white */
+  --color-stone-600: #46584d;
+  --color-stone-700: #33463c;
+  --color-stone-800: #24382f;
+  --color-stone-900: #1b3029;
+  --color-stone-950: #17302a; /* greenback ink: text */
 
-  --color-accent: #0f7a4f; /* Spendr green: 5.4:1 on white, 4.9:1 on the paper */
-  --color-accent-hover: #0b6340;
-  --color-accent-soft: #dcf1e5;
+  --color-accent: #2f6b4f; /* seal green: 6.1:1 under white text */
+  --color-accent-hover: #245840;
+  --color-accent-soft: #d6e5d9;
   --color-accent-ink: #ffffff; /* text on accent fills */
+
+  /* Seal red: over budget, errors, destructive actions. */
+  --color-red-50: #f7e7e4;
+  --color-red-200: #e7c2bc;
+  --color-red-300: #d99d94;
+  --color-red-500: #c2554c;
+  --color-red-600: #b4413a;
+  --color-red-700: #9a332d;
+  --color-red-800: #7d2924;
+
+  /* Notices ("check this") borrow the highlighter's yellow, softened, so yellow always means "look". */
+  --color-amber-50: #f8f1c8;
+  --color-amber-700: #5e5210;
+  --color-amber-800: #4f450d;
+  --color-amber-900: #3f370a;
+
+  /* The highlighter: behind text that needs a look (always with ink-colored text on it). */
+  --color-highlight: #f2e35c;
+  --color-highlight-ink: #17302a;
 }
 
 @layer base {
@@ -76,8 +107,16 @@
     @apply animate-pulse rounded-md bg-stone-200/70;
   }
 
-  /* The one card style: white, hairline border, no shadow. */
+  /* For things you work in (forms, lists you edit). Plain sections use space and a rule instead. */
   .card {
     @apply rounded-lg border border-stone-200 bg-white;
+  }
+
+  /* A highlighter swipe, for the few things that need a look ("higher than usual"). */
+  mark,
+  .highlight {
+    @apply rounded-[3px] bg-highlight px-1 text-highlight-ink;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
 }

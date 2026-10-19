@@ -10,7 +10,7 @@ import { useAuth } from '../auth/authContext'
 export function AccountPage() {
   const { user } = useAuth()
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-stone-950">Account</h1>
         <p className="mt-1 text-sm text-stone-600">Logged in as {user?.email}</p>
@@ -26,7 +26,7 @@ export function AccountPage() {
 
 function Section({ title, children, danger = false }: { title: string; children: ReactNode; danger?: boolean }) {
   return (
-    <section className={`rounded-lg border bg-white p-5 ${danger ? 'border-red-200' : 'border-stone-200'}`}>
+    <section className={`border-t pt-6 ${danger ? 'border-red-300' : 'border-stone-200'}`}>
       <h2 className="text-lg font-bold text-stone-950">{title}</h2>
       {children}
     </section>

@@ -13,7 +13,7 @@ export function AuthLayout({ title, children }: { title: string; children: React
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-      <section className="hidden flex-col justify-between overflow-hidden bg-[#0f7a4f] p-12 text-white lg:flex">
+      <section className="hidden flex-col justify-between overflow-hidden bg-[#2f6b4f] p-12 text-white lg:flex">
         <div className="flex items-center gap-2">
           <span className="rounded-lg bg-white/10 p-0.5">
             <Logo />
@@ -62,21 +62,21 @@ function ReceiptPreview() {
   return (
     <div
       aria-hidden="true"
-      className="mt-10 w-80 -rotate-2 rounded-t-md bg-[#fbfaf6] px-5 pb-6 pt-4 text-[#1c1917] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] [clip-path:polygon(0_0,100%_0,100%_100%,95%_97%,90%_100%,85%_97%,80%_100%,75%_97%,70%_100%,65%_97%,60%_100%,55%_97%,50%_100%,45%_97%,40%_100%,35%_97%,30%_100%,25%_97%,20%_100%,15%_97%,10%_100%,5%_97%,0_100%)]"
+      className="mt-10 w-80 -rotate-2 rounded-t-md bg-[#f4f6f1] px-5 pb-6 pt-4 text-[#17302a] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] [clip-path:polygon(0_0,100%_0,100%_100%,95%_97%,90%_100%,85%_97%,80%_100%,75%_97%,70%_100%,65%_97%,60%_100%,55%_97%,50%_100%,45%_97%,40%_100%,35%_97%,30%_100%,25%_97%,20%_100%,15%_97%,10%_100%,5%_97%,0_100%)]"
     >
       <p className="font-display text-sm font-bold">October so far</p>
       <ul className="mt-3 space-y-2 text-sm">
         {lines.map(([merchant, category, amount]) => (
           <li key={merchant} className="flex items-baseline gap-2">
             <span className="font-medium">{merchant}</span>
-            <span className="flex-1 truncate text-xs text-[#6b655d]">{category}</span>
+            <span className="flex-1 truncate text-xs text-[#5b6b60]">{category}</span>
             <span className="tabular-nums">{amount}</span>
           </li>
         ))}
       </ul>
-      <div className="mt-3 flex items-baseline justify-between border-t border-dashed border-[#d6d3d1] pt-3">
+      <div className="mt-3 flex items-baseline justify-between border-t border-dashed border-[#c2d0c4] pt-3">
         <span className="text-sm">Left in budget</span>
-        <span className="font-display text-lg font-bold text-[#0f7a4f] tabular-nums">$186.44</span>
+        <span className="font-display text-lg font-bold text-[#2f6b4f] tabular-nums">$186.44</span>
       </div>
     </div>
   )

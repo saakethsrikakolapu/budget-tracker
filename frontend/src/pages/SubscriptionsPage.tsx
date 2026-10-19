@@ -86,7 +86,7 @@ export function SubscriptionsPage() {
             />
           )}
           {overview.hidden.length > 0 && (
-            <section className="rounded-lg border border-stone-200 bg-white p-5">
+            <section className="border-t border-stone-200 pt-6">
               <h2 className="text-lg font-bold text-stone-950">Not subscriptions</h2>
               <p className="mt-1 text-sm text-stone-500">You hid these. They don't count in the total.</p>
               <ul className="mt-3 divide-y divide-stone-100">
@@ -119,7 +119,7 @@ function ChargeList(props: {
   onHide: (charge: api.RecurringCharge) => void
 }) {
   return (
-    <section className="rounded-lg border border-stone-200 bg-white p-5">
+    <section className="border-t border-stone-200 pt-6">
       <h2 className="text-lg font-bold text-stone-950">{props.title}</h2>
       {props.note && <p className="mt-1 text-sm text-stone-500">{props.note}</p>}
       {props.charges.length === 0 ? (
@@ -133,10 +133,9 @@ function ChargeList(props: {
                 <div className="min-w-0">
                   <p className="font-medium text-stone-900">{c.name}</p>
                   <p className="text-sm text-stone-500">
-                    {formatCadence(c.cadence)}
-                    {c.categoryName && ` · ${c.categoryName}`}
-                    {' · '}
+                    {formatCadence(c.cadence)},{' '}
                     {c.active ? `next around ${formatDate(c.nextExpected)}` : `last charged ${formatDate(c.lastDate)}`}
+                    {c.categoryName && ` (${c.categoryName})`}
                   </p>
                 </div>
               </div>

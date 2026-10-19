@@ -226,7 +226,7 @@ export function ImportPage() {
                 <span className="mt-4 font-medium text-stone-900">
                   Drop your CSV here, or <span className="text-accent underline">browse</span>
                 </span>
-                <span className="mt-1 text-xs text-stone-500">Any bank or card · up to 2 MB</span>
+                <span className="mt-1 text-xs text-stone-500">Any bank or card, up to 2 MB</span>
                 <input
                   type="file"
                   accept=".csv,text/csv"
@@ -405,7 +405,7 @@ function Summary({ preview, newCount }: { preview: api.ImportPreview; newCount: 
       <p className="font-display text-xl font-bold tracking-tight text-stone-950">
         Found {plural(preview.transactionCount, 'transaction')}
         {preview.firstDate && preview.lastDate && (
-          <span className="font-normal text-stone-500"> · {dateRange(preview.firstDate, preview.lastDate)}</span>
+          <span className="font-normal text-stone-500">, {dateRange(preview.firstDate, preview.lastDate)}</span>
         )}
       </p>
       {already > 0 && (
@@ -463,7 +463,7 @@ function Details({
           </p>
           <div className="overflow-x-auto rounded-lg border border-stone-200">
             <table className="w-full text-left text-sm">
-              <thead className="bg-stone-50 text-xs uppercase text-stone-500">
+              <thead className="bg-stone-50 text-xs text-stone-500">
                 <tr>
                   <th className="px-3 py-2 font-medium">Date</th>
                   <th className="px-3 py-2 font-medium">Description</th>

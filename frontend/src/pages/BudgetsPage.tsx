@@ -199,7 +199,7 @@ function Suggestion({
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium text-stone-900">{line.categoryName}</p>
               <p className="text-xs text-stone-500">
-                {line.fixed > 0 ? 'Regular charges · ' : ''}usually {formatMoney(line.usual)}
+                {line.fixed > 0 ? 'Regular charge, usually ' : 'Usually '}{formatMoney(line.usual)}
               </p>
             </div>
             <span className="font-semibold tabular-nums text-stone-950">{formatMoney(line.suggested)}</span>
@@ -415,7 +415,7 @@ function PaceSentence({ plan }: { plan: api.BudgetPlan }) {
   if (higher.length > 0) {
     return (
       <p className="mt-2 text-sm text-stone-600">
-        Higher than usual: <strong className="font-semibold text-amber-700">{listOf(higher)}</strong>.
+        Higher than usual: <mark className="font-medium">{listOf(higher)}</mark>.
       </p>
     )
   }
@@ -455,11 +455,7 @@ function BudgetRow({
         <span className="flex items-center gap-2 font-medium text-stone-900">
           <CategoryIcon name={line.categoryName} />
           {line.categoryName}
-          {planLine?.pace === 'HIGHER' && (
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-              Higher than usual
-            </span>
-          )}
+          {planLine?.pace === 'HIGHER' && <mark className="text-xs font-medium">Higher than usual</mark>}
         </span>
         <span className="text-sm tabular-nums text-stone-600">
           <strong className="font-semibold text-stone-950">{formatMoney(Math.max(line.spent, 0))}</strong> of{' '}
@@ -479,7 +475,7 @@ function BudgetRow({
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <span className={over ? 'font-medium text-red-600' : 'text-stone-500'}>
           {over ? `${formatMoney(-line.remaining)} over budget` : `${formatMoney(line.remaining)} left`}
-          {planLine && planLine.usual > 0 && ` · usually ${formatMoney(planLine.usual)} a month`}
+          {planLine && planLine.usual > 0 && `, usually ${formatMoney(planLine.usual)} a month`}
         </span>
         {editing ? (
           <form

@@ -202,13 +202,11 @@ export function TransactionsPage() {
         {/* Totals over every matching transaction (all pages), from the backend, as one sentence. */}
         {data && (
           <p className="mt-1 text-stone-600">
-            <strong className="font-semibold text-stone-950 tabular-nums">{data.totals.count}</strong>{' '}
-            {data.totals.count === 1 ? 'transaction' : 'transactions'} ·{' '}
             <strong className="font-semibold text-stone-950 tabular-nums">{formatMoney(data.totals.spent)}</strong> spent
+            across {data.totals.count} {data.totals.count === 1 ? 'transaction' : 'transactions'}
             {data.totals.refunds > 0 && (
               <>
-                {' '}
-                · <strong className="font-semibold text-stone-950 tabular-nums">{formatMoney(data.totals.refunds)}</strong>{' '}
+                , plus <strong className="font-semibold text-stone-950 tabular-nums">{formatMoney(data.totals.refunds)}</strong>{' '}
                 back in refunds
               </>
             )}
@@ -386,7 +384,7 @@ export function TransactionsPage() {
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-stone-900">{merchantName(t.description)}</p>
                           <p className="truncate text-xs text-stone-500">
-                            {t.description} · {t.accountName}
+                            {t.description}, {t.accountName}
                           </p>
                         </div>
                         {/* The category is a quiet dropdown: looks like a label, changes on click. */}

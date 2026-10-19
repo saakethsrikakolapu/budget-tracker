@@ -34,7 +34,7 @@ export function ImportHistory({ imports, onDelete }: Props) {
           <div className="min-w-0">
             <p className="truncate font-medium text-stone-900">{item.fileName}</p>
             <p className="text-sm text-stone-500">
-              {item.accountName} · {new Date(item.createdAt).toLocaleString()} · {item.importedCount} added
+              {item.importedCount} added to {item.accountName} on {new Date(item.createdAt).toLocaleDateString()}
               {item.skippedCount > 0 && `, ${item.skippedCount} skipped as duplicates`}
             </p>
           </div>
