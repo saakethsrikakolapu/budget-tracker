@@ -32,7 +32,7 @@ export function AuthLayout({ title, children }: { title: string; children: React
           </p>
           <ReceiptPreview />
         </div>
-        <p className="text-sm text-[#ecf8f1]">Made for students. Your statements stay yours.</p>
+        <FounderNote />
       </section>
 
       <div className="flex items-center justify-center bg-stone-50 p-6">
@@ -45,9 +45,30 @@ export function AuthLayout({ title, children }: { title: string; children: React
             <h1 className="text-3xl font-bold text-stone-950">{title}</h1>
           </div>
           {children}
+          {/* Phones don't get the side panel, so the note comes after the form, shorter. */}
+          <p className="border-t border-stone-200 pt-5 text-sm text-stone-600 lg:hidden">
+            Made by Saaketh, a UNC student who didn&apos;t want to hand a bank password to an app. Spendr reads the
+            statement you download instead.
+          </p>
         </div>
       </div>
     </main>
+  )
+}
+
+/** Why Spendr exists, in the maker's own words. A person, not a pitch. */
+function FounderNote() {
+  return (
+    <figure className="max-w-md border-l-2 border-white/40 pl-4">
+      <blockquote className="text-[15px] leading-relaxed text-[#ecf8f1]">
+        &ldquo;I built Spendr because every budgeting app I tried wanted my bank password, and all I wanted to know
+        was where my dining money went. So this one reads the statement you download instead. No connections, no
+        selling your data, just your numbers.&rdquo;
+      </blockquote>
+      <figcaption className="mt-3 text-sm text-white">
+        <span className="font-display font-semibold">Saaketh</span>, CS student at UNC Chapel Hill
+      </figcaption>
+    </figure>
   )
 }
 
@@ -57,7 +78,7 @@ function ReceiptPreview() {
     ['Chipotle', 'Food & Dining', '$11.85'],
     ['Spotify', 'Subscription', '$5.99'],
     ['Harris Teeter', 'Groceries', '$42.10'],
-    ['Uber', 'Transportation', '$14.62'],
+    ['Insomnia Cookies', 'Food & Dining', '$3.00'],
   ]
   return (
     <div

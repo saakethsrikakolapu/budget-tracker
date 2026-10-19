@@ -69,12 +69,13 @@ export function SubscriptionsPage() {
             {active.length} {active.length === 1 ? 'subscription costs' : 'subscriptions cost'} you{' '}
             <span className="tabular-nums">{formatMoney(overview.activeMonthlyTotal)}</span> a month. That&apos;s about{' '}
             <span className="text-accent tabular-nums">{formatMoney(overview.activeMonthlyTotal * 12)}</span> a year.
+            {active.length > 1 && ' Still using all of them?'}
           </p>
 
           <ChargeList
             title="Active"
             charges={active}
-            empty="No active subscriptions found. Upload more months of statements to find them."
+            empty="None found. Either you have no subscriptions (impressive) or they'll show up after a few more months of statements."
             onHide={(c) => change(() => api.hideRecurring(c.merchantKey))}
           />
           {stopped.length > 0 && (

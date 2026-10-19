@@ -14,6 +14,7 @@ import {
 } from '../format'
 import { useCountUp } from '../hooks/useCountUp'
 import { useIsDark } from '../theme'
+import { nudge } from '../voice'
 
 /**
  * Colors set in JS because Recharts and the month strip draw with them. One ink-green ramp, darkest
@@ -222,6 +223,8 @@ function HigherThanUsual({ plan }: { plan: api.BudgetPlan }) {
           {i > 0 && ' '}
           <mark className="font-medium">{l.categoryName}</mark> is{' '}
           <span className="tabular-nums">{formatMoney(l.spent - l.usualSoFar)}</span> higher than usual{soFar}.
+          {/* One nudge at most: with two categories up, the facts are enough. */}
+          {higher.length === 1 && <> {nudge(l.categoryName)}</>}
         </span>
       ))}
     </p>
@@ -238,7 +241,7 @@ function Comparison({ dashboard }: { dashboard: api.Dashboard }) {
   if (diff === 0) return <>Same as {label}.</>
   return (
     <>
-      That&apos;s {formatMoney(Math.abs(diff))} {diff > 0 ? 'more' : 'less'} than {label}.
+      That&apos;s {formatMoney(Math.abs(diff))} {diff > 0 ? 'more' : 'less'} than {label}.{diff < 0 && ' Nice.'}
     </>
   )
 }
@@ -288,7 +291,9 @@ function MonthStrip({
         <h2 id="where-it-went" className="text-lg font-bold text-stone-950">
           Where it went
         </h2>
-        <p className="mt-2 text-stone-600">No spending this month.</p>
+        <p className="mt-2 text-stone-600">
+          No spending this month. Either very disciplined, or this month&apos;s statement isn&apos;t uploaded yet.
+        </p>
       </section>
     )
   }
@@ -546,7 +551,8 @@ function Welcome() {
     <div className="mx-auto max-w-3xl py-8">
       <h1 className="text-4xl leading-[1.05] font-bold text-stone-950 sm:text-6xl">Let&apos;s see where your money goes</h1>
       <p className="mt-4 max-w-lg text-lg text-stone-600">
-        No bank login needed. Everything starts with one statement file.
+        No bank login needed. Everything starts with one statement file, yes, the one you&apos;ve been meaning to
+        look at.
       </p>
       {/* A real sequence, so the steps are numbered. */}
       <ol className="mt-10 grid gap-8 border-t border-stone-200 pt-8 sm:grid-cols-3">

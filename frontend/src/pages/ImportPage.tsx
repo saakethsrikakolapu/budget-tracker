@@ -528,7 +528,7 @@ function ImportDone({
           </p>
           <p className="mt-1 text-sm text-stone-600">
             {nothingNew
-              ? `All ${plural(imported.skippedCount, 'transaction')} were already imported.`
+              ? `All ${plural(imported.skippedCount, 'transaction')} were already here. Good record-keeping, though.`
               : imported.uncategorizedCount > 0
                 ? `${plural(imported.uncategorizedCount, 'transaction')} from merchants we don't recognize ${
                     imported.uncategorizedCount === 1 ? 'needs' : 'need'

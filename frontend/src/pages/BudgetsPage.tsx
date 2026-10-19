@@ -355,7 +355,7 @@ function Tracking({
           ) : (
             <>
               <span className="text-red-600 tabular-nums">{formatMoney(-left)}</span> over your{' '}
-              {formatMoney(overview.totalBudgeted)} budget this month.
+              {formatMoney(overview.totalBudgeted)} budget this month. It happens; next month starts fresh.
             </>
           )}
         </p>

@@ -47,11 +47,11 @@ export function ServerWakeGate({ children }: { children: ReactNode }) {
     <main className="min-h-screen bg-stone-50 flex items-center justify-center p-6">
       <div role="status" className="w-full max-w-sm rounded-lg border border-stone-200 bg-white p-6 text-center">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-stone-200 border-t-stone-900" />
-        <h1 className="mt-4 text-lg font-semibold text-stone-900">Starting the server…</h1>
+        <h1 className="mt-4 text-lg font-semibold text-stone-900">Waking up the server…</h1>
         <p className="mt-2 text-sm text-stone-600">
           {elapsedMs < STILL_WAITING_AFTER_MS
-            ? 'This app runs on free hosting that sleeps when nobody is using it. Waking up can take up to a minute.'
-            : 'This is taking longer than usual. You can keep waiting or try refreshing the page.'}
+            ? "Spendr runs on free hosting that naps when nobody's around. Waking up takes up to a minute."
+            : 'This is taking longer than usual. Keep waiting, or refresh the page.'}
         </p>
       </div>
     </main>

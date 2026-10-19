@@ -366,7 +366,7 @@ export function TransactionsPage() {
 
           {data.items.length === 0 ? (
             <p className="rounded-lg border border-stone-200 bg-white px-4 py-8 text-center text-stone-500">
-              No transactions match these filters.
+              No transactions match these filters. Try All time, or clear the search.
             </p>
           ) : (
             // Grouped by day, newest first (the backend already sorts by date).
