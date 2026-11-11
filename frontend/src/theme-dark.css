@@ -156,6 +156,23 @@
   --color-red-700: #f0aaa2;
   /* The highlighter stays real yellow: dimmed, it turned mustard on the dark page. */
   --color-highlight: #f2e35c;
+  /* Status and the amber flag, lifted to read on the dark page. */
+  --color-good: #8fc7a3;
+  --color-close: #e6b450;
+  --color-close-bar: #e6b450;
+  --color-over: #e8938a;
+  --color-flag: #4a3c17;
+  --color-flag-ink: #f3d98a;
+  /* Category colors: the same inks, lightened (all at least 3:1 on the page and on cards). */
+  --color-cat-groceries: #6fc596;
+  --color-cat-food: #dfa66a;
+  --color-cat-bills: #8eabf2;
+  --color-cat-entertainment: #b99cf2;
+  --color-cat-shopping: #ea8cc6;
+  --color-cat-subscriptions: #55cdd2;
+  --color-cat-health: #b6d062;
+  --color-cat-transport: #a7b1c6;
+  --color-cat-other: #75837b;
 }
 
 /*

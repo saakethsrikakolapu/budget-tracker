@@ -6,26 +6,26 @@ import * as api from '../api'
 import {
   currentMonth,
   daysFromToday,
-  formatCadence,
+  expectedLabel,
   formatMoney,
   formatMonth,
   formatMonthShort,
   formatShortDate,
 } from '../format'
 import { useCountUp } from '../hooks/useCountUp'
+import { budgetStatus, remainingText, STATUS_TEXT } from '../budgetStatus'
+import { BudgetMeter } from '../components/BudgetMeter'
+import { categoryStyle } from '../categoryStyle'
 import { useIsDark } from '../theme'
 import { nudge } from '../voice'
 
 /**
- * Colors set in JS because Recharts and the month strip draw with them. One ink-green ramp, darkest
- * for the biggest share: categories are told apart by order and label, not by a rainbow, so the
- * colors that do stand out on the page (red, the highlighter) keep their meaning.
+ * Chart colors, set in JS because Recharts draws with them. Category colors come from
+ * categoryStyle (CSS variables), so the strip, its legend and the transaction icons always match.
  */
 function palette(dark: boolean) {
   return dark
     ? {
-        strip: ['#6fae88', '#5a9475', '#4a7d62', '#3d6852', '#335745'],
-        rest: '#2a3530',
         bar: '#8fc7a3',
         barMuted: '#34433c',
         axis: '#a9b4ac',
@@ -34,8 +34,6 @@ function palette(dark: boolean) {
         tooltip: { background: '#1b2420', border: '1px solid #2b3631', color: '#eef1ea' },
       }
     : {
-        strip: ['#2f6b4f', '#4c8467', '#729f86', '#9bbaa7', '#c2d4c6'],
-        rest: '#dde5da',
         bar: '#2f6b4f',
         barMuted: '#c2d4c6',
         axis: '#5b6b60',
@@ -102,7 +100,10 @@ export function DashboardPage() {
     `/transactions?${new URLSearchParams({ month: month ?? '', ...extra })}`
 
   return (
-    <div className="space-y-10">
+    // Desktop: the month's story on the left, the budget and recurring charges beside it.
+    // Phone: one column, in that same order.
+    <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-0">
+      <div className="space-y-10 lg:pr-12">
       <div className="flex flex-wrap items-start justify-between gap-4">
         {dashboard ? (
           <Headline dashboard={dashboard} plan={plan} seeAllLink={transactionsLink()} />
@@ -144,16 +145,16 @@ export function DashboardPage() {
             }
           />
 
-          {/* Two quieter sections side by side, split by a rule instead of boxed in cards. */}
-          <div className="grid grid-cols-1 gap-10 border-t border-stone-200 pt-8 lg:grid-cols-2 lg:gap-0">
-            <MonthlyTrend data={dashboard.monthlyTrend} selected={dashboard.month} />
-            <div className="lg:border-l lg:border-stone-200 lg:pl-10">
-              {recurring && <UpcomingCharges overview={recurring} />}
-            </div>
-          </div>
-
-          {budgets && <BudgetList overview={budgets} plan={plan} />}
+          <MonthlyTrend data={dashboard.monthlyTrend} selected={dashboard.month} />
         </>
+      )}
+      </div>
+
+      {dashboard && (
+        <aside className="space-y-10 border-t border-stone-200 pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
+          {budgets && <BudgetList overview={budgets} plan={plan} />}
+          {recurring && <RecurringCharges overview={recurring} />}
+        </aside>
       )}
     </div>
   )
@@ -273,8 +274,8 @@ function StaleData({ latest }: { latest: string }) {
 const STRIP_CATEGORIES = 5
 
 /**
- * Where the month went, as one strip: each category's share of the spending, biggest first, in one
- * ink-green ramp. The labels underneath are the buttons (the strip itself is a picture of them).
+ * Where the month went, as one strip: each category's share of the spending, biggest first, each in
+ * its category color. The labels underneath are the buttons (the strip itself is a picture of them).
  */
 function MonthStrip({
   data,
@@ -283,7 +284,6 @@ function MonthStrip({
   data: api.Dashboard['spendingByCategory']
   onSelect: (categoryId: number | null) => void
 }) {
-  const colors = palette(useIsDark())
   const total = data.reduce((sum, d) => sum + d.amount, 0)
   if (data.length === 0 || total <= 0) {
     return (
@@ -301,9 +301,9 @@ function MonthStrip({
   const rest = data.slice(STRIP_CATEGORIES)
   const restTotal = rest.reduce((sum, d) => sum + d.amount, 0)
   const pieces = [
-    ...top.map((d, i) => ({ key: d.categoryName, label: d.categoryName, amount: d.amount, color: colors.strip[i], categoryId: d.categoryId as number | null | undefined })),
+    ...top.map((d) => ({ key: d.categoryName, label: d.categoryName, amount: d.amount, color: categoryStyle(d.categoryName).color, categoryId: d.categoryId as number | null | undefined })),
     ...(restTotal > 0
-      ? [{ key: 'rest', label: `${rest.length} more`, amount: restTotal, color: colors.rest, categoryId: undefined }]
+      ? [{ key: 'rest', label: `${rest.length} more`, amount: restTotal, color: 'var(--color-stone-300)', categoryId: undefined }]
       : []),
   ]
   const share = (amount: number) => Math.max((amount / total) * 100, 1.5)
@@ -318,7 +318,7 @@ function MonthStrip({
           <div key={p.key} style={{ flexBasis: `${share(p.amount)}%`, backgroundColor: p.color }} className="min-w-1" />
         ))}
       </div>
-      <ul className="mt-4 flex flex-wrap gap-x-10 gap-y-3">
+      <ul className="mt-4 flex flex-wrap gap-x-8 gap-y-3">
         {pieces.map((p) => {
           const content = (
             <>
@@ -353,19 +353,51 @@ function MonthStrip({
   )
 }
 
+/** With reduced motion on, charts draw in their final state (no grow-in). */
+const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+
+/**
+ * The selected month's x-axis label: bold and underlined, so it's marked by more than its bar color.
+ */
+function MonthTick({ x, y, payload, selectedLabel, color }: {
+  x?: number
+  y?: number
+  payload?: { value: string }
+  selectedLabel: string
+  color: string
+}) {
+  const isSelected = payload?.value === selectedLabel
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text dy={14} textAnchor="middle" fill={color} fontSize={13} fontWeight={isSelected ? 700 : 400}>
+        {payload?.value}
+      </text>
+      {isSelected && <rect x={-12} y={21} width={24} height={2} rx={1} fill={color} />}
+    </g>
+  )
+}
+
 function MonthlyTrend({ data, selected }: { data: api.Dashboard['monthlyTrend']; selected: string }) {
   const rows = data.map((d) => ({ ...d, label: formatMonthShort(d.month) }))
   const colors = palette(useIsDark())
+  const selectedLabel = formatMonthShort(selected)
   return (
-    <section aria-labelledby="six-months" className="lg:pr-10">
+    <section aria-labelledby="six-months" className="border-t border-stone-200 pt-8">
       <h2 id="six-months" className="text-lg font-bold text-stone-950">
         The last six months
       </h2>
       {/* Amounts sit on the bars, so there's no y-axis or grid to read across. */}
       <div className="mt-4 h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={rows} margin={{ top: 22, right: 0, bottom: 0, left: 0 }} barCategoryGap="30%">
-            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: colors.axis, fontSize: 13 }} />
+          <BarChart data={rows} margin={{ top: 22, right: 0, bottom: 4, left: 0 }} barCategoryGap="30%">
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              axisLine={false}
+              height={30}
+              interval={0}
+              tick={<MonthTick selectedLabel={selectedLabel} color={colors.label} />}
+            />
             <Tooltip
               cursor={{ fill: colors.hover }}
               contentStyle={{ ...colors.tooltip, borderRadius: 6 }}
@@ -376,7 +408,7 @@ function MonthlyTrend({ data, selected }: { data: api.Dashboard['monthlyTrend'];
                 payload?.[0] ? formatMonthShort(String(payload[0].payload.month), { year: true }) : ''
               }
             />
-            <Bar dataKey="netSpending" radius={[3, 3, 0, 0]} maxBarSize={44}>
+            <Bar dataKey="netSpending" radius={[3, 3, 0, 0]} maxBarSize={44} isAnimationActive={!reducedMotion()}>
               {rows.map((row) => (
                 <Cell key={row.month} fill={row.month === selected ? colors.bar : colors.barMuted} />
               ))}
@@ -401,40 +433,44 @@ function MonthlyTrend({ data, selected }: { data: api.Dashboard['monthlyTrend'];
   )
 }
 
-/** Subscriptions due next, soonest first, like lines on a statement: date, name, amount. */
-function UpcomingCharges({ overview }: { overview: api.RecurringOverview }) {
-  const upcoming = overview.charges
+/**
+ * Subscriptions and bills, by the date each is next expected, like lines on a statement. Named
+ * "Recurring charges", not "Coming up": with no bank connection, the next date is often already past
+ * (after the latest uploaded statement), and the label says so instead of pretending it's ahead.
+ */
+function RecurringCharges({ overview }: { overview: api.RecurringOverview }) {
+  const charges = overview.charges
     .filter((c) => c.active)
     .sort((a, b) => a.nextExpected.localeCompare(b.nextExpected))
     .slice(0, 5)
+  const afterStatements = overview.asOf !== null && charges.some((c) => daysFromToday(c.nextExpected) < 0 && c.nextExpected > overview.asOf!)
   return (
-    <section aria-labelledby="coming-up">
+    <section aria-labelledby="recurring">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id="coming-up" className="text-lg font-bold text-stone-950">
-          Coming up
+        <h2 id="recurring" className="text-lg font-bold text-stone-950">
+          Recurring charges
         </h2>
         <Link to="/subscriptions" className="text-sm font-medium text-accent hover:underline">
           All subscriptions
         </Link>
       </div>
-      {upcoming.length === 0 ? (
+      {charges.length === 0 ? (
         <p className="mt-3 text-sm text-stone-600">
           Nothing regular found yet. Subscriptions show up once a few months of statements are uploaded.
         </p>
       ) : (
         <>
           <p className="mt-1 text-sm text-stone-600">
-            Subscriptions cost you {formatMoney(overview.activeMonthlyTotal)} a month.
+            <span className="tabular-nums">{formatMoney(overview.activeMonthlyTotal)}</span> a month in total.
+            {/* Said once for the list, instead of on every row. */}
+            {afterStatements && <> Dates after {formatShortDate(overview.asOf!)} aren&apos;t in your statements yet.</>}
           </p>
           <ul className="mt-3 divide-y divide-stone-200">
-            {upcoming.map((c) => (
+            {charges.map((c) => (
               <li key={c.merchantKey} className="flex items-baseline gap-4 py-2.5">
-                <span className="w-14 shrink-0 text-sm tabular-nums text-stone-500">{formatShortDate(c.nextExpected)}</span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-stone-900">{c.name}</p>
-                  <p className="text-xs text-stone-500">
-                    {formatCadence(c.cadence)}, {dueLabel(c.nextExpected)}
-                  </p>
+                  <p className="text-xs text-stone-500">{expectedLabel(c.nextExpected, null)}</p>
                 </div>
                 <span className="text-sm font-semibold tabular-nums text-stone-950">{formatMoney(c.amount)}</span>
               </li>
@@ -446,26 +482,18 @@ function UpcomingCharges({ overview }: { overview: api.RecurringOverview }) {
   )
 }
 
-function dueLabel(isoDate: string): string {
-  const days = daysFromToday(isoDate)
-  if (days === 0) return 'due today'
-  if (days === 1) return 'due tomorrow'
-  if (days > 1 && days <= 14) return `due in ${days} days`
-  return days < 0 ? `was due ${formatShortDate(isoDate)}` : `due ${formatShortDate(isoDate)}`
-}
-
 /**
- * The budget, one line per category: "$82 of $150" and a thin bar. Red only when over; the
- * highlighter marks a category that's running higher than usual.
+ * The budget, one line per category: "$82 of $150" and a thin bar in its status color (green room
+ * left, amber close, red over with the overflow shown). "Higher than usual" isn't repeated here: the
+ * headline already says it.
  */
 function BudgetList({ overview, plan }: { overview: api.BudgetOverview; plan: api.BudgetPlan | null }) {
   const top = overview.budgets.slice(0, 6) // already sorted: most used first
-  const higher = new Set(plan?.lines.filter((l) => l.pace === 'HIGHER').map((l) => l.categoryId))
   return (
-    <section aria-labelledby="budget" className="border-t border-stone-200 pt-8">
+    <section aria-labelledby="budget">
       <div className="flex items-baseline justify-between gap-3">
         <h2 id="budget" className="text-lg font-bold text-stone-950">
-          Budget
+          Budget for {formatMonth(overview.month).split(' ')[0]}
         </h2>
         {top.length > 0 && (
           <Link to={`/budgets?month=${overview.month}`} className="text-sm font-medium text-accent hover:underline">
@@ -496,44 +524,21 @@ function BudgetList({ overview, plan }: { overview: api.BudgetOverview; plan: ap
           </div>
         </div>
       ) : (
-        <ul className="mt-4 grid grid-cols-1 gap-x-12 gap-y-5 lg:grid-cols-2">
-          {top.map((line) => {
-            const over = line.remaining < 0
-            return (
-              <li key={line.categoryId}>
-                <div className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="min-w-0 font-medium text-stone-900">
-                    {higher.has(line.categoryId) ? (
-                      <mark className="truncate">{line.categoryName}</mark>
-                    ) : (
-                      <span className="truncate">{line.categoryName}</span>
-                    )}
-                  </span>
-                  <span className="shrink-0 tabular-nums text-stone-600">
-                    <span className="font-semibold text-stone-950">{formatMoney(Math.max(line.spent, 0))}</span> of{' '}
-                    {formatMoney(line.limit)}
-                  </span>
-                </div>
-                <div
-                  className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-200"
-                  role="progressbar"
-                  aria-valuenow={line.percentUsed}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={`${line.categoryName}: ${line.percentUsed}% of budget used`}
-                >
-                  <div
-                    className={`h-full rounded-full ${over ? 'bg-red-600' : 'bg-accent'}`}
-                    style={{ width: `${Math.min(Math.max(line.percentUsed, 0), 100)}%` }}
-                  />
-                </div>
-                {/* Status in words too, never by color alone. */}
-                <p className={`mt-1 text-xs ${over ? 'font-medium text-red-600' : 'text-stone-500'}`}>
-                  {over ? `${formatMoney(-line.remaining)} over` : `${formatMoney(line.remaining)} left`}
-                </p>
-              </li>
-            )
-          })}
+        <ul className="mt-4 space-y-5">
+          {top.map((line) => (
+            <li key={line.categoryId}>
+              <div className="flex items-baseline justify-between gap-3 text-sm">
+                <span className="min-w-0 truncate font-medium text-stone-900">{line.categoryName}</span>
+                <span className="shrink-0 tabular-nums text-stone-600">
+                  <span className="font-semibold text-stone-950">{formatMoney(Math.max(line.spent, 0))}</span> of{' '}
+                  {formatMoney(line.limit)}
+                </span>
+              </div>
+              <BudgetMeter line={line} className="mt-2" />
+              {/* Status in words too, never by color alone. */}
+              <p className={`mt-1 text-xs tabular-nums ${STATUS_TEXT[budgetStatus(line)]}`}>{remainingText(line)}</p>
+            </li>
+          ))}
         </ul>
       )}
     </section>

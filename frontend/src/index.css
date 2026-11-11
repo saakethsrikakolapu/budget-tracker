@@ -61,6 +61,33 @@
   /* The highlighter: behind text that needs a look (always with ink-colored text on it). */
   --color-highlight: #f2e35c;
   --color-highlight-ink: #17302a;
+
+  /*
+   * Status: what a number means. Good = under budget, close = under 10% left, over = past it.
+   * Plain amounts (costs, totals) stay ink: green is never used for money going out.
+   */
+  --color-good: #2f6b4f;
+  --color-close: #8a5a00; /* text: 5.2:1 on the paper */
+  --color-close-bar: #b07a00; /* bars: brighter amber (3.3:1), so it doesn't read as the Food brown */
+  --color-over: #b4413a;
+  /* The "Higher than usual" tag: a small amber flag, once per item. */
+  --color-flag: #f3e2b0;
+  --color-flag-ink: #5a3f00;
+
+  /*
+   * Category colors ("banknote inks"): eight muted hues, green first, none red or yellow so status
+   * colors keep their meaning. Each is at least 3:1 on the paper and on white. Rarer and custom
+   * categories share the quiet "other" gray (past eight hues, people can't tell them apart).
+   */
+  --color-cat-groceries: #2f6b4f;
+  --color-cat-food: #8f5a26;
+  --color-cat-bills: #2c5aa8;
+  --color-cat-entertainment: #6e48b0;
+  --color-cat-shopping: #9c3d78;
+  --color-cat-subscriptions: #147a83;
+  --color-cat-health: #5f7d14;
+  --color-cat-transport: #56617a;
+  --color-cat-other: #8e9c8c;
 }
 
 @layer base {

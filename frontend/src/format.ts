@@ -91,3 +91,18 @@ export function daysFromToday(isoDate: string): number {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   return Math.round((new Date(year, month - 1, day).getTime() - today.getTime()) / 86_400_000)
 }
+
+/**
+ * When a recurring charge is next expected, said honestly. Ahead of today: "due in 3 days".
+ * Already past but after the latest statement: "expected Oct 19 (after your latest statement)",
+ * since it has probably been charged, just not uploaded yet.
+ */
+export function expectedLabel(isoDate: string, asOf: string | null): string {
+  const days = daysFromToday(isoDate)
+  if (days === 0) return 'Due today'
+  if (days === 1) return 'Due tomorrow'
+  if (days > 1 && days <= 14) return `Due in ${days} days`
+  if (days > 14) return `Due ${formatShortDate(isoDate)}`
+  if (asOf && isoDate > asOf) return `Expected ${formatShortDate(isoDate)} (after your latest statement)`
+  return `Expected ${formatShortDate(isoDate)}`
+}
