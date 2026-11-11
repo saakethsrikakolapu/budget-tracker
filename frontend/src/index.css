@@ -111,6 +111,13 @@
     @apply font-display tracking-tight;
   }
 
+  /* No single word stranded on the last line of a paragraph (browsers without support ignore it). */
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+
   /* Visible keyboard focus everywhere, in the accent color (never removed, only restyled). */
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-accent;

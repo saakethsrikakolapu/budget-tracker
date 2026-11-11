@@ -36,7 +36,7 @@ export function VerifyEmailPage() {
           <p className="text-stone-700">Thanks! If you ever forget your password, you can reset it by email.</p>
           <Link
             to={user ? '/' : '/login'}
-            className="inline-block rounded-lg bg-stone-950 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-800"
+            className="inline-block rounded-lg bg-button px-4 py-2 text-sm font-medium text-button-ink transition-colors duration-150 hover:bg-button-hover"
           >
             {user ? 'Go to dashboard' : 'Log in'}
           </Link>

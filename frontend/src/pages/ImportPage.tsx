@@ -579,14 +579,14 @@ function ImportDone({
         {!nothingNew && imported.uncategorizedCount > 0 ? (
           <Link
             to="/transactions?category=uncategorized&month=all"
-            className="rounded-lg bg-stone-950 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-800"
+            className="rounded-lg bg-button px-4 py-2 text-sm font-medium text-button-ink transition-colors duration-150 hover:bg-button-hover"
           >
             Review {imported.uncategorizedCount}
           </Link>
         ) : (
           <Link
             to="/"
-            className="rounded-lg bg-stone-950 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-800"
+            className="rounded-lg bg-button px-4 py-2 text-sm font-medium text-button-ink transition-colors duration-150 hover:bg-button-hover"
           >
             View dashboard
           </Link>

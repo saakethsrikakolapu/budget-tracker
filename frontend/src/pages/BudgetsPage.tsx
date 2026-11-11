@@ -347,7 +347,7 @@ function TargetEditor({
         aria-describedby={invalid ? 'monthly-total-error' : undefined}
         className="min-h-9 w-28 rounded-md border border-stone-300 bg-white px-2 py-1.5"
       />
-      <button type="submit" className="rounded-lg bg-stone-950 px-3 py-1.5 font-medium text-white hover:bg-stone-800">
+      <button type="submit" className="rounded-lg bg-button px-3 py-1.5 font-medium text-button-ink hover:bg-button-hover">
         Update
       </button>
       <button type="button" onClick={() => setEditing(false)} className="px-2 py-1.5 text-stone-600">

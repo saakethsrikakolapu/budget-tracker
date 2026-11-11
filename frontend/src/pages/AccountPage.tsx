@@ -321,7 +321,7 @@ function ChangePassword() {
             <button
               type="submit"
               disabled={busy || current === '' || next === ''}
-              className="rounded-lg bg-stone-950 px-3 py-2 text-sm font-medium text-white hover:bg-stone-800 disabled:opacity-50"
+              className="rounded-lg bg-button px-3 py-2 text-sm font-medium text-button-ink hover:bg-button-hover disabled:opacity-50"
             >
               {busy ? 'Saving…' : 'Save new password'}
             </button>

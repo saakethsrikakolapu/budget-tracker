@@ -289,7 +289,7 @@ export function TransactionsPage() {
               className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm sm:w-56"
             />
           </label>
-          <button type="submit" className="rounded-lg bg-stone-950 px-3 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-800">
+          <button type="submit" className="rounded-lg bg-button px-3 py-2 text-sm font-medium text-button-ink transition-colors duration-150 hover:bg-button-hover">
             Search
           </button>
           <button
@@ -341,7 +341,7 @@ export function TransactionsPage() {
             <button
               type="button"
               onClick={handleAlways}
-              className="rounded-lg bg-stone-950 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-800"
+              className="rounded-lg bg-button px-3 py-1.5 text-sm font-medium text-button-ink transition-colors duration-150 hover:bg-button-hover"
             >
               Yes, always
             </button>
