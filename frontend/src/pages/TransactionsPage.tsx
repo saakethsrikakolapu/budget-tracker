@@ -1,16 +1,19 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useSearchParams } from 'react-router'
-import { Check, SlidersHorizontal, Sparkles } from 'lucide-react'
+import { Fragment, useEffect, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router'
+import { Check, ChevronRight, SlidersHorizontal, Sparkles } from 'lucide-react'
 import * as api from '../api'
 import { CategoryIcon } from '../components/CategoryIcon'
-import { formatDayHeading, formatMoney, formatMonth, monthRange } from '../format'
+import { CategoryPicker } from '../components/CategoryPicker'
+import { FirstRun } from '../components/FirstRun'
+import { useMediaQuery } from '../hooks/useMediaQuery'
+import { formatDayHeading, formatMoney, formatMonth, formatShortDate, monthRange } from '../format'
 import { merchantName } from '../merchant'
 
 const ALL_TIME = 'all'
 
 /**
  * Your transactions, filterable by account, month, category, and merchant, with a category
- * dropdown on each row. Filters live in the URL (e.g. /transactions?account=3&month=2026-09&category=7&q=coffee&page=2),
+ * chip on each row. Filters live in the URL (e.g. /transactions?account=3&month=2026-09&category=7&q=coffee&page=2),
  * so refresh, the back
  * button, and bookmarks all keep them.
  */
@@ -44,6 +47,10 @@ export function TransactionsPage() {
   const [searchText, setSearchText] = useState(qParam)
   /** Phones only: the account/category/month dropdowns stay folded away until asked for. */
   const [showFilters, setShowFilters] = useState(false)
+  /** The row showing its details (the bank's own text, account, bank's label). */
+  const [openId, setOpenId] = useState<number | null>(null)
+  /** Desktop gets a real table; phones get a compact list grouped by day. */
+  const wide = useMediaQuery('(min-width: 1024px)')
   // Keep the box in sync when the URL changes some other way (e.g. the back button).
   const [syncedQ, setSyncedQ] = useState(qParam)
   if (syncedQ !== qParam) {
@@ -182,17 +189,21 @@ export function TransactionsPage() {
 
   if (months !== null && months.length === 0) {
     return (
-      <div className="max-w-xl">
-        <h1 className="text-3xl font-bold text-stone-950">Transactions</h1>
-        <p className="mt-4 text-stone-600">
-          No transactions yet.{' '}
-          <Link to="/import" className="font-medium text-accent hover:underline">
-            Upload your first statement
-          </Link>{' '}
-          to get started.
+      <FirstRun title="Transactions">
+        <p>
+          Every purchase from your statements shows up here, sorted into categories automatically. Download a
+          CSV from your bank&apos;s website and drop it in.
         </p>
-      </div>
+      </FirstRun>
     )
+  }
+
+  const rowProps: RowProps = {
+    categories,
+    showAccount: accounts.length > 1,
+    openId,
+    onToggle: (id) => setOpenId((current) => (current === id ? null : id)),
+    onCategoryChange: handleCategoryChange,
   }
 
   return (
@@ -368,71 +379,10 @@ export function TransactionsPage() {
             <p className="rounded-lg border border-stone-200 bg-white px-4 py-8 text-center text-stone-500">
               No transactions match these filters. Try All time, or clear the search.
             </p>
+          ) : wide ? (
+            <TransactionTable items={data.items} {...rowProps} />
           ) : (
-            // Grouped by day, newest first (the backend already sorts by date).
-            <div className="card divide-y divide-stone-100 overflow-hidden">
-              {groupByDay(data.items).map(([day, items]) => (
-                <section key={day} aria-label={formatDayHeading(day)}>
-                  <h2 className="flex items-baseline justify-between bg-stone-50/80 px-4 py-2 font-sans text-xs font-semibold tracking-normal text-stone-600">
-                    {formatDayHeading(day)}
-                  </h2>
-                  <ul className="divide-y divide-stone-100">
-                    {items.map((t) => (
-                      <li key={t.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 sm:flex-nowrap">
-                        <CategoryIcon name={t.categoryName} />
-                        {/* Readable name first, then the bank's own text (what rules and search match). */}
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-stone-900">{merchantName(t.description)}</p>
-                          <p className="truncate text-xs text-stone-500">
-                            {t.description}, {t.accountName}
-                          </p>
-                        </div>
-                        {/* The category is a quiet dropdown: looks like a label, changes on click. */}
-                        <div className="order-last flex w-full items-center gap-2 pl-11 sm:order-none sm:w-64 sm:pl-0">
-                          <select
-                            value={t.categoryId === null ? '' : String(t.categoryId)}
-                            onChange={(event) => handleCategoryChange(t, event.target.value)}
-                            title={t.bankCategory ? `Bank's label: ${t.bankCategory}` : undefined}
-                            aria-label={`Category for ${t.description}`}
-                            className={`min-h-9 min-w-0 flex-1 truncate rounded-md border border-transparent bg-transparent py-1.5 text-sm transition-colors duration-150 hover:border-stone-300 ${
-                              t.categoryId === null ? 'italic text-stone-500' : 'text-stone-700'
-                            }`}
-                          >
-                            <option value="">Uncategorized</option>
-                            {categories.map((category) => (
-                              <option key={category.id} value={String(category.id)}>
-                                {category.name}
-                              </option>
-                            ))}
-                          </select>
-                          {/* A guess by the model: one click to keep it (it then counts as the person's choice). */}
-                          {t.categorySource === 'SUGGESTED' && t.categoryId !== null && (
-                            <button
-                              type="button"
-                              onClick={() => handleCategoryChange(t, String(t.categoryId))}
-                              title="Suggested automatically. Click to confirm, or pick another category."
-                              aria-label={`Confirm suggested category ${t.categoryName} for ${t.description}`}
-                              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-stone-200 bg-accent-soft px-2 py-1 text-[11px] font-medium text-stone-800 transition-colors duration-150 hover:border-accent"
-                            >
-                              <Sparkles size={12} aria-hidden="true" />
-                              Suggested
-                              <Check size={12} aria-hidden="true" />
-                            </button>
-                          )}
-                        </div>
-                        <span
-                          className={`w-24 text-right text-sm font-medium tabular-nums ${
-                            t.amount < 0 ? 'text-stone-900' : 'text-accent'
-                          }`}
-                        >
-                          {formatMoney(t.amount, { signed: true })}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ))}
-            </div>
+            <TransactionList items={data.items} {...rowProps} />
           )}
 
           {data.totalPages > 1 && (
@@ -471,4 +421,203 @@ function groupByDay(items: api.Transaction[]): [string, api.Transaction[]][] {
     groups.set(t.transactionDate, [...(groups.get(t.transactionDate) ?? []), t])
   }
   return [...groups.entries()]
+}
+
+type RowProps = {
+  categories: api.Category[]
+  /** Only with more than one bank account: with one, the name says nothing. */
+  showAccount: boolean
+  openId: number | null
+  onToggle: (id: number) => void
+  onCategoryChange: (transaction: api.Transaction, value: string) => void
+}
+
+/** Money in (refunds, income) reads green with a plus; money out stays plain ink. */
+function Amount({ t }: { t: api.Transaction }) {
+  return (
+    <span className={`text-sm font-medium tabular-nums ${t.amount < 0 ? 'text-stone-950' : 'text-good'}`}>
+      {formatMoney(t.amount, { signed: true })}
+    </span>
+  )
+}
+
+/** The category chip, plus a one-click confirm when the model guessed it. */
+function CategoryCell({
+  t,
+  categories,
+  onCategoryChange,
+}: { t: api.Transaction } & Pick<RowProps, 'categories' | 'onCategoryChange'>) {
+  const name = merchantName(t.description)
+  return (
+    <span className="flex min-w-0 items-center gap-1.5">
+      <CategoryPicker
+        value={t.categoryId}
+        categoryName={t.categoryName}
+        categories={categories}
+        label={`Category for ${name}`}
+        onChange={(value) => onCategoryChange(t, value)}
+        title={t.bankCategory ? `Bank's label: ${t.bankCategory}` : undefined}
+      />
+      {/* A guess by the model: one click to keep it (it then counts as the person's choice). */}
+      {t.categorySource === 'SUGGESTED' && t.categoryId !== null && (
+        <button
+          type="button"
+          onClick={() => onCategoryChange(t, String(t.categoryId))}
+          title="Suggested automatically. Click to confirm, or pick another category."
+          aria-label={`Confirm suggested category ${t.categoryName} for ${name}`}
+          className="inline-flex shrink-0 items-center gap-1 rounded-md bg-accent-soft px-1.5 py-0.5 text-[11px] font-medium text-stone-800 transition-colors duration-150 hover:bg-stone-200"
+        >
+          <Sparkles size={11} aria-hidden="true" />
+          <span className="hidden sm:inline">Suggested</span>
+          <Check size={11} aria-hidden="true" />
+        </button>
+      )}
+    </span>
+  )
+}
+
+/** The merchant name; clicking it shows the row's details. */
+function MerchantButton({ t, open, onToggle }: { t: api.Transaction; open: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      className="group flex max-w-full min-w-0 items-center gap-1 text-left text-sm font-medium text-stone-900"
+    >
+      <span className="truncate">{merchantName(t.description)}</span>
+      <ChevronRight
+        size={14}
+        aria-hidden="true"
+        className={`shrink-0 text-stone-400 transition-transform duration-150 group-hover:text-stone-600 ${open ? 'rotate-90' : ''}`}
+      />
+    </button>
+  )
+}
+
+/** What the bank wrote, which account, and the bank's own category: shown on request. */
+function Details({ t }: { t: api.Transaction }) {
+  return (
+    <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-xs text-stone-600">
+      <dt className="text-stone-500">Bank&apos;s text</dt>
+      <dd className="break-words text-stone-800">{t.description}</dd>
+      <dt className="text-stone-500">Account</dt>
+      <dd className="text-stone-800">{t.accountName}</dd>
+      {t.bankCategory && (
+        <>
+          <dt className="text-stone-500">Bank&apos;s label</dt>
+          <dd className="text-stone-800">{t.bankCategory}</dd>
+        </>
+      )}
+    </dl>
+  )
+}
+
+/**
+ * Phones: grouped by day, two short lines per row (merchant, then the category chip) with the
+ * amount on the right, so 6 to 8 rows fit on a screen.
+ */
+function TransactionList({ items, ...props }: { items: api.Transaction[] } & RowProps) {
+  return (
+    <div className="card divide-y divide-stone-100 overflow-hidden">
+      {groupByDay(items).map(([day, dayItems]) => (
+        <section key={day} aria-label={formatDayHeading(day)}>
+          <h2 className="bg-stone-50/80 px-4 py-1.5 font-sans text-xs font-semibold tracking-normal text-stone-600">
+            {formatDayHeading(day)}
+          </h2>
+          <ul className="divide-y divide-stone-100">
+            {dayItems.map((t) => {
+              const open = props.openId === t.id
+              return (
+                <li key={t.id} className="px-4 py-2">
+                  <div className="flex items-center gap-3">
+                    <CategoryIcon name={t.categoryName} />
+                    <div className="min-w-0 flex-1">
+                      <MerchantButton t={t} open={open} onToggle={() => props.onToggle(t.id)} />
+                      <div className="mt-0.5 flex min-w-0 items-center gap-2">
+                        <CategoryCell t={t} categories={props.categories} onCategoryChange={props.onCategoryChange} />
+                        {props.showAccount && <span className="truncate text-xs text-stone-500">{t.accountName}</span>}
+                      </div>
+                    </div>
+                    <Amount t={t} />
+                  </div>
+                  {open && (
+                    <div className="mt-2 pl-[30px]">
+                      <Details t={t} />
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ))}
+    </div>
+  )
+}
+
+/** Desktop: a real table, one line per transaction, with the date as a column. */
+function TransactionTable({ items, ...props }: { items: api.Transaction[] } & RowProps) {
+  const columns = props.showAccount ? 5 : 4
+  return (
+    <div className="card overflow-hidden">
+      <table className="w-full table-fixed text-left text-sm">
+        <caption className="sr-only">Transactions, newest first</caption>
+        <thead className="border-b border-stone-200 bg-stone-50/80 text-xs text-stone-600">
+          <tr>
+            <th scope="col" className="w-24 px-4 py-2 font-semibold">
+              Date
+            </th>
+            <th scope="col" className="px-4 py-2 font-semibold">
+              Merchant
+            </th>
+            <th scope="col" className="w-60 px-4 py-2 font-semibold">
+              Category
+            </th>
+            {props.showAccount && (
+              <th scope="col" className="w-44 px-4 py-2 font-semibold">
+                Account
+              </th>
+            )}
+            <th scope="col" className="w-32 px-4 py-2 text-right font-semibold">
+              Amount
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-stone-100">
+          {items.map((t) => {
+            const open = props.openId === t.id
+            return (
+              <Fragment key={t.id}>
+                <tr className="transition-colors duration-150 hover:bg-stone-50/60">
+                  <td className="px-4 py-2 tabular-nums text-stone-600">{formatShortDate(t.transactionDate)}</td>
+                  <td className="px-4 py-2">
+                    <span className="flex min-w-0 items-center gap-2.5">
+                      <CategoryIcon name={t.categoryName} size="sm" />
+                      <MerchantButton t={t} open={open} onToggle={() => props.onToggle(t.id)} />
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <CategoryCell t={t} categories={props.categories} onCategoryChange={props.onCategoryChange} />
+                  </td>
+                  {props.showAccount && <td className="truncate px-4 py-2 text-stone-600">{t.accountName}</td>}
+                  <td className="px-4 py-2 text-right">
+                    <Amount t={t} />
+                  </td>
+                </tr>
+                {open && (
+                  <tr className="bg-stone-50/60">
+                    <td />
+                    <td colSpan={columns - 1} className="px-4 pt-1 pb-3">
+                      <Details t={t} />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
 }
