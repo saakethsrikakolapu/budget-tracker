@@ -16,7 +16,7 @@ test('sign up, upload a statement, see where the money went, use the suggested b
   // Sign up: lands on the welcome screen.
   await page.goto('/register')
   await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password').fill(PASSWORD)
+  await page.getByLabel('Password', { exact: true }).fill(PASSWORD)
   await page.getByRole('button', { name: 'Create account' }).click()
   await expect(page.getByRole('heading', { name: /let's see where your money goes/i })).toBeVisible()
 

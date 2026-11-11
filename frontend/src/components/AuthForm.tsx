@@ -69,7 +69,9 @@ export function AuthForm({ title, submitLabel, passwordAutoComplete, onSubmit, f
 
         {notice && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{notice}</p>}
 
-        <SubmitButton busy={submitting}>{submitLabel}</SubmitButton>
+        <SubmitButton busy={submitting} busyLabel={passwordAutoComplete === 'new-password' ? 'Creating your account' : 'Logging in'}>
+          {submitLabel}
+        </SubmitButton>
 
         <p className="text-center text-sm text-stone-600">{footer}</p>
       </form>

@@ -1,4 +1,5 @@
-import { useEffect, type ReactNode } from 'react'
+import { Eye, EyeOff, LoaderCircle } from 'lucide-react'
+import { useEffect, useId, useState, type ReactNode } from 'react'
 import { Brand, Logo } from './Logo'
 
 /**
@@ -92,39 +93,72 @@ type FieldProps = {
   hint?: string
 }
 
-/** A labeled input with its error underneath. */
+/**
+ * A labeled input with its error underneath (tied to the input with aria-describedby, so screen
+ * readers read it). Password fields get a Show/Hide button: typing a password on a phone is error-prone.
+ */
 export function Field({ label, type, autoComplete, value, onChange, error, hint }: FieldProps) {
+  const id = useId()
+  const [revealed, setRevealed] = useState(false)
+  const isPassword = type === 'password'
+  const noteId = `${id}-note`
   return (
-    <label className="block">
-      <span className="text-sm font-medium text-stone-700">{label}</span>
-      <input
-        type={type}
-        autoComplete={autoComplete}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        aria-invalid={error ? true : undefined}
-        className={`mt-1.5 w-full rounded-lg border bg-white px-3 py-2.5 outline-none transition-colors duration-150 focus:border-accent focus:ring-2 focus:ring-accent-soft ${
-          error ? 'border-red-500' : 'border-stone-300'
-        }`}
-      />
+    <div>
+      <label htmlFor={id} className="text-sm font-medium text-stone-700">
+        {label}
+      </label>
+      <div className="relative mt-1.5">
+        <input
+          id={id}
+          type={isPassword && revealed ? 'text' : type}
+          autoComplete={autoComplete}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error || hint ? noteId : undefined}
+          className={`w-full rounded-lg border bg-white px-3 py-2.5 outline-none transition-colors duration-150 focus:border-accent focus:ring-2 focus:ring-accent-soft ${
+            error ? 'border-red-500' : 'border-stone-300'
+          } ${isPassword ? 'pr-20' : ''}`}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setRevealed((shown) => !shown)}
+            aria-pressed={revealed}
+            aria-label={revealed ? 'Hide password' : 'Show password'}
+            className="absolute inset-y-1 right-1 inline-flex items-center gap-1.5 rounded-md px-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 hover:text-stone-900"
+          >
+            {revealed ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+            <span aria-hidden="true">{revealed ? 'Hide' : 'Show'}</span>
+          </button>
+        )}
+      </div>
       {error ? (
-        <span className="mt-1 block text-sm text-red-600">{error}</span>
+        <span id={noteId} className="mt-1 block text-sm text-red-600">
+          {error}
+        </span>
       ) : (
-        hint && <span className="mt-1 block text-xs text-stone-500">{hint}</span>
+        hint && (
+          <span id={noteId} className="mt-1 block text-xs text-stone-500">
+            {hint}
+          </span>
+        )
       )}
-    </label>
+    </div>
   )
 }
 
-/** The big primary button at the bottom of these forms. */
-export function SubmitButton({ busy, children }: { busy: boolean; children: ReactNode }) {
+/** The big primary button at the bottom of these forms. While busy it says what's happening. */
+export function SubmitButton({ busy, busyLabel = 'One moment', children }: { busy: boolean; busyLabel?: string; children: ReactNode }) {
   return (
     <button
       type="submit"
       disabled={busy}
-      className="w-full rounded-lg bg-button py-2.5 text-button-ink font-semibold transition-colors duration-150 hover:bg-button-hover disabled:opacity-50"
+      aria-busy={busy || undefined}
+      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-button py-2.5 font-semibold text-button-ink transition-colors duration-150 hover:bg-button-hover disabled:cursor-wait disabled:opacity-70"
     >
-      {busy ? 'Please wait…' : children}
+      {busy && <LoaderCircle size={16} aria-hidden="true" className="animate-spin" />}
+      {busy ? `${busyLabel}…` : children}
     </button>
   )
 }
