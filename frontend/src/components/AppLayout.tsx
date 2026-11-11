@@ -1,11 +1,11 @@
-import { LayoutDashboard, ListOrdered, LogOut, Mail, PiggyBank, Repeat, Upload, X } from 'lucide-react'
+import { LayoutDashboard, ListOrdered, Mail, PiggyBank, Repeat, Upload, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import * as api from '../api'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/authContext'
 import { Brand } from './Logo'
+import { AccountMenu } from './AccountMenu'
 import { SystemStatus } from './SystemStatus'
-import { ThemeToggle } from './ThemeToggle'
 
 /** Browser-tab title per page; screen readers announce it when the page changes. */
 const TITLES: Record<string, string> = {
@@ -76,8 +76,8 @@ export function AppLayout() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-1 sm:gap-2">
-            <ThemeToggle />
+          {/* Just Upload and the avatar: settings, light/dark and log out live in the avatar's menu. */}
+          <div className="flex items-center gap-2">
             <NavLink
               to="/import"
               className="inline-flex items-center gap-1.5 rounded-lg bg-button px-3 py-2 text-sm font-semibold text-button-ink transition-colors duration-150 hover:bg-button-hover"
@@ -85,23 +85,9 @@ export function AppLayout() {
               <Upload size={16} aria-hidden="true" />
               Upload<span className="hidden md:inline"> statement</span>
             </NavLink>
-            <NavLink
-              to="/account"
-              title={user?.email}
-              aria-label="Your account"
-              className="grid size-9 place-items-center rounded-full border border-stone-200 text-sm font-medium uppercase text-stone-700 transition-colors duration-150 hover:bg-stone-100"
-            >
-              {user?.email.charAt(0)}
-            </NavLink>
-            <button
-              type="button"
-              onClick={handleLogout}
-              aria-label="Log out"
-              title="Log out"
-              className="grid size-9 place-items-center rounded-full text-stone-600 transition-colors duration-150 hover:bg-stone-100 hover:text-stone-900"
-            >
-              <LogOut size={18} aria-hidden="true" />
-            </button>
+            {user && (
+              <AccountMenu email={user.email} onAccount={() => navigate('/account')} onLogout={handleLogout} />
+            )}
           </div>
         </div>
       </header>

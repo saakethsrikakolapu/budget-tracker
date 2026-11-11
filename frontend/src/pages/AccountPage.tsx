@@ -1,14 +1,18 @@
-import { Download } from 'lucide-react'
+import { Download, LogOut } from 'lucide-react'
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useNavigate } from 'react-router'
 import * as api from '../api'
 import { useAuth } from '../auth/authContext'
+import { RowMenu } from '../components/RowMenu'
+import { setPreference, usePreference, type ThemePreference } from '../theme'
 
 /**
- * Your account: bank accounts, the monthly reminder email, password, downloading your data, and
- * deleting everything.
+ * Your account: bank accounts, the monthly reminder email, light or dark, password, downloading
+ * your data, logging out, and deleting everything.
  */
 export function AccountPage() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   return (
     <div className="max-w-2xl space-y-8">
       <div>
@@ -17,8 +21,23 @@ export function AccountPage() {
       </div>
       <BankAccounts />
       <Reminders />
+      <Appearance />
       <ChangePassword />
       <YourData />
+      <Section title="Log out">
+        <p className="mt-1 text-sm text-stone-600">Your data stays here for next time.</p>
+        <button
+          type="button"
+          onClick={async () => {
+            await logout()
+            navigate('/login', { replace: true })
+          }}
+          className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-800 transition-colors duration-150 hover:bg-stone-100"
+        >
+          <LogOut size={16} aria-hidden="true" />
+          Log out
+        </button>
+      </Section>
       <DeleteAccount />
     </div>
   )
@@ -82,7 +101,7 @@ function BankAccounts() {
       )}
       <ul className="mt-3 divide-y divide-stone-100">
         {accounts?.map((account) => (
-          <li key={account.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+          <li key={account.id} className="flex items-center justify-between gap-2 py-2.5">
             {editing === account.id ? (
               <form onSubmit={(event) => handleRename(event, account)} className="flex flex-1 flex-wrap items-center gap-2">
                 <input
@@ -102,31 +121,64 @@ function BankAccounts() {
               </form>
             ) : (
               <>
-                <span className="font-medium text-stone-900">{account.name}</span>
-                <span className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setName(account.name)
-                      setEditing(account.id)
-                    }}
-                    className="min-h-9 rounded-lg border border-stone-300 px-3 py-1.5 text-sm hover:bg-stone-100"
-                  >
-                    Rename
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(account)}
-                    className="min-h-9 rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50"
-                  >
-                    Remove
-                  </button>
-                </span>
+                <span className="min-w-0 truncate font-medium text-stone-900">{account.name}</span>
+                {/* Rename and Remove share one menu, so Remove isn't a red button sitting next to Rename. */}
+                <RowMenu
+                  label={`More for ${account.name}`}
+                  items={[
+                    {
+                      label: 'Rename',
+                      onSelect: () => {
+                        setName(account.name)
+                        setEditing(account.id)
+                      },
+                    },
+                    { label: 'Remove with its transactions…', onSelect: () => handleRemove(account) },
+                  ]}
+                />
               </>
             )}
           </li>
         ))}
       </ul>
+    </Section>
+  )
+}
+
+const THEMES: { value: ThemePreference; label: string }[] = [
+  { value: 'system', label: 'Same as device' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+]
+
+/** Light or dark (also in the avatar menu); a radio group, so it's one tab stop with arrow keys. */
+function Appearance() {
+  const preference = usePreference()
+  return (
+    <Section title="Appearance">
+      <fieldset className="mt-3">
+        <legend className="sr-only">Light or dark</legend>
+        <div className="inline-flex rounded-lg border border-stone-300 p-0.5">
+          {THEMES.map((theme) => (
+            <label
+              key={theme.value}
+              className={`cursor-pointer rounded-md px-3 py-1.5 text-sm transition-colors duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
+                preference === theme.value ? 'bg-button font-medium text-button-ink' : 'text-stone-700 hover:bg-stone-100'
+              }`}
+            >
+              <input
+                type="radio"
+                name="appearance"
+                value={theme.value}
+                checked={preference === theme.value}
+                onChange={() => setPreference(theme.value)}
+                className="sr-only"
+              />
+              {theme.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
     </Section>
   )
 }

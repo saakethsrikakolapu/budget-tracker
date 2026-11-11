@@ -54,7 +54,9 @@ test('sign up, upload a statement, see where the money went, use the suggested b
   await expect(page.getByRole('progressbar').first()).toBeVisible()
 
   // Clean up: delete the account (and check that works too).
-  await page.getByRole('link', { name: 'Your account' }).click()
+  // Settings live in the avatar menu.
+  await page.getByRole('button', { name: 'Your account' }).click()
+  await page.getByRole('menuitem', { name: 'Account settings' }).click()
   await page.getByRole('button', { name: /delete my account/i }).click()
   await page.getByLabel('Enter your password to confirm').fill(PASSWORD)
   await page.getByRole('button', { name: /permanently delete everything/i }).click()
