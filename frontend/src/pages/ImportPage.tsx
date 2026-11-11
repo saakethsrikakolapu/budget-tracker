@@ -68,7 +68,8 @@ export function ImportPage() {
       if (!choices) {
         setMapping(p.mapping)
         // Open the details when something needs attention; otherwise keep the page simple.
-        setShowDetails(p.mapping === null || p.errors.length > 0 || p.warnings.length > 0)
+        // With no columns found at all, the problem box offers the next steps instead.
+        setShowDetails(p.mapping !== null && (p.errors.length > 0 || p.warnings.length > 0))
       }
     } catch (err) {
       if (request !== latestPreview.current) return
@@ -262,6 +263,8 @@ export function ImportPage() {
               {preview && !readable && (
                 <Problem
                   preview={preview}
+                  manual={mapping !== null}
+                  onOtherFile={() => handleFileChosen(null)}
                   onStartManual={() => {
                     setShowDetails(true)
                     handleMappingChange(startingMapping(preview.columns.length))
@@ -276,7 +279,8 @@ export function ImportPage() {
                 </p>
               ))}
 
-              {preview && (
+              {/* With an unreadable file, the problem box carries the next step, not a disabled Import. */}
+              {preview && (readable || mapping !== null) && (
                 <div className="flex flex-wrap items-center gap-4">
                   <button
                     type="button"
@@ -325,7 +329,7 @@ export function ImportPage() {
         </div>
       )}
 
-      <h2 className="mt-12 mb-3 text-lg font-bold text-stone-950">Past uploads</h2>
+      {imports.length > 0 && <h2 className="mt-12 mb-3 text-lg font-bold text-stone-950">Past uploads</h2>}
       <ImportHistory imports={imports} onDelete={handleDeleteImport} />
     </div>
   )
@@ -417,21 +421,54 @@ function Summary({ preview, newCount }: { preview: api.ImportPreview; newCount: 
   )
 }
 
-/** The file couldn't be read automatically: say why, and offer to pick the columns. */
-function Problem({ preview, onStartManual }: { preview: api.ImportPreview; onStartManual: () => void }) {
+/**
+ * The file couldn't be read automatically: say why, then the two ways forward as real buttons
+ * (pick the columns by hand, or try another file), plus where to find the right CSV.
+ */
+function Problem({
+  preview,
+  manual,
+  onStartManual,
+  onOtherFile,
+}: {
+  preview: api.ImportPreview
+  manual: boolean
+  onStartManual: () => void
+  onOtherFile: () => void
+}) {
   const messages = preview.errors.length > 0 ? preview.errors : ['No transactions were found in this file.']
   return (
-    <div role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
-      <p className="font-medium">We couldn&apos;t read this file automatically.</p>
-      <ul className="mt-1 list-disc space-y-1 pl-5">
-        {messages.map((m) => (
-          <li key={m}>{m}</li>
-        ))}
-      </ul>
-      {preview.columns.length > 0 && (
-        <button type="button" onClick={onStartManual} className="mt-2 font-medium underline">
-          Show me the columns and I&apos;ll pick
-        </button>
+    <div className="space-y-4">
+      <div role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
+        <p className="font-medium">We couldn&apos;t read this file automatically.</p>
+        <ul className="mt-1 list-disc space-y-1 pl-5">
+          {messages.map((m) => (
+            <li key={m}>{m}</li>
+          ))}
+        </ul>
+      </div>
+      {!manual && (
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            {preview.columns.length > 0 && (
+              <button
+                type="button"
+                onClick={onStartManual}
+                className="rounded-lg bg-button px-4 py-2 text-sm font-semibold text-button-ink transition-colors duration-150 hover:bg-button-hover"
+              >
+                Pick the columns myself
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onOtherFile}
+              className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-800 transition-colors duration-150 hover:bg-stone-100"
+            >
+              Try a different file
+            </button>
+          </div>
+          <CsvHelp />
+        </>
       )}
     </div>
   )
