@@ -12,7 +12,8 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
 
   if (loading) {
-    return <p className="p-6 text-stone-500">Loading…</p>
+    // Usually a split second (checking the session): a blank page in the right color, not a flash of text.
+    return <div className="min-h-dvh bg-stone-50" aria-busy="true" aria-label="Loading" />
   }
   if (!user) {
     return pathname === '/' ? <LandingPage /> : <Navigate to="/login" replace />

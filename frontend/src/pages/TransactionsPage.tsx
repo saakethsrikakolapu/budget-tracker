@@ -232,7 +232,7 @@ export function TransactionsPage() {
           <select
             value={accountParam}
             onChange={(event) => updateParam('account', event.target.value)}
-            className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm sm:w-auto"
+            className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm sm:w-auto sm:max-w-56"
           >
             <option value="">All accounts</option>
             {accounts.map((account) => (
@@ -284,7 +284,7 @@ export function TransactionsPage() {
               type="search"
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
-              placeholder="Search merchants"
+              placeholder="Search"
               maxLength={100}
               className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm sm:w-56"
             />
@@ -449,7 +449,7 @@ function CategoryCell({
 }: { t: api.Transaction } & Pick<RowProps, 'categories' | 'onCategoryChange'>) {
   const name = merchantName(t.description)
   return (
-    <span className="flex min-w-0 items-center gap-1.5">
+    <span className="flex max-w-full shrink-0 items-center gap-1.5">
       <CategoryPicker
         value={t.categoryId}
         categoryName={t.categoryName}
@@ -536,7 +536,7 @@ function TransactionList({ items, ...props }: { items: api.Transaction[] } & Row
                       <MerchantButton t={t} open={open} onToggle={() => props.onToggle(t.id)} />
                       <div className="mt-0.5 flex min-w-0 items-center gap-2">
                         <CategoryCell t={t} categories={props.categories} onCategoryChange={props.onCategoryChange} />
-                        {props.showAccount && <span className="truncate text-xs text-stone-500">{t.accountName}</span>}
+                        {props.showAccount && <span className="min-w-0 truncate text-xs text-stone-500">{t.accountName}</span>}
                       </div>
                     </div>
                     <Amount t={t} />

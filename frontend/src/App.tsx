@@ -39,7 +39,7 @@ function App() {
         <Route
           path="/"
           element={
-            <Suspense fallback={<p className="text-slate-500">Loading…</p>}>
+            <Suspense fallback={<div className="skeleton h-14 w-2/3" aria-busy="true" aria-label="Loading the dashboard" />}>
               <DashboardPage />
             </Suspense>
           }

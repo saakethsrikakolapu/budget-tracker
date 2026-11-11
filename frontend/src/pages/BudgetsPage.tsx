@@ -507,7 +507,7 @@ function BudgetRow({
       <div onClick={toggle} className="cursor-pointer px-4 py-3 transition-colors duration-150 hover:bg-stone-50">
         <span className="flex items-center gap-2">
           <CategoryIcon name={line.categoryName} />
-          <span className="min-w-0 flex-1 truncate font-medium text-stone-900">{line.categoryName}</span>
+          <span className="min-w-0 flex-1 leading-snug font-medium break-words text-stone-900">{line.categoryName}</span>
           <span className="ml-auto shrink-0 text-sm tabular-nums text-stone-600">
             <strong className="font-semibold text-stone-950">{formatMoney(Math.max(line.spent, 0))}</strong> of{' '}
             {formatMoney(line.limit)}

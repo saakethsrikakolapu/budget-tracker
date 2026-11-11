@@ -419,7 +419,11 @@ function MonthlyTrend({ data, selected }: { data: api.Dashboard['monthlyTrend'];
                 fill={colors.label}
                 fontSize={12}
                 fontWeight={600}
-                formatter={(value) => `$${Math.round(Number(value)).toLocaleString('en-US')}`}
+                // Sign before the dollar sign: a month with only refunds reads "-$25", not "$-25".
+                formatter={(value) => {
+                  const rounded = Math.round(Number(value))
+                  return `${rounded < 0 ? '-' : ''}$${Math.abs(rounded).toLocaleString('en-US')}`
+                }}
               />
             </Bar>
           </BarChart>
