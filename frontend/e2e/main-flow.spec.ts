@@ -13,8 +13,13 @@ test('sign up, upload a statement, see where the money went, use the suggested b
   const email = `e2e-${testInfo.project.name}-${Date.now()}@example.test`
   const phone = testInfo.project.name === 'phone'
 
+  // Logged out, "/" is the landing page, and its button leads to sign-up.
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/no bank login/i)
+  await page.getByRole('link', { name: 'Create an account' }).first().click()
+  await expect(page).toHaveURL(/\/register$/)
+
   // Sign up: lands on the welcome screen.
-  await page.goto('/register')
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password', { exact: true }).fill(PASSWORD)
   await page.getByRole('button', { name: 'Create account' }).click()

@@ -51,7 +51,7 @@ function App() {
         <Route path="/account" element={<AccountPage />} />
       </Route>
 
-      {/* Unknown URL: go home (which redirects to /login if logged out). */}
+      {/* Unknown URL: go home (the landing page if logged out). */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

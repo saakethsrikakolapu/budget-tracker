@@ -155,6 +155,19 @@
     -webkit-box-decoration-break: clone;
   }
 
+  /* The landing page's receipt prints out of its slot once, on load (reduced motion: already out). */
+  .receipt-print {
+    animation: receipt-print 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+  }
+  @keyframes receipt-print {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
   /* Windows high-contrast mode drops background images: fall back to the system's own highlight. */
   @media (forced-colors: active) {
     mark,
