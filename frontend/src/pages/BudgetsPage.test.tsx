@@ -83,7 +83,7 @@ describe('BudgetsPage', () => {
     await user.click(screen.getByRole('button', { name: 'Use this budget' }))
 
     expect(apply).toHaveBeenCalledWith('2026-09', undefined)
-    expect(await screen.findByText(/left of/)).toHaveTextContent('$44.00 left of $64.00 this month.')
+    expect(await screen.findByText(/left of/)).toHaveTextContent('$44.00 left of your $64.00 budget in September.')
     expect(screen.queryByRole('button', { name: 'Use this budget' })).not.toBeInTheDocument()
   })
 
@@ -138,8 +138,35 @@ describe('BudgetsPage', () => {
 
     renderPage()
 
-    expect(await screen.findByText(/over your/)).toHaveTextContent('$70.03 over your $64.00 budget this month.')
-    expect(screen.getByText(/higher than usual:/i)).toHaveTextContent('Higher than usual: Groceries.')
+    // The summary names the month instead of saying "this month".
+    expect(await screen.findByText(/over your/)).toHaveTextContent('$70.03 over your $64.00 budget in September.')
+    // The flag shows once, on the category's own row.
+    expect(screen.getAllByText('Higher than usual')).toHaveLength(1)
     expect(screen.getByRole('progressbar', { name: /groceries/i })).toHaveAttribute('aria-valuenow', '209')
+  })
+
+  it('edits and removes a budget from inside the row, with Undo', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(api, 'fetchBudgets').mockResolvedValue({
+      ...EMPTY_OVERVIEW,
+      budgets: [{ categoryId: 1, categoryName: 'Groceries', limit: 64, spent: 20, remaining: 44, percentUsed: 31 }],
+      totalBudgeted: 64,
+      totalSpent: 20,
+    })
+    vi.spyOn(api, 'fetchBudgetPlan').mockResolvedValue({ ...PLAN, lines: [line({ hasBudget: true })] })
+    const remove = vi.spyOn(api, 'deleteBudget').mockResolvedValue(undefined)
+    const setBudget = vi.spyOn(api, 'setBudget').mockResolvedValue(undefined as never)
+
+    renderPage()
+
+    // No Remove button until the row's editor is open.
+    await screen.findByText(/left of your/)
+    expect(screen.queryByRole('button', { name: /remove/i })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Edit Groceries budget' }))
+    await user.click(screen.getByRole('button', { name: 'Remove from budget' }))
+    expect(remove).toHaveBeenCalledWith(1)
+
+    await user.click(await screen.findByRole('button', { name: 'Undo' }))
+    expect(setBudget).toHaveBeenCalledWith(1, '64.00')
   })
 })

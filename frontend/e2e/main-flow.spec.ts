@@ -50,7 +50,7 @@ test('sign up, upload a statement, see where the money went, use the suggested b
   await page.getByRole('link', { name: 'Budget', exact: true }).click()
   await expect(page.getByText(/you usually spend about/i)).toBeVisible()
   await page.getByRole('button', { name: 'Use this budget' }).click()
-  await expect(page.getByText(/(left of|over your) \$[\d,.]+ (budget )?this month/)).toBeVisible()
+  await expect(page.getByText(/(left of your|over your) \$[\d,.]+ budget in September/)).toBeVisible()
   await expect(page.getByRole('progressbar').first()).toBeVisible()
 
   // Clean up: delete the account (and check that works too).
