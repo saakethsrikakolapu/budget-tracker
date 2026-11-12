@@ -5,6 +5,7 @@ import * as api from '../api'
 import { CategoryIcon } from '../components/CategoryIcon'
 import { CategoryPicker } from '../components/CategoryPicker'
 import { FirstRun } from '../components/FirstRun'
+import { LoadError } from '../components/LoadError'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { formatDayHeading, formatMoney, formatMonth, formatShortDate, monthRange } from '../format'
 import { merchantName } from '../merchant'
@@ -36,6 +37,9 @@ export function TransactionsPage() {
   const [months, setMonths] = useState<string[] | null>(null)
   const [data, setData] = useState<api.TransactionPage | null>(null)
   const [error, setError] = useState<string | null>(null)
+  /** Loading failed (as opposed to an action): shown with a Try again button. */
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [optionsAttempt, setOptionsAttempt] = useState(0)
 
   const accountParam = searchParams.get('account') ?? ''
   const qParam = searchParams.get('q') ?? ''
@@ -65,9 +69,10 @@ export function TransactionsPage() {
         setAccounts(accountList)
         setMonths(monthList)
         setCategories(categoryList)
+        setLoadError(null)
       })
-      .catch(() => setError('Could not load your accounts.'))
-  }, [])
+      .catch(() => setLoadError('your accounts'))
+  }, [optionsAttempt])
 
   // Re-fetch whenever the filters change.
   useEffect(() => {
@@ -86,11 +91,11 @@ export function TransactionsPage() {
       .then((result) => {
         if (!ignore) {
           setData(result)
-          setError(null)
+          setLoadError(null)
         }
       })
       .catch(() => {
-        if (!ignore) setError('Could not load transactions.')
+        if (!ignore) setLoadError('your transactions')
       })
     return () => {
       ignore = true
@@ -321,6 +326,18 @@ export function TransactionsPage() {
           {error}
         </p>
       )}
+      {loadError && (
+        <LoadError
+          what={loadError}
+          onRetry={() => {
+            setLoadError(null)
+            if (months === null) setOptionsAttempt((n) => n + 1)
+            else setReloadKey((key) => key + 1)
+          }}
+        />
+      )}
+      {/* While the first page loads: row shapes where the list will be, so nothing jumps. */}
+      {!data && !loadError && <TransactionsSkeleton />}
 
       {suggestion && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-200 bg-accent-soft px-4 py-3">
@@ -372,6 +389,16 @@ export function TransactionsPage() {
               {data.totals.excludedCount} transaction{data.totals.excludedCount === 1 ? '' : 's'} (like card payments)
               {data.totals.excludedCount === 1 ? ' is' : ' are'} in categories that don&apos;t count as spending, so{' '}
               {data.totals.excludedCount === 1 ? "it's" : "they're"} left out of these totals.
+            </p>
+          )}
+
+          {data.items.some((t) => t.categorySource === 'SUGGESTED' && t.categoryId !== null) && (
+            <p className="flex items-start gap-2 text-sm text-stone-600">
+              <Sparkles size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
+              <span>
+                Spendr guessed the categories marked <strong className="font-medium text-stone-900">Suggested</strong>.
+                Tap the check to keep one, or tap the category to pick another.
+              </span>
             </p>
           )}
 
@@ -618,6 +645,24 @@ function TransactionTable({ items, ...props }: { items: api.Transaction[] } & Ro
           })}
         </tbody>
       </table>
+    </div>
+  )
+}
+
+/** Placeholder rows in the shape of the list, shown until the first page arrives. */
+function TransactionsSkeleton() {
+  return (
+    <div className="card divide-y divide-stone-100" aria-busy="true" aria-label="Loading transactions">
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+        <div key={i} className="flex items-center gap-3 px-4 py-3">
+          <div className="skeleton size-5 rounded-full" />
+          <div className="flex-1 space-y-1.5">
+            <div className="skeleton h-3.5 w-2/5" />
+            <div className="skeleton h-3 w-1/4" />
+          </div>
+          <div className="skeleton h-3.5 w-14" />
+        </div>
+      ))}
     </div>
   )
 }

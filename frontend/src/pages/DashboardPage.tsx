@@ -15,6 +15,7 @@ import {
 import { useCountUp } from '../hooks/useCountUp'
 import { budgetStatus, remainingText, STATUS_TEXT } from '../budgetStatus'
 import { BudgetMeter } from '../components/BudgetMeter'
+import { LoadError } from '../components/LoadError'
 import { categoryStyle } from '../categoryStyle'
 import { useIsDark } from '../theme'
 import { nudge } from '../voice'
@@ -53,18 +54,20 @@ export function DashboardPage() {
   const [plan, setPlan] = useState<api.BudgetPlan | null>(null)
   const [recurring, setRecurring] = useState<api.RecurringOverview | null>(null)
   const [error, setError] = useState<string | null>(null)
+  /** Bumped by "Try again" to re-run the loads below. */
+  const [attempt, setAttempt] = useState(0)
 
   const month = searchParams.get('month') ?? months?.[0] ?? null
 
   useEffect(() => {
     api.fetchTransactionMonths()
       .then(setMonths)
-      .catch(() => setError('Could not load your data.'))
+      .catch(() => setError('your data'))
     // Subscriptions don't depend on the month: load once. The section just stays hidden if this fails.
     api.fetchRecurring()
       .then(setRecurring)
       .catch(() => setRecurring(null))
-  }, [])
+  }, [attempt])
 
   useEffect(() => {
     if (month === null) return
@@ -77,7 +80,7 @@ export function DashboardPage() {
         }
       })
       .catch(() => {
-        if (!ignore) setError('Could not load the dashboard.')
+        if (!ignore) setError('the dashboard')
       })
     // "Higher than usual" and the budget suggestion are extras: if they fail, they just don't show.
     api.fetchBudgetPlan(month)
@@ -90,7 +93,7 @@ export function DashboardPage() {
     return () => {
       ignore = true
     }
-  }, [month])
+  }, [month, attempt])
 
   if (months !== null && months.length === 0) {
     return <Welcome />
@@ -129,9 +132,13 @@ export function DashboardPage() {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-md bg-red-50 px-4 py-3 text-red-800">
-          {error}
-        </p>
+        <LoadError
+          what={error}
+          onRetry={() => {
+            setError(null)
+            setAttempt((n) => n + 1)
+          }}
+        />
       )}
 
       {!dashboard && !error && <DashboardSkeleton />}

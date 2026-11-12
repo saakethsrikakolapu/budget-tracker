@@ -1,4 +1,4 @@
-import { MoreHorizontal } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import * as api from '../api'
@@ -6,6 +6,7 @@ import { budgetStatus, remainingText, STATUS_TEXT } from '../budgetStatus'
 import { BudgetMeter, HigherFlag } from '../components/BudgetMeter'
 import { CategoryIcon } from '../components/CategoryIcon'
 import { FirstRun } from '../components/FirstRun'
+import { LoadError } from '../components/LoadError'
 import { formatMoney, formatMonth, isMoneyInput } from '../format'
 
 /**
@@ -23,6 +24,9 @@ export function BudgetsPage() {
   const [customTarget, setCustomTarget] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  /** Loading failed (not an action): shown with a Try again button. */
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [monthsAttempt, setMonthsAttempt] = useState(0)
 
   // Same rule as the dashboard: only months with transactions, newest first; the newest by default.
   const month = searchParams.get('month') ?? months?.[0] ?? null
@@ -32,9 +36,12 @@ export function BudgetsPage() {
 
   useEffect(() => {
     api.fetchTransactionMonths()
-      .then(setMonths)
-      .catch(() => setError('Could not load your data.'))
-  }, [])
+      .then((list) => {
+        setMonths(list)
+        setLoadError(null)
+      })
+      .catch(() => setLoadError('your data'))
+  }, [monthsAttempt])
 
   useEffect(() => {
     if (month === null) return
@@ -44,10 +51,11 @@ export function BudgetsPage() {
         if (!ignore) {
           setOverview(o)
           setPlan(p)
+          setLoadError(null)
         }
       })
       .catch(() => {
-        if (!ignore) setError('Could not load your budget.')
+        if (!ignore) setLoadError('your budget')
       })
     return () => {
       ignore = true
@@ -146,7 +154,18 @@ export function BudgetsPage() {
         </p>
       )}
 
-      {(!overview || !plan) && !error && <div className="skeleton h-64" aria-label="Loading your budget" />}
+      {loadError && (
+        <LoadError
+          what={loadError}
+          onRetry={() => {
+            setLoadError(null)
+            if (months === null) setMonthsAttempt((n) => n + 1)
+            else setReloadKey((key) => key + 1)
+          }}
+        />
+      )}
+
+      {(!overview || !plan) && !error && !loadError && <div className="skeleton h-64" aria-label="Loading your budget" />}
 
       {overview && plan && !hasBudget && (
         <div className="max-w-3xl">
@@ -401,7 +420,7 @@ function Tracking({
               </>
             )}
           </p>
-          <PaceSentence plan={plan} />
+          <PaceSentence plan={plan} overview={overview} />
         </div>
 
         <ul className="card divide-y divide-stone-100">
@@ -420,7 +439,6 @@ function Tracking({
             />
           ))}
         </ul>
-        <p className="text-xs text-stone-500">Tap a category to change its amount or take it out of the budget.</p>
       </div>
 
       {notBudgeted.length > 0 && (
@@ -458,8 +476,21 @@ function Tracking({
  * How this month compares with usual, by the same day of the month. Categories running higher are
  * flagged on their own rows, so this only speaks for the month as a whole.
  */
-function PaceSentence({ plan }: { plan: api.BudgetPlan }) {
+function PaceSentence({ plan, overview }: { plan: api.BudgetPlan; overview: api.BudgetOverview }) {
   if (plan.pace === 'UNKNOWN') return null
+  // Over budget in an ordinary month means the budget is set below your usual spending (the
+  // suggestion trims to fit your income or target). Say that, instead of two facts that seem to clash.
+  const usualForBudgeted = plan.lines.filter((l) => l.hasBudget).reduce((sum, l) => sum + l.usual, 0)
+  const over = overview.totalSpent > overview.totalBudgeted
+  if (over && plan.pace !== 'HIGHER' && usualForBudgeted > overview.totalBudgeted) {
+    return (
+      <p className="mt-2 max-w-[60ch] text-sm text-stone-600">
+        That&apos;s close to what you usually spend on these (about{' '}
+        <span className="tabular-nums">{formatMoney(usualForBudgeted)}</span> a month). Your budget is set lower on
+        purpose, so getting under it can take a few months.
+      </p>
+    )
+  }
   if (plan.pace === 'NORMAL') {
     return <p className="mt-2 text-sm text-stone-600">Overall, you&apos;re spending about like you usually do.</p>
   }
@@ -474,7 +505,7 @@ function PaceSentence({ plan }: { plan: api.BudgetPlan }) {
 }
 
 /**
- * One budgeted category. Tapping the row (or its ⋯ button) opens its editor (amount, Save, and
+ * One budgeted category. Tapping the row (or its Edit button) opens its editor (amount, Save, and
  * "Remove from budget"), so the list isn't a column of Change and Remove buttons.
  */
 function BudgetRow({
@@ -502,7 +533,7 @@ function BudgetRow({
 
   return (
     <li>
-      {/* The row is a big tap target for the mouse and touch; the ⋯ button is the same action for
+      {/* The row is a big tap target for the mouse and touch; the Edit button is the same action for
           keyboards and screen readers (a button can't contain the progress bar). */}
       <div onClick={toggle} className="cursor-pointer px-4 py-3 transition-colors duration-150 hover:bg-stone-50">
         <span className="flex items-center gap-2">
@@ -521,9 +552,12 @@ function BudgetRow({
             aria-expanded={editing}
             aria-controls={editorId}
             aria-label={`Edit ${line.categoryName} budget`}
-            className="-my-1 -mr-2 shrink-0 rounded-md p-1.5 text-stone-500 transition-colors duration-150 hover:bg-stone-200 hover:text-stone-900"
+            className="-my-1 -mr-2 inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-200 hover:text-stone-900"
           >
-            <MoreHorizontal size={16} aria-hidden="true" />
+            <Pencil size={14} aria-hidden="true" />
+            <span aria-hidden="true" className="hidden sm:inline">
+              Edit
+            </span>
           </button>
         </span>
         <BudgetMeter line={line} className="mt-2.5" />

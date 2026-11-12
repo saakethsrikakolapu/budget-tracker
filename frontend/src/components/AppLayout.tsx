@@ -116,7 +116,7 @@ export function AppLayout() {
             to={item.to}
             end={item.end}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 py-2.5 text-[11px] transition-colors duration-150 ${
+              `flex flex-col items-center gap-1 py-2.5 text-xs transition-colors duration-150 ${
                 isActive ? 'font-semibold text-accent' : 'text-stone-600'
               }`
             }

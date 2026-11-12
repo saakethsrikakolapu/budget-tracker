@@ -169,4 +169,43 @@ describe('BudgetsPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Undo' }))
     expect(setBudget).toHaveBeenCalledWith(1, '64.00')
   })
+
+  it('explains an over-budget month that is still a usual month', async () => {
+    vi.spyOn(api, 'fetchBudgets').mockResolvedValue({
+      ...EMPTY_OVERVIEW,
+      budgets: [{ categoryId: 1, categoryName: 'Groceries', limit: 50, spent: 64, remaining: -14, percentUsed: 128 }],
+      totalBudgeted: 50,
+      totalSpent: 64,
+    })
+    vi.spyOn(api, 'fetchBudgetPlan').mockResolvedValue({
+      ...PLAN,
+      lines: [line({ usual: 64.89, hasBudget: true, pace: 'NORMAL' })],
+    })
+
+    renderPage()
+
+    expect(await screen.findByText(/close to what you usually spend/i)).toHaveTextContent(
+      'about $64.89 a month). Your budget is set lower on purpose',
+    )
+    expect(screen.queryByText(/about like you usually do/i)).not.toBeInTheDocument()
+  })
+
+  it('offers Try again when the budget fails to load', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(api, 'fetchBudgets')
+      .mockRejectedValueOnce(new Error('server asleep'))
+      .mockResolvedValue({
+        ...EMPTY_OVERVIEW,
+        budgets: [{ categoryId: 1, categoryName: 'Groceries', limit: 64, spent: 20, remaining: 44, percentUsed: 31 }],
+        totalBudgeted: 64,
+        totalSpent: 20,
+      })
+    vi.spyOn(api, 'fetchBudgetPlan').mockResolvedValue({ ...PLAN, lines: [line({ hasBudget: true })] })
+
+    renderPage()
+
+    await user.click(await screen.findByRole('button', { name: 'Try again' }))
+    expect(await screen.findByText(/left of your/)).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
 })

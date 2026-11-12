@@ -210,7 +210,7 @@ function SampleBudget({ name, spent, limit }: { name: string; spent: number; lim
       <div className="relative mt-2 h-1.5 rounded-full bg-stone-200">
         {over ? (
           <>
-            <div className="absolute inset-y-0 left-0 rounded-l-full bg-over/40" style={{ width: `${mark}%` }} />
+            <div className="absolute inset-y-0 left-0 rounded-l-full bg-stone-300" style={{ width: `${mark}%` }} />
             <div className="absolute inset-y-0 right-0 rounded-r-full bg-over" style={{ left: `${mark}%` }} />
             <div className="absolute -inset-y-1 w-0.5 rounded-full bg-stone-950" style={{ left: `calc(${mark}% - 1px)` }} />
           </>

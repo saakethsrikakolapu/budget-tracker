@@ -24,8 +24,8 @@ export function BudgetMeter({ line, className = '' }: { line: BudgetLine; classN
     >
       {over ? (
         <>
-          {/* Up to the budget: the spending that was allowed, in a lighter red. */}
-          <div className="absolute inset-y-0 left-0 rounded-l-full bg-over/40" style={{ width: `${mark}%` }} />
+          {/* Up to the budget: the spending that was allowed, in neutral gray. */}
+          <div className="absolute inset-y-0 left-0 rounded-l-full bg-stone-300" style={{ width: `${mark}%` }} />
           {/* Past the budget: the overflow, in full red. */}
           <div className="absolute inset-y-0 right-0 rounded-r-full bg-over" style={{ left: `${mark}%` }} />
           {/* Where the budget ended. */}

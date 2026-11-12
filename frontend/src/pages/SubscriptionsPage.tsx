@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import * as api from '../api'
 import { categoryStyle } from '../categoryStyle'
 import { FirstRun } from '../components/FirstRun'
+import { LoadError } from '../components/LoadError'
 import { RowMenu } from '../components/RowMenu'
 import { expectedLabel, formatCadence, formatDate, formatMoney, formatShortDate } from '../format'
 
@@ -14,6 +15,7 @@ export function SubscriptionsPage() {
   const [overview, setOverview] = useState<api.RecurringOverview | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [loadFailed, setLoadFailed] = useState(false)
   /** After hiding one: its name and how to bring it back. */
   const [hidden, setHidden] = useState<api.RecurringCharge | null>(null)
 
@@ -21,10 +23,13 @@ export function SubscriptionsPage() {
     let ignore = false
     api.fetchRecurring()
       .then((result) => {
-        if (!ignore) setOverview(result)
+        if (!ignore) {
+          setOverview(result)
+          setLoadFailed(false)
+        }
       })
       .catch(() => {
-        if (!ignore) setError('Could not load subscriptions.')
+        if (!ignore) setLoadFailed(true)
       })
     return () => {
       ignore = true
@@ -52,7 +57,17 @@ export function SubscriptionsPage() {
   }
 
   if (overview === null) {
-    return error ? <ErrorMessage text={error} /> : <SubscriptionsSkeleton />
+    return loadFailed ? (
+      <LoadError
+        what="your subscriptions"
+        onRetry={() => {
+          setLoadFailed(false)
+          setReloadKey((key) => key + 1)
+        }}
+      />
+    ) : (
+      <SubscriptionsSkeleton />
+    )
   }
 
   if (overview.asOf === null) {
